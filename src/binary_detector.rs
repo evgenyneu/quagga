@@ -215,18 +215,16 @@ mod tests {
 
     #[test]
     fn test_is_valid_text_file_with_text_file() {
-        // Create a temporary directory and file
         let td = TempDir::new().unwrap();
         let file_path = td.mkfile_with_contents("test.txt", "fn main() {}");
 
-        // Check if the file is valid text
         let result = is_valid_text_file(file_path).unwrap();
+
         assert!(result);
     }
 
     #[test]
     fn test_is_valid_text_file_with_binary_file() {
-        // Create a temporary directory and binary file
         let td = TempDir::new().unwrap();
         let file_path = td.path().join("test.bin");
         let mut file = File::create(&file_path).unwrap();
@@ -235,26 +233,24 @@ mod tests {
 
         // Check if the file is valid text
         let result = is_valid_text_file(file_path).unwrap();
+
         assert!(!result);
     }
 
     #[test]
     fn test_is_valid_text_file_with_empty_file() {
-        // Create a temporary directory and empty file
         let td = TempDir::new().unwrap();
         let file_path = td.path().join("empty.txt");
         File::create(&file_path).unwrap();
 
-        // Check if the file is valid text
         let result = is_valid_text_file(file_path).unwrap();
+
         assert!(result, "Empty file detected as binary");
     }
 
     #[test]
     fn test_is_valid_text_file_with_nonexistent_file() {
         let td = TempDir::new().unwrap();
-
-        // Create a path to a non-existent file
         let file_path = td.path().join("nonexistent.txt");
 
         let result = is_valid_text_file(file_path);

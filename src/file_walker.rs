@@ -47,15 +47,12 @@ mod tests {
     #[test]
     fn test_get_all_files() {
         let td = TempDir::new().unwrap();
-
-        // Create directories and files
         td.mkdir("subdir");
         td.mkfile("file1.txt");
         td.mkfile("file2.txt");
         td.mkfile(".hidden");
         td.mkfile("subdir/file3.txt");
 
-        // Call the function to get all files
         let result = get_all_files(td.path());
         assert!(result.is_ok());
 
@@ -75,10 +72,7 @@ mod tests {
 
     #[test]
     fn test_get_all_files_filters_binary_files() {
-        // Create a temporary directory
         let td = TempDir::new().unwrap();
-
-        // Create text files
         td.mkfile_with_contents("file1.txt", "fn main() {}");
         td.mkfile_with_contents("file2.rs", "println!(\"Hello, world!\");");
 
@@ -88,21 +82,17 @@ mod tests {
         let binary_content = [0x00, 0xFF, 0x00, 0xFF];
         binary_file.write_all(&binary_content).unwrap();
 
-        // Get all files starting from the temporary directory
         let result = get_all_files(td.path());
 
-        // Assert that the result is Ok
         assert!(result.is_ok());
 
         let files = result.unwrap();
 
-        // Collect file names
         let file_names: Vec<String> = files
             .iter()
             .map(|path| path.file_name().unwrap().to_string_lossy().into_owned())
             .collect();
 
-        // Assert that text files are included
         assert!(file_names.contains(&"file1.txt".to_string()));
         assert!(file_names.contains(&"file2.rs".to_string()));
 
@@ -112,13 +102,10 @@ mod tests {
 
     #[test]
     fn test_get_all_files_with_no_files() {
-        // Create an empty temporary directory
         let td = TempDir::new().unwrap();
 
-        // Get all files starting from the temporary directory
         let result = get_all_files(td.path());
 
-        // Assert that the result is Ok and the list is empty
         assert!(result.is_ok());
         let files = result.unwrap();
         assert!(files.is_empty());
@@ -126,11 +113,30 @@ mod tests {
 
     #[test]
     fn test_get_all_files_with_nonexistent_directory() {
-        // Create a path to a non-existent directory
         let non_existent_path = Path::new("/path/to/nonexistent/directory");
 
         let result = get_all_files(non_existent_path);
 
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_get_all_files_with_file_read_error() {
+        let td = TempDir::new().unwrap();
+        let file_path = td.mkfile_with_contents("file1.txt", "fn main() {}");
+
+        // Set the file permissions to simulate a read error (e.g., remove read permissions)
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let mut perms = std::fs::metadata(&file_path).unwrap().permissions();
+            perms.set_mode(0o000); // No permissions
+            std::fs::set_permissions(&file_path, perms).unwrap();
+        }
+
+        let result = get_all_files(td.path());
+
+        // Assert that an error is returned
         assert!(result.is_err());
     }
 }
