@@ -1,3 +1,38 @@
+use std::fs::File;
+use std::io::{self, Read};
+use std::path::PathBuf;
+
+/// Determines if a file at the given path is likely a valid UTF-8 text code file.
+///
+/// This function reads the first 1024 bytes of the file and uses `is_valid_text`
+/// to check if the content is likely text.
+///
+/// # Arguments
+///
+/// * `file_path` - A `PathBuf` representing the path to the file.
+///
+/// # Returns
+///
+/// * `Ok(true)` if the file is likely a valid text file.
+/// * `Ok(false)` if the file is likely binary.
+/// * `Err` if an error occurs while opening or reading the file.
+pub fn is_valid_text_file(file_path: PathBuf) -> io::Result<bool> {
+    const SAMPLE_SIZE: usize = 1024; // Number of bytes to read for sampling
+
+    // Open the file in read-only mode
+    let mut file = File::open(file_path)?;
+
+    // Read up to SAMPLE_SIZE bytes from the file
+    let mut buffer = Vec::with_capacity(SAMPLE_SIZE);
+    let _ = file
+        .by_ref()
+        .take(SAMPLE_SIZE as u64)
+        .read_to_end(&mut buffer)?;
+
+    // Use is_valid_text to determine if the buffer is likely text
+    Ok(is_valid_text(&buffer))
+}
+
 /// Counts the number of null bytes (`0x00`) in a buffer.
 ///
 /// # Arguments
@@ -70,17 +105,18 @@ pub fn is_valid_utf8(buffer: &[u8]) -> bool {
 ///
 /// `true` if the buffer is likely a text file in UTF-8 encoding, `false` otherwise.
 pub fn is_valid_text(buffer: &[u8]) -> bool {
-  if number_of_null_bytes(buffer) > 0 {
-      false // Contains null bytes; likely binary
-  } else {
-      is_valid_utf8(buffer)
-  }
+    if number_of_null_bytes(buffer) > 0 {
+        false // Contains null bytes; likely binary
+    } else {
+        is_valid_utf8(buffer)
+    }
 }
-
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::test_utils::temp_dir::TempDir;
+    use std::io::Write;
 
     #[test]
     fn test_number_of_null_bytes_with_no_nulls() {
@@ -175,5 +211,64 @@ mod tests {
     fn test_is_valid_text_with_empty_buffer() {
         let buffer: &[u8] = &[];
         assert!(is_valid_text(buffer));
+    }
+
+    #[test]
+    fn test_is_valid_text_file_with_text_file() {
+        // Create a temporary directory and file
+        let td = TempDir::new().unwrap();
+        let file_path = td.mkfile_with_contents("test.txt", "fn main() {}");
+
+        // Check if the file is valid text
+        let result = is_valid_text_file(file_path).unwrap();
+        assert!(result);
+    }
+
+    #[test]
+    fn test_is_valid_text_file_with_binary_file() {
+        // Create a temporary directory and binary file
+        let td = TempDir::new().unwrap();
+        let file_path = td.path().join("test.bin");
+        let mut file = File::create(&file_path).unwrap();
+        let binary_content = [0x00, 0xFF, 0x00, 0xFF]; // Contains null bytes
+        file.write_all(&binary_content).unwrap();
+
+        // Check if the file is valid text
+        let result = is_valid_text_file(file_path).unwrap();
+        assert!(!result);
+    }
+
+    #[test]
+    fn test_is_valid_text_file_with_empty_file() {
+        // Create a temporary directory and empty file
+        let td = TempDir::new().unwrap();
+        let file_path = td.path().join("empty.txt");
+        File::create(&file_path).unwrap();
+
+        // Check if the file is valid text
+        let result = is_valid_text_file(file_path).unwrap();
+        assert!(result, "Empty file detected as binary");
+    }
+
+    #[test]
+    fn test_is_valid_text_file_with_nonexistent_file() {
+        let td = TempDir::new().unwrap();
+
+        // Create a path to a non-existent file
+        let file_path = td.path().join("nonexistent.txt");
+
+        let result = is_valid_text_file(file_path);
+
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_is_valid_text_file_with_directory_path() {
+        let td = TempDir::new().unwrap();
+        let dir_path = td.path().to_path_buf();
+
+        let result = is_valid_text_file(dir_path);
+
+        assert!(result.is_err());
     }
 }

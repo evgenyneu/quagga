@@ -1,3 +1,4 @@
+use crate::binary_detector::is_valid_text_file;
 use ignore::Walk;
 use std::path::Path;
 use std::path::PathBuf;
@@ -18,7 +19,13 @@ pub fn get_all_files(root: &Path) -> Result<Vec<PathBuf>, ignore::Error> {
         match result {
             Ok(entry) => {
                 if entry.file_type().unwrap().is_file() {
-                    files.push(entry.path().to_path_buf());
+                    let path = entry.path().to_path_buf();
+
+                    match is_valid_text_file(path.clone()) {
+                        Ok(true) => files.push(path),
+                        Ok(false) => continue, // Skip binary files
+                        Err(_) => continue,    // Skip files that cause errors
+                    }
                 }
             }
             Err(err) => return Err(err),
@@ -32,6 +39,8 @@ pub fn get_all_files(root: &Path) -> Result<Vec<PathBuf>, ignore::Error> {
 mod tests {
     use super::*;
     use crate::test_utils::temp_dir::TempDir;
+    use std::fs::File;
+    use std::io::Write;
 
     #[test]
     fn test_get_all_files() {
@@ -51,7 +60,6 @@ mod tests {
         let files = result.unwrap();
         assert_eq!(files.len(), 3);
 
-        // Use the TempDir helper method to assert the presence of files
         td.assert_contains(&files, "file1.txt");
         td.assert_contains(&files, "file2.txt");
         td.assert_contains(&files, "subdir/file3.txt");
@@ -61,5 +69,66 @@ mod tests {
 
         // Ensure hidden files are included
         td.assert_not_contains(&files, ".hidden");
+    }
+
+    #[test]
+    fn test_get_all_files_filters_binary_files() {
+        // Create a temporary directory
+        let td = TempDir::new().unwrap();
+
+        // Create text files
+        td.mkfile_with_contents("file1.txt", "fn main() {}");
+        td.mkfile_with_contents("file2.rs", "println!(\"Hello, world!\");");
+
+        // Create a binary file
+        let binary_file_path = td.path().join("binary.bin");
+        let mut binary_file = File::create(&binary_file_path).unwrap();
+        let binary_content = [0x00, 0xFF, 0x00, 0xFF];
+        binary_file.write_all(&binary_content).unwrap();
+
+        // Get all files starting from the temporary directory
+        let result = get_all_files(td.path());
+
+        // Assert that the result is Ok
+        assert!(result.is_ok());
+
+        let files = result.unwrap();
+
+        // Collect file names
+        let file_names: Vec<String> = files
+            .iter()
+            .map(|path| path.file_name().unwrap().to_string_lossy().into_owned())
+            .collect();
+
+        // Assert that text files are included
+        assert!(file_names.contains(&"file1.txt".to_string()));
+        assert!(file_names.contains(&"file2.rs".to_string()));
+
+        // Assert that binary file is not included
+        assert!(!file_names.contains(&"binary.bin".to_string()));
+    }
+
+    #[test]
+    fn test_get_all_files_with_no_files() {
+        // Create an empty temporary directory
+        let td = TempDir::new().unwrap();
+
+        // Get all files starting from the temporary directory
+        let result = get_all_files(td.path());
+
+        // Assert that the result is Ok and the list is empty
+        assert!(result.is_ok());
+        let files = result.unwrap();
+        assert!(files.is_empty());
+    }
+
+    #[test]
+    fn test_get_all_files_with_nonexistent_directory() {
+        // Create a path to a non-existent directory
+        let non_existent_path = Path::new("/path/to/nonexistent/directory");
+
+        let result = get_all_files(non_existent_path);
+
+        assert!(result.is_err());
     }
 }
