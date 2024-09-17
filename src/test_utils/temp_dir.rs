@@ -49,14 +49,17 @@ impl TempDir {
         &self.0
     }
 
+    /// Asserts that the specified path exists in the given list of files.
     pub fn assert_contains(&self, files: &Vec<PathBuf>, path: &Path) {
         self.assert_contains_with_exist(files, path, true);
     }
 
+    /// Asserts that the specified path does not exist in the given list of files.
     pub fn assert_not_contains(&self, files: &Vec<PathBuf>, path: &Path) {
         self.assert_contains_with_exist(files, path, false);
     }
 
+    /// Asserts that the specified path does not exist and not exists in the given list of files.
     pub fn assert_contains_with_exist(
         &self,
         files: &Vec<PathBuf>,

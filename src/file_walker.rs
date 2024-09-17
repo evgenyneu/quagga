@@ -60,10 +60,13 @@ mod tests {
         mkdirp(td.path().join("subdir"));
         wfile(td.path().join("file1.txt"), "content");
         wfile(td.path().join("file2.txt"), "content");
+        wfile(td.path().join(".hidden"), "content");
         wfile(td.path().join("subdir/file3.txt"), "content");
 
         // Call the function to get all files
         let files = get_all_files(td.path());
+
+        assert_eq!(files.len(), 3);
 
         // Use the TempDir helper method to assert the presence of files
         td.assert_contains(&files, &Path::new("file1.txt"));
@@ -72,5 +75,8 @@ mod tests {
 
         // Ensure no directories are included
         td.assert_not_contains(&files, &Path::new("subdir"));
+
+        // Ensure hidden files are included
+        td.assert_not_contains(&files, &Path::new(".hidden"));
     }
 }
