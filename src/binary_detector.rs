@@ -60,6 +60,24 @@ pub fn is_valid_utf8(buffer: &[u8]) -> bool {
     str::from_utf8(buffer).is_ok()
 }
 
+/// Determines if a buffer is likely a text file in UTF-8 encoding (e.g., source code).
+///
+/// # Arguments
+///
+/// * `buffer` - A slice of bytes representing the content to check.
+///
+/// # Returns
+///
+/// `true` if the buffer is likely a text file in UTF-8 encoding, `false` otherwise.
+pub fn is_valid_text(buffer: &[u8]) -> bool {
+  if number_of_null_bytes(buffer) > 0 {
+      false // Contains null bytes; likely binary
+  } else {
+      is_valid_utf8(buffer)
+  }
+}
+
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -133,5 +151,29 @@ mod tests {
     fn test_is_valid_utf8_with_empty_buffer() {
         let buffer: Vec<u8> = Vec::new();
         assert!(is_valid_utf8(&buffer));
+    }
+
+    #[test]
+    fn test_is_valid_text_with_utf8_text() {
+        let buffer = "fn main() {}".as_bytes();
+        assert!(is_valid_text(buffer));
+    }
+
+    #[test]
+    fn test_is_valid_text_with_binary_data() {
+        let buffer = [0x00, 0xFF, 0x00, 0xFF]; // Contains null bytes
+        assert!(!is_valid_text(&buffer));
+    }
+
+    #[test]
+    fn test_is_valid_text_with_non_utf8_text() {
+        let buffer = vec![0xC0, 0xC1]; // Invalid UTF-8 sequences
+        assert!(!is_valid_text(&buffer));
+    }
+
+    #[test]
+    fn test_is_valid_text_with_empty_buffer() {
+        let buffer: &[u8] = &[];
+        assert!(is_valid_text(buffer));
     }
 }
