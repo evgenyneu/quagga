@@ -1,4 +1,5 @@
 use ignore::Walk;
+use std::path::Path;
 use std::path::PathBuf;
 
 /// Walks through the directory tree starting from `root` and collects all file paths.
@@ -10,7 +11,7 @@ use std::path::PathBuf;
 /// # Returns
 ///
 /// A vector containing the paths of all files found.
-pub fn get_all_files(root: &PathBuf) -> Vec<PathBuf> {
+pub fn get_all_files(root: &Path) -> Vec<PathBuf> {
     let mut files = Vec::new();
 
     for result in Walk::new(root) {
@@ -64,23 +65,12 @@ mod tests {
         // Call the function to get all files
         let files = get_all_files(td.path());
 
-        // Convert PathBuf to String for comparison
-        let files_str: Vec<String> = files
-            .iter()
-            .map(|path| path.to_string_lossy().into_owned())
-            .collect();
-
-        // Assert that the correct files are included
-        assert!(files_str.contains(&td.path().join("file1.txt").to_string_lossy().into_owned()));
-        assert!(files_str.contains(&td.path().join("file2.txt").to_string_lossy().into_owned()));
-        assert!(files_str.contains(
-            &td.path()
-                .join("subdir/file3.txt")
-                .to_string_lossy()
-                .into_owned()
-        ));
+        // Use the TempDir helper method to assert the presence of files
+        td.assert_contains(&files, &Path::new("file1.txt"));
+        td.assert_contains(&files, &Path::new("file2.txt"));
+        td.assert_contains(&files, &Path::new("subdir/file3.txt"));
 
         // Ensure no directories are included
-        assert!(!files_str.contains(&td.path().join("subdir").to_string_lossy().into_owned()));
+        td.assert_not_contains(&files, &Path::new("subdir"));
     }
 }
