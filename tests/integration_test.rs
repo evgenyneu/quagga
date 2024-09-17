@@ -1,24 +1,17 @@
-// tests/integration_test.rs
-
 use assert_cmd::Command;
+use quagga::test_utils::temp_dir::TempDir;
 
 #[test]
 fn test_main_success() {
     let mut cmd = Command::cargo_bin("quagga").unwrap();
-
-    // Create a temporary directory and files
-    let td = tempfile::tempdir().unwrap();
-    let file1 = td.path().join("file1.txt");
-    let file2 = td.path().join("file2.txt");
-    std::fs::write(&file1, "Hello").unwrap();
-    std::fs::write(&file2, " World!").unwrap();
+    let td = TempDir::new().unwrap();
+    td.mkfile_with_contents("file1.txt", "Hello");
+    td.mkfile_with_contents("file2.txt", " World!");
 
     // Run the command
     cmd.arg(td.path());
 
-    cmd.assert()
-        .success()
-        .stdout("Hello World!\n");
+    cmd.assert().success().stdout("Hello World!\n");
 }
 
 #[test]

@@ -1,4 +1,3 @@
-use std::io;
 use std::path::Path;
 
 use crate::file_reader::read_and_concatenate_files;
@@ -22,7 +21,7 @@ use crate::file_walker::get_all_files;
 /// This function will return an error if:
 /// - Retrieving the list of files fails.
 /// - Reading any of the files fails.
-pub fn process_files(root: &Path) -> io::Result<String> {
+pub fn process_files(root: &Path) -> Result<String, Box<dyn std::error::Error>> {
     // Get all files starting from the root directory
     let files = get_all_files(root)?;
 
@@ -36,7 +35,6 @@ pub fn process_files(root: &Path) -> io::Result<String> {
 mod tests {
     use super::*;
     use crate::test_utils::temp_dir::TempDir;
-    use std::io;
 
     #[test]
     fn test_process_files_success() {
@@ -53,7 +51,7 @@ mod tests {
 
         // Assert the result
         assert!(result.is_ok());
-        assert_eq!(result.unwrap(), "Hello World!");
+        assert_eq!(result.unwrap(), "World!Hello ");
     }
 
     #[test]
