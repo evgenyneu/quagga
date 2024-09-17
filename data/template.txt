@@ -1,7 +1,22 @@
-[HEADER]
-======== FILE START [DIR]/[FILENAME] ========
+{{#}} This is template for creating the output prompt.
+{{#}}
+{{#}} Template tags:
+{{#}}
+{{#}} {{HEADER}} and {{FOOTER}} - The text between {{HEADER}} and {{FOOTER}} tags
+{{#}} is a template for individual file. The text above {{HEADER}} will be placed on
+{{#}} top of the output prompt, and the text below {{FOOTER}} will be placed at the bottom.
+{{#}}
+{{#}} {{FILEPATH}} - The path to the file that is being included in the prompt.
+{{#}}
+{{#}} {{CONTENT}} - The content of the file.
+{{#}}
+{{#}} {{#}} - Comment tag for adding comments to the template. The comment line will not
+{{#}} be included in the output.
+{{#}}
+{{HEADER}}
+------ FILE START {{FILEPATH}} ------
 
-[CONTENT]
+{{CONTENT}}
 
-======== [DIR]/[FILENAME] FILE END ========
-[FOOTER]
+------ {{FILEPATH}} FILE END ------
+{{FOOTER}}
