@@ -1,5 +1,6 @@
 use crate::binary_detector::is_valid_text_file;
 use ignore::Walk;
+use std::error::Error;
 use std::path::Path;
 use std::path::PathBuf;
 
@@ -11,8 +12,9 @@ use std::path::PathBuf;
 ///
 /// # Returns
 ///
-/// A vector containing the paths of all files found.
-pub fn get_all_files(root: &Path) -> Result<Vec<PathBuf>, ignore::Error> {
+/// * `Ok(Vec<PathBuf>)` containing the paths of valid text files.
+/// * `Err(Box<dyn Error>)` if an error occurs during directory traversal or file reading.
+pub fn get_all_files(root: &Path) -> Result<Vec<PathBuf>, Box<dyn Error>> {
     let mut files = Vec::new();
 
     for result in Walk::new(root) {
@@ -23,12 +25,12 @@ pub fn get_all_files(root: &Path) -> Result<Vec<PathBuf>, ignore::Error> {
 
                     match is_valid_text_file(path.clone()) {
                         Ok(true) => files.push(path),
-                        Ok(false) => continue, // Skip binary files
-                        Err(_) => continue,    // Skip files that cause errors
+                        Ok(false) => continue,             // Skip binary files
+                        Err(e) => return Err(Box::new(e)), // Propagate the error
                     }
                 }
             }
-            Err(err) => return Err(err),
+            Err(err) => return Err(Box::new(err)),
         }
     }
 

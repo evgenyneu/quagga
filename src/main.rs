@@ -1,3 +1,4 @@
+pub mod binary_detector;
 mod cli;
 mod file_reader;
 mod file_walker;
