@@ -1,5 +1,7 @@
 use std::env;
 use std::fs;
+use std::fs::File;
+use std::io::Write;
 use std::io::{self, Result};
 use std::path::{Path, PathBuf};
 
@@ -49,29 +51,41 @@ impl TempDir {
         &self.0
     }
 
+    /// Create directory
+    pub fn mkdir<P: AsRef<Path>>(&self, path: P) {
+        let full_path = self.path().join(path);
+        std::fs::create_dir_all(full_path).unwrap();
+    }
+
+    /// Create a file with content
+    pub fn mkfile<P: AsRef<Path>>(&self, path: P) {
+        let full_path = self.path().join(path);
+        let mut file = File::create(full_path).unwrap();
+        file.write_all("contents".as_bytes()).unwrap();
+    }
+
     /// Asserts that the specified path exists in the given list of files.
-    pub fn assert_contains(&self, files: &Vec<PathBuf>, path: &Path) {
+    pub fn assert_contains(&self, files: &Vec<PathBuf>, path: &str) {
         self.assert_contains_with_exist(files, path, true);
     }
 
     /// Asserts that the specified path does not exist in the given list of files.
-    pub fn assert_not_contains(&self, files: &Vec<PathBuf>, path: &Path) {
+    pub fn assert_not_contains(&self, files: &Vec<PathBuf>, path: &str) {
         self.assert_contains_with_exist(files, path, false);
     }
 
-    /// Asserts that the specified path does not exist and not exists in the given list of files.
-    pub fn assert_contains_with_exist(
-        &self,
-        files: &Vec<PathBuf>,
-        path: &Path,
-        should_exist: bool,
-    ) {
+    /// Helper method to check existence of a path in the list of files.
+    pub fn assert_contains_with_exist(&self, files: &Vec<PathBuf>, path: &str, should_exist: bool) {
         let files_str: Vec<String> = files
             .iter()
             .map(|path| path.to_string_lossy().into_owned())
             .collect();
 
-        let path_str = self.path().join(path).to_string_lossy().into_owned();
+        let path_str = self
+            .path()
+            .join(Path::new(path))
+            .to_string_lossy()
+            .into_owned();
 
         if should_exist {
             assert!(

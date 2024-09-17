@@ -32,36 +32,17 @@ pub fn get_all_files(root: &Path) -> Vec<PathBuf> {
 mod tests {
     use super::*;
     use crate::test_utils::temp_dir::TempDir;
-    use std::fs::File;
-    use std::io::Write;
-    use std::path::Path;
-
-    // Helper to create a temporary directory for tests
-    fn tmpdir() -> TempDir {
-        TempDir::new().unwrap()
-    }
-
-    // Helper to write files with content
-    fn wfile<P: AsRef<Path>>(path: P, contents: &str) {
-        let mut file = File::create(path).unwrap();
-        file.write_all(contents.as_bytes()).unwrap();
-    }
-
-    // Helper to create directories
-    fn mkdirp<P: AsRef<Path>>(path: P) {
-        std::fs::create_dir_all(path).unwrap();
-    }
 
     #[test]
     fn test_get_all_files() {
-        let td = tmpdir();
+        let td = TempDir::new().unwrap();
 
         // Create directories and files
-        mkdirp(td.path().join("subdir"));
-        wfile(td.path().join("file1.txt"), "content");
-        wfile(td.path().join("file2.txt"), "content");
-        wfile(td.path().join(".hidden"), "content");
-        wfile(td.path().join("subdir/file3.txt"), "content");
+        td.mkdir("subdir");
+        td.mkfile("file1.txt");
+        td.mkfile("file2.txt");
+        td.mkfile(".hidden");
+        td.mkfile("subdir/file3.txt");
 
         // Call the function to get all files
         let files = get_all_files(td.path());
@@ -69,14 +50,14 @@ mod tests {
         assert_eq!(files.len(), 3);
 
         // Use the TempDir helper method to assert the presence of files
-        td.assert_contains(&files, &Path::new("file1.txt"));
-        td.assert_contains(&files, &Path::new("file2.txt"));
-        td.assert_contains(&files, &Path::new("subdir/file3.txt"));
+        td.assert_contains(&files, "file1.txt");
+        td.assert_contains(&files, "file2.txt");
+        td.assert_contains(&files, "subdir/file3.txt");
 
         // Ensure no directories are included
-        td.assert_not_contains(&files, &Path::new("subdir"));
+        td.assert_not_contains(&files, "subdir");
 
         // Ensure hidden files are included
-        td.assert_not_contains(&files, &Path::new(".hidden"));
+        td.assert_not_contains(&files, ".hidden");
     }
 }
