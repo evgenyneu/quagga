@@ -31,7 +31,7 @@ pub fn get_all_files(root: &Path) -> Vec<PathBuf> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_utils::TempDir;
+    use crate::test_utils::temp_dir::TempDir;
     use std::fs::File;
     use std::io::Write;
     use std::path::Path;
