@@ -4,15 +4,15 @@ use std::path::PathBuf;
 /// Combine multiple text files into a single prompt for a Large Language Model (LLM).
 #[derive(Parser, Debug, PartialEq)]
 #[command(
-    name = "txt2prompt",
+    name = "quagga",
     author = "Evgenii Neumerzhitckii <sausageskin@gmail.com>",
     version = env!("CARGO_PKG_VERSION"),
     about = "Combine text files into a single LLM prompt.",
     after_help = "\x1b[1mExamples\x1b[0m:\n\n  \
     Include only JavaScript, Typescript and test files, exclude 'node_modules' and 'dist' directories:\n  \
-    >\x1b[1m txt2prompt --include '*.{js,ts}' '*.test.*' --exclude node_modules dist \x1b[0m \n\n  \
+    >\x1b[1m quagga --include '*.{js,ts}' '*.test.*' --exclude node_modules dist \x1b[0m \n\n  \
     Include only files that contain the words 'todo' or 'fixthis', look in '~/code/myapp' dir:\n  \
-    >\x1b[1m txt2prompt --contain todo fixthis -- ~/code/myapp \x1b[0m"
+    >\x1b[1m quagga --contain todo fixthis -- ~/code/myapp \x1b[0m"
 )]
 pub struct Cli {
     /// Include only file paths matching the glob patterns (e.g., src/*.js)
@@ -103,7 +103,7 @@ mod tests {
 
     #[test]
     fn test_default_values() {
-        let args = Cli::parse_from(&["txt2prompt"]);
+        let args = Cli::parse_from(&["quagga"]);
         assert_eq!(
             args,
             Cli {
@@ -133,7 +133,7 @@ mod tests {
 
     #[test]
     fn test_multiple_include_exclude() {
-        let cmd = "txt2prompt --include *.js *.rs --exclude node_modules dist";
+        let cmd = "quagga --include *.js *.rs --exclude node_modules dist";
         let args = Cli::parse_from(cmd.split_whitespace());
 
         assert_eq!(args.include, vec!["*.js", "*.rs"]);
@@ -143,7 +143,7 @@ mod tests {
 
     #[test]
     fn test_single_include_exclude() {
-        let cmd = "txt2prompt --include *.js --exclude node_modules";
+        let cmd = "quagga --include *.js --exclude node_modules";
         let args = Cli::parse_from(cmd.split_whitespace());
         assert_eq!(args.include, vec!["*.js"]);
         assert_eq!(args.exclude, vec!["node_modules"]);
@@ -151,7 +151,7 @@ mod tests {
 
     #[test]
     fn test_contain() {
-        let args = Cli::parse_from(vec!["txt2prompt", "--contain", "hello world", "hi"].iter());
+        let args = Cli::parse_from(vec!["quagga", "--contain", "hello world", "hi"].iter());
 
         assert_eq!(args.contain, vec!("hello world", "hi"));
         assert_eq!(args.root, PathBuf::from("."));
@@ -159,7 +159,7 @@ mod tests {
 
     #[test]
     fn test_all_options() {
-        let cmd = "txt2prompt \
+        let cmd = "quagga \
           --include *.js \
           --exclude node_modules \
           --contain hello \

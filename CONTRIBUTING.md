@@ -1,13 +1,13 @@
-# Contributing to txt2prompt
+# Contributing to Quagga
 
-Thank you for your interest in contributing to `txt2prompt`! We welcome all contributions, from bug reports to feature requests.
+Thank you for your interest in contributing to `quagga`! We welcome all contributions, from bug reports to feature requests.
 
 
 ## Contribution Process
 
 ### 1. Ask first BEFORE Starting Work
 
-Before submitting any pull requests (or starting the work), please [create a GitHub issue](https://github.com/evgenyneu/txt2prompt/issues) to discuss the proposed code changes. It ensures that you don't waste your time working on something that might not align with the project's goals.
+Before submitting any pull requests (or starting the work), please [create a GitHub issue](https://github.com/evgenyneu/quagga/issues) to discuss the proposed code changes. It ensures that you don't waste your time working on something that might not align with the project's goals.
 
 ### 2. Write Unit Tests
 

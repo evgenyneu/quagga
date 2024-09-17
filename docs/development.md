@@ -11,13 +11,13 @@ Install Git by following the instructions at [https://git-scm.com/downloads](htt
 From PowerShell on Windows or Terminal on macOS/Linux:
 
 ```bash
-git clone https://github.com/evgenyneu/txt2prompt.git
+git clone https://github.com/evgenyneu/quagga.git
 ```
 
 Change directory to the root of the project:
 
 ```bash
-cd txt2prompt
+cd quagga
 ```
 
 ## VSCode extensions
