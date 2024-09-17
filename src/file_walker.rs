@@ -11,7 +11,7 @@ use std::path::PathBuf;
 /// # Returns
 ///
 /// A vector containing the paths of all files found.
-pub fn get_all_files(root: &Path) -> Vec<PathBuf> {
+pub fn get_all_files(root: &Path) -> Result<Vec<PathBuf>, ignore::Error> {
     let mut files = Vec::new();
 
     for result in Walk::new(root) {
@@ -21,11 +21,11 @@ pub fn get_all_files(root: &Path) -> Vec<PathBuf> {
                     files.push(entry.path().to_path_buf());
                 }
             }
-            Err(err) => eprintln!("Error reading entry: {}", err),
+            Err(err) => return Err(err),
         }
     }
 
-    files
+    Ok(files)
 }
 
 #[cfg(test)]
@@ -45,8 +45,10 @@ mod tests {
         td.mkfile("subdir/file3.txt");
 
         // Call the function to get all files
-        let files = get_all_files(td.path());
+        let result = get_all_files(td.path());
+        assert!(result.is_ok());
 
+        let files = result.unwrap();
         assert_eq!(files.len(), 3);
 
         // Use the TempDir helper method to assert the presence of files

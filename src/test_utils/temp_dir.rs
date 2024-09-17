@@ -1,6 +1,5 @@
 use std::env;
 use std::fs;
-use std::fs::File;
 use std::io::Write;
 use std::io::{self, Result};
 use std::path::{Path, PathBuf};
@@ -57,11 +56,36 @@ impl TempDir {
         std::fs::create_dir_all(full_path).unwrap();
     }
 
-    /// Create a file with content
-    pub fn mkfile<P: AsRef<Path>>(&self, path: P) {
+    /// Creates a file with default content ("contents") in the temporary directory.
+    ///
+    /// # Arguments
+    ///
+    /// * `path` - The relative path within the temporary directory for the new file.
+    ///
+    /// # Returns
+    ///
+    /// A `PathBuf` representing the full path to the created file.
+    pub fn mkfile<P: AsRef<Path>>(&self, path: P) -> PathBuf {
+        return self.mkfile_with_contents(path, "contents"); // Call the new method with default content
+    }
+
+    // Existing methods...
+
+    /// Creates a file with the specified contents in the temporary directory.
+    ///
+    /// # Arguments
+    ///
+    /// * `path` - The relative path within the temporary directory for the new file.
+    /// * `contents` - The content to write to the file.
+    ///
+    /// # Returns
+    ///
+    /// A `PathBuf` representing the full path to the created file.
+    pub fn mkfile_with_contents<P: AsRef<Path>>(&self, path: P, contents: &str) -> PathBuf {
         let full_path = self.path().join(path);
-        let mut file = File::create(full_path).unwrap();
-        file.write_all("contents".as_bytes()).unwrap();
+        let mut file = fs::File::create(&full_path).unwrap();
+        file.write_all(contents.as_bytes()).unwrap();
+        full_path
     }
 
     /// Asserts that the specified path exists in the given list of files.
