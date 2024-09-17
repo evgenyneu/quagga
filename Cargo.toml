@@ -1,0 +1,12 @@
+[package]
+name = "txt2prompt"
+version = "0.1.1"
+edition = "2021"
+
+[dependencies]
+clap = { version = "4.5", features = ["derive"] }
+
+[dev-dependencies]
+assert_cmd = "2.0"
+predicates = "3.1"
+

@@ -1,0 +1,7 @@
+[HEADER]
+======== FILE START [DIR]/[FILENAME] ========
+
+[CONTENT]
+
+======== [DIR]/[FILENAME] FILE END ========
+[FOOTER]
