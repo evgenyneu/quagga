@@ -23,7 +23,10 @@ use crate::file_walker::get_all_files;
 /// - Reading any of the files fails.
 pub fn process_files(root: &Path) -> Result<String, Box<dyn std::error::Error>> {
     // Get all files starting from the root directory
-    let files = get_all_files(root)?;
+    let mut files = get_all_files(root)?;
+
+    // Sort the files alphabetically by their path
+    files.sort();
 
     // Read and concatenate the contents of the files
     let contents = read_and_concatenate_files(files)?;
@@ -51,7 +54,7 @@ mod tests {
 
         // Assert the result
         assert!(result.is_ok());
-        assert_eq!(result.unwrap(), "World!Hello ");
+        assert_eq!(result.unwrap(), "Hello World!");
     }
 
     #[test]
