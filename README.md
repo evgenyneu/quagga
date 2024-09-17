@@ -59,6 +59,12 @@ Examples:
 
 See [docs/development.md](docs/development.md) for instructions on how to set up the development environment.
 
+
+## Contributing
+
+See contributing guidelines in [CONTRIBUTING.md](CONTRIBUTING.md).
+
+
 ## ToDo
 
 Brainstorm ideas for future development:
