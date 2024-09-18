@@ -5,13 +5,20 @@ use quagga::test_utils::temp_dir::TempDir;
 fn test_main_success() {
     let mut cmd = Command::cargo_bin("quagga").unwrap();
     let td = TempDir::new().unwrap();
-    td.mkfile_with_contents("file1.txt", "Hello");
-    td.mkfile_with_contents("file2.txt", " World!");
+
+    let path1 = td.mkfile_with_contents("file1.txt", "Hello");
+    let path2 = td.mkfile_with_contents("file2.txt", " World!");
 
     // Run the command
     cmd.arg(td.path());
 
-    cmd.assert().success().stdout("Hello World!\n");
+    let expected_output = format!(
+        "\n\n-------\n{}\n-------\n\nHello\n\n-------\n{}\n-------\n\n World!\n",
+        path1.display(),
+        path2.display()
+    );
+
+    cmd.assert().success().stdout(expected_output);
 }
 
 #[test]

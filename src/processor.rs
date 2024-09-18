@@ -45,16 +45,24 @@ mod tests {
         let td = TempDir::new().unwrap();
 
         // Create test files with contents
-        td.mkfile_with_contents("file1.txt", "Hello");
-        td.mkfile_with_contents("file2.txt", " ");
-        td.mkfile_with_contents("file3.txt", "World!");
+        let file1_path = td.mkfile_with_contents("file1.txt", "Hello");
+        let file2_path = td.mkfile_with_contents("file2.txt", " ");
+        let file3_path = td.mkfile_with_contents("file3.txt", "World!");
 
         // Call the function under test
         let result = process_files(td.path());
 
         // Assert the result
         assert!(result.is_ok());
-        assert_eq!(result.unwrap(), "Hello World!");
+
+        let expected_output = format!(
+          "\n\n-------\n{}\n-------\n\nHello\n\n-------\n{}\n-------\n\n \n\n-------\n{}\n-------\n\nWorld!",
+          file1_path.display(),
+          file2_path.display(),
+          file3_path.display()
+        );
+
+        assert_eq!(result.unwrap(), expected_output);
     }
 
     #[test]
