@@ -9,7 +9,7 @@ Download the `quagga` binary from the [releases page](https://github.com/evgenyn
 ## Usage
 
 ```
-> quagga git:(main) ✗ ./target/debug/quagga --help
+> quagga --help
 Combine text files into a single LLM prompt.
 
 Usage: quagga [OPTIONS] [DIRECTORY]
