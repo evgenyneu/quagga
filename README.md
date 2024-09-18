@@ -2,11 +2,6 @@
 
 `quagga` is a command-line utility written in Rust that combines multiple text files into a single prompt suitable for Large Language Models (LLMs) like ChatGPT, Claude, or Perplexity. It automates the process of preparing prompts from coding project files, eliminating the need for manual copying and pasting.
 
-<img src='./images/quagga.jpg' alt='Picture of Quagga'>
-
-*The quagga is an extinct subspecies of plains zebra that lived in South Africa until it was hunted to extinction in the late 19th century. This is the only known photograph of a living quagga, taken at the London Zoo in 1870 by Frederick York. Source: [Wikimedia Commons](https://en.wikipedia.org/wiki/Quagga#/media/File:Quagga_photo.jpg).*
-
-
 ## Installation
 
 Download the `quagga` binary from the [releases page](https://github.com/evgenyneu/quagga/releases) and add it to your PATH.
@@ -61,6 +56,11 @@ Examples:
   > quagga --contain todo fixthis -- ~/code/myapp
 ```
 
+## What's Quagga?
+
+<img src='./images/quagga.jpg' alt='Picture of Quagga'>
+
+*The quagga is an extinct subspecies of plains zebra that lived in South Africa until it was hunted to extinction in the late 19th century. This is the only known photograph of a living quagga, taken at the London Zoo in 1870 by Frederick York. Source: [Wikimedia Commons](https://en.wikipedia.org/wiki/Quagga#/media/File:Quagga_photo.jpg).*
 
 ## Development
 
