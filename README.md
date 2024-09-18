@@ -54,6 +54,12 @@ Examples:
 
   Include only files that contain the words 'todo' or 'fixthis', look in '~/code/myapp' dir:
   > quagga --contain todo fixthis -- ~/code/myapp
+
+  Pipe file paths from another program:
+  > find . -name '*.txt' | quagga
+
+  Use a list of files from a text file:
+  > cat file_list.txt | quagga
 ```
 
 ## What's Quagga?

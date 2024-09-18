@@ -11,14 +11,18 @@ use std::path::PathBuf;
     after_help = "\x1b[1mExamples\x1b[0m:\n  \
     Combine all Markdown files and copy the result to clipboard instead of stdout:\n  \
     >\x1b[1m quagga --include '*.md' --clipboard \x1b[0m \n\n  \
-    Include only JavaScript, Typescript and test files, exclude 'node_modules' and 'dist' directories:\n  \
+    Include only JavaScript, Typescript, and test files, excluding 'node_modules' and 'dist' directories:\n  \
     >\x1b[1m quagga --include '*.{js,ts}' '*.test.*' --exclude node_modules dist \x1b[0m \n\n  \
     Use a template to customize the prompt text:\n  \
     >\x1b[1m quagga --template prompt.json --include '*.txt' \x1b[0m \n\n  \
-    Supply options via a file instead of command line arguments:\n  \
+    Supply options via a file instead of command-line arguments:\n  \
     >\x1b[1m quagga --options quagga_options.json \x1b[0m \n\n  \
-    Include only files that contain the words 'todo' or 'fixthis', look in '~/code/myapp' dir:\n  \
-    >\x1b[1m quagga --contain todo fixthis -- ~/code/myapp \x1b[0m"
+    Include only files that contain the words 'todo' or 'fixthis', look in '~/code/myapp' directory:\n  \
+    >\x1b[1m quagga --contain todo fixthis -- ~/code/myapp \x1b[0m \n\n  \
+    Pipe file paths from another program:\n  \
+    >\x1b[1m find . -name '*.txt' | quagga \x1b[0m \n\n  \
+    Use a list of files from a text file:\n  \
+    >\x1b[1m cat file_list.txt | quagga \x1b[0m"
 )]
 pub struct Cli {
     /// Include only file paths matching the glob patterns (e.g., src/*.js)
