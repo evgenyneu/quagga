@@ -8,9 +8,15 @@ use std::path::PathBuf;
     author = "Evgenii Neumerzhitckii <sausageskin@gmail.com>",
     version = env!("CARGO_PKG_VERSION"),
     about = "Combine text files into a single LLM prompt.",
-    after_help = "\x1b[1mExamples\x1b[0m:\n\n  \
+    after_help = "\x1b[1mExamples\x1b[0m:\n  \
+    Combine all Markdown files and copy the result to clipboard instead of stdout:\n  \
+    >\x1b[1m quagga --include '*.md' --clipboard \x1b[0m \n\n  \
     Include only JavaScript, Typescript and test files, exclude 'node_modules' and 'dist' directories:\n  \
     >\x1b[1m quagga --include '*.{js,ts}' '*.test.*' --exclude node_modules dist \x1b[0m \n\n  \
+    Use a template to customize the prompt text:\n  \
+    >\x1b[1m quagga --template prompt.json --include '*.txt' \x1b[0m \n\n  \
+    Supply options via a file instead of command line arguments:\n  \
+    >\x1b[1m quagga --options quagga_options.json \x1b[0m \n\n  \
     Include only files that contain the words 'todo' or 'fixthis', look in '~/code/myapp' dir:\n  \
     >\x1b[1m quagga --contain todo fixthis -- ~/code/myapp \x1b[0m"
 )]
@@ -67,17 +73,13 @@ pub struct Cli {
     #[arg(short = 't', long, value_name = "PATH")]
     pub template: Option<PathBuf>,
 
-    /// Output to a file
+    /// Output to a file instead of stdout
     #[arg(short = 'o', long, value_name = "PATH")]
     pub output: Option<PathBuf>,
 
-    /// Output to stdout
-    #[arg(short = 'S', long)]
-    pub stdout: bool,
-
-    /// Do not copy the output to the clipboard (copied by default)
+    /// Copy the output to the clipboard instead of stdout
     #[arg(short = 'c', long)]
-    pub no_clipboard: bool,
+    pub clipboard: bool,
 
     /// Show paths to files without combining them
     #[arg(short = 'D', long)]
@@ -119,8 +121,7 @@ mod tests {
                 follow_links: false,
                 template: None,
                 output: None,
-                stdout: false,
-                no_clipboard: false,
+                clipboard: false,
                 dry_run: false,
                 options: None,
                 verbose: false,
@@ -172,8 +173,7 @@ mod tests {
           --follow-links \
           --template template.txt \
           --output output.txt \
-          --stdout \
-          --no-clipboard \
+          --clipboard \
           --dry-run \
           --options options.json \
           --verbose \
@@ -198,8 +198,7 @@ mod tests {
                 follow_links: true,
                 template: Some(PathBuf::from("template.txt")),
                 output: Some(PathBuf::from("output.txt")),
-                stdout: true,
-                no_clipboard: true,
+                clipboard: true,
                 dry_run: true,
                 options: Some(PathBuf::from("options.json")),
                 verbose: true,

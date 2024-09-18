@@ -14,7 +14,7 @@ Download the `quagga` binary from the [releases page](https://github.com/evgenyn
 ## Usage
 
 ```
-> quagga --help
+> quagga git:(main) ✗ ./target/debug/quagga --help
 Combine text files into a single LLM prompt.
 
 Usage: quagga [OPTIONS] [DIRECTORY]
@@ -36,9 +36,8 @@ Options:
   -H, --hidden                      Do not ignore hidden files (ignored by default)
   -l, --follow-links                Follow symbolic links (not followed by default)
   -t, --template <PATH>             Path to a custom template file
-  -o, --output <PATH>               Output to a file
-  -S, --stdout                      Output to stdout
-  -c, --no-clipboard                Do not copy the output to the clipboard (copied by default)
+  -o, --output <PATH>               Output to a file instead of stdout
+  -c, --clipboard                   Copy the output to the clipboard instead of stdout
   -D, --dry-run                     Show paths to files without combining them
   -p, --options <PATH>              Load options from a JSON file
   -v, --verbose                     Show detailed information during execution
@@ -46,9 +45,17 @@ Options:
   -V, --version                     Print version
 
 Examples:
+  Combine all Markdown files and copy the result to clipboard instead of stdout:
+  > quagga --include '*.md' --clipboard
 
   Include only JavaScript, Typescript and test files, exclude 'node_modules' and 'dist' directories:
   > quagga --include '*.{js,ts}' '*.test.*' --exclude node_modules dist
+
+  Use a template to customize the prompt text:
+  > quagga --template prompt.json --include '*.txt'
+
+  Supply options via a file instead of command line arguments:
+  > quagga --options quagga_options.json
 
   Include only files that contain the words 'todo' or 'fixthis', look in '~/code/myapp' dir:
   > quagga --contain todo fixthis -- ~/code/myapp
