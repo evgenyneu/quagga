@@ -1,17 +1,17 @@
 use assert_cmd::Command;
-use expectrl::{spawn, Eof, WaitStatus};
+use expectrl::{spawn, Eof};
 use quagga::test_utils::temp_dir::TempDir;
 use std::io::Read;
 
 #[test]
-fn test_main_success_run_from_terminal() {
+fn test_main_success_run() {
     let td = TempDir::new().unwrap();
     let path1 = td.mkfile_with_contents("file1.txt", "Hello");
     let path2 = td.mkfile_with_contents("file2.txt", "World!");
 
     let quagga_bin = assert_cmd::cargo::cargo_bin("quagga");
 
-    // Spawn the quagga binary in a PTY
+    // Spawn the quagga binary in a terminal
     let mut p = expectrl::spawn(format!("{} {}", quagga_bin.display(), td.path().display()))
         .expect("Failed to spawn quagga binary");
 
@@ -22,7 +22,6 @@ fn test_main_success_run_from_terminal() {
 
     let output = output.replace("\r\n", "\n");
 
-    // Define the expected output
     let expected_output = format!(
         "\n\n-------\n{}\n-------\n\nHello\n\n-------\n{}\n-------\n\nWorld!\n",
         path1.display(),
@@ -35,14 +34,20 @@ fn test_main_success_run_from_terminal() {
 
 #[test]
 fn test_main_with_nonexistent_directory() {
-    let mut cmd = Command::cargo_bin("quagga").unwrap();
+    let quagga_bin = assert_cmd::cargo::cargo_bin("quagga");
     let non_existent_path = "/path/to/nonexistent/directory";
 
-    cmd.arg(non_existent_path);
+    // Spawn the quagga binary in a PTY with the non-existent directory as an argument
+    let mut p = spawn(format!("{} {}", quagga_bin.display(), non_existent_path))
+        .expect("Failed to spawn quagga binary");
 
-    cmd.assert()
-        .failure()
-        .stderr(predicates::str::contains("Error"));
+    // Read the error output from the process
+    let mut stderr_output = String::new();
+    p.read_to_string(&mut stderr_output)
+        .expect("Failed to read stderr from quagga");
+
+    assert!(stderr_output.contains("Error"));
+    p.expect(Eof).expect("Failed to expect EOF");
 }
 
 #[test]
