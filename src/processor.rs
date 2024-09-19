@@ -1,8 +1,28 @@
+use std::error::Error;
 use std::path::Path;
 use std::path::PathBuf;
 
 use crate::file_reader::read_and_concatenate_files;
 use crate::file_walker::get_all_files;
+
+/// Processes files based on provided root directory or list of file paths.
+///
+/// # Arguments
+///
+/// * `root` - A `PathBuf` representing the root directory to search for files.
+/// * `paths` - An optional `Vec<PathBuf>` representing a list of file paths to process.
+///
+/// # Returns
+///
+/// A `Result` containing the concatenated contents of the files as a `String` if successful,
+/// or an error if any operation fails.
+pub fn run(root: PathBuf, paths: Option<Vec<PathBuf>>) -> Result<String, Box<dyn Error>> {
+    if let Some(path_list) = paths {
+        return read_and_concatenate_files(path_list).map_err(|e| Box::new(e) as Box<dyn Error>);
+    } else {
+        return process_files(&root);
+    }
+}
 
 /// Processes files starting from the given root path:
 /// - Retrieves all files.
@@ -22,7 +42,7 @@ use crate::file_walker::get_all_files;
 /// This function will return an error if:
 /// - Retrieving the list of files fails.
 /// - Reading any of the files fails.
-pub fn process_files(root: &Path) -> Result<String, Box<dyn std::error::Error>> {
+pub fn process_files(root: &Path) -> Result<String, Box<dyn Error>> {
     // Get all files starting from the root directory
     let mut files = get_all_files(root)?;
 
@@ -30,34 +50,7 @@ pub fn process_files(root: &Path) -> Result<String, Box<dyn std::error::Error>> 
     files.sort();
 
     // Read and concatenate the contents of the files
-    let contents = read_and_concatenate_files(files)?;
-
-    Ok(contents)
-}
-
-/// Processes files from a list of file paths:
-/// - Reads and concatenates their contents.
-///
-/// # Arguments
-///
-/// * `paths` - A vector of file paths as strings.
-///
-/// # Returns
-///
-/// A `Result` containing the concatenated contents of the files as a `String` if successful,
-/// or an error if any file cannot be read.
-///
-/// # Errors
-///
-/// This function will return an error if:
-/// - Reading any of the files fails.
-pub fn process_input_paths(paths: Vec<String>) -> Result<String, Box<dyn std::error::Error>> {
-    let files: Vec<PathBuf> = paths.into_iter().map(PathBuf::from).collect();
-
-    // Read and concatenate the contents of the files
-    let contents = read_and_concatenate_files(files)?;
-
-    Ok(contents)
+    return read_and_concatenate_files(files).map_err(|e| Box::new(e) as Box<dyn Error>);
 }
 
 #[cfg(test)]
