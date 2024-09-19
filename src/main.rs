@@ -35,6 +35,7 @@ fn main() {
 /// A `Vec<PathBuf>` containing the paths read from stdin, or `None` if no paths are piped in.
 fn piped_paths() -> Option<Vec<PathBuf>> {
     if io::stdin().is_terminal() {
+        // Input is coming from the terminal, not from a pipe
         return None;
     }
 
