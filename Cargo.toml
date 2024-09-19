@@ -17,6 +17,7 @@ ignore = "0.4"
 
 [dev-dependencies]
 assert_cmd = "2.0"
+expectrl = "0.7"
 predicates = "3.1"
 
 [lib]

@@ -7,21 +7,39 @@ mod test_utils;
 
 use clap::Parser;
 use cli::Cli;
-use processor::process_files;
+use processor::{process_files, process_input_paths};
+use std::io::{self, BufRead, IsTerminal};
 use std::process;
 
 fn main() {
     let args = Cli::parse();
 
-    match process_files(&args.root) {
-        Ok(content) => {
-            // Print the concatenated content to stdout
-            println!("{}", content);
+    if io::stdin().is_terminal() {
+        // println!("TERMINAL")
+        match process_files(&args.root) {
+            Ok(content) => {
+                println!("{}", content);
+            }
+            Err(e) => {
+                eprintln!("Error: {}", e);
+                process::exit(1);
+            }
         }
-        Err(e) => {
-            // Print the error to stderr and exit with a non-zero code
-            eprintln!("Error: {}", e);
-            process::exit(1);
+    } else {
+        // println!("NOT TERMINAL")
+        // The file paths were piped in, just read and combine the files
+        let stdin = io::stdin();
+        let paths: Vec<String> = stdin.lock().lines().collect::<Result<_, _>>().unwrap();
+
+        match process_input_paths(paths) {
+            Ok(content) => {
+                // Print the concatenated content to stdout
+                println!("{}", content);
+            }
+            Err(e) => {
+                eprintln!("Error: {}", e);
+                process::exit(1);
+            }
         }
     }
 }

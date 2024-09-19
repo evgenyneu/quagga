@@ -1,4 +1,5 @@
 use std::path::Path;
+use std::path::PathBuf;
 
 use crate::file_reader::read_and_concatenate_files;
 use crate::file_walker::get_all_files;
@@ -27,6 +28,31 @@ pub fn process_files(root: &Path) -> Result<String, Box<dyn std::error::Error>> 
 
     // Sort the files alphabetically by their path
     files.sort();
+
+    // Read and concatenate the contents of the files
+    let contents = read_and_concatenate_files(files)?;
+
+    Ok(contents)
+}
+
+/// Processes files from a list of file paths:
+/// - Reads and concatenates their contents.
+///
+/// # Arguments
+///
+/// * `paths` - A vector of file paths as strings.
+///
+/// # Returns
+///
+/// A `Result` containing the concatenated contents of the files as a `String` if successful,
+/// or an error if any file cannot be read.
+///
+/// # Errors
+///
+/// This function will return an error if:
+/// - Reading any of the files fails.
+pub fn process_input_paths(paths: Vec<String>) -> Result<String, Box<dyn std::error::Error>> {
+    let files: Vec<PathBuf> = paths.into_iter().map(PathBuf::from).collect();
 
     // Read and concatenate the contents of the files
     let contents = read_and_concatenate_files(files)?;
