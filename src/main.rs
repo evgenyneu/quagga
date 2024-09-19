@@ -15,7 +15,6 @@ fn main() {
     let args = Cli::parse();
 
     if io::stdin().is_terminal() {
-        // println!("TERMINAL")
         match process_files(&args.root) {
             Ok(content) => {
                 println!("{}", content);
@@ -26,7 +25,6 @@ fn main() {
             }
         }
     } else {
-        // println!("NOT TERMINAL")
         // The file paths were piped in, just read and combine the files
         let stdin = io::stdin();
         let paths: Vec<String> = stdin.lock().lines().collect::<Result<_, _>>().unwrap();
