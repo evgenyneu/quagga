@@ -1,23 +1,36 @@
 use assert_cmd::Command;
+use expectrl::{spawn, Eof, WaitStatus};
 use quagga::test_utils::temp_dir::TempDir;
+use std::io::Read;
 
 #[test]
-fn test_main_success() {
-    let mut cmd = Command::cargo_bin("quagga").unwrap();
+fn test_main_success_run_from_terminal() {
     let td = TempDir::new().unwrap();
-
     let path1 = td.mkfile_with_contents("file1.txt", "Hello");
-    let path2 = td.mkfile_with_contents("file2.txt", " World!");
+    let path2 = td.mkfile_with_contents("file2.txt", "World!");
 
-    cmd.arg(td.path());
+    let quagga_bin = assert_cmd::cargo::cargo_bin("quagga");
 
+    // Spawn the quagga binary in a PTY
+    let mut p = expectrl::spawn(format!("{} {}", quagga_bin.display(), td.path().display()))
+        .expect("Failed to spawn quagga binary");
+
+    let mut output = String::new();
+
+    p.read_to_string(&mut output)
+        .expect("Failed to read output from quagga");
+
+    let output = output.replace("\r\n", "\n");
+
+    // Define the expected output
     let expected_output = format!(
-        "\n\n-------\n{}\n-------\n\nHello\n\n-------\n{}\n-------\n\n World!\n",
+        "\n\n-------\n{}\n-------\n\nHello\n\n-------\n{}\n-------\n\nWorld!\n",
         path1.display(),
         path2.display()
     );
 
-    cmd.assert().success().stdout(expected_output);
+    assert_eq!(output, expected_output);
+    p.expect(Eof).expect("Failed to expect EOF");
 }
 
 #[test]
