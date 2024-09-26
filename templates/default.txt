@@ -13,6 +13,8 @@
 {{#}} {{#}} - Comment tag for adding line comments to the template. The text after {{#}}
 {{#}} will not be included in the output for that line.
 {{#}}
+The following is my code:
+
 {{HEADER}}
 ------ FILE START {{FILEPATH}} ------
 
@@ -21,3 +23,11 @@
 ------ {{FILEPATH}} FILE END ------
 
 {{FOOTER}}
+Reminding the important rules:
+* Discuss code changes first. Don't suggest any changes until we've agreed on the approach.
+* Always think of alternative or better ways to achieve the goal. Don't blindly follow instructions.
+* Make one small code change at a time.
+* All code must be tested and documented (no need to comment on code if its purpose is obvious).
+* Prioritize clarity and simplicity, even if it means writing more code (avoid being overly clever or elegant).
+* Write small, single-purpose functions to keep the code simple and easy to test.
+* Be concise in any response text that is not code.

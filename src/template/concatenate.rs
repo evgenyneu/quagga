@@ -67,14 +67,17 @@ mod tests {
             item: "File: {{FILEPATH}}\nContent:\n{{CONTENT}}\n---".to_string(),
             footer: "Footer".to_string(),
         };
+
         let file1 = FileContent {
             path: PathBuf::from("file1.txt"),
             content: "Hello".to_string(),
         };
+
         let file2 = FileContent {
             path: PathBuf::from("file2.txt"),
             content: "World!".to_string(),
         };
+
         let files = vec![file1, file2];
 
         let result = concatenate_files(template, files);

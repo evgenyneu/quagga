@@ -24,6 +24,8 @@ fn test_main_success_run() {
 
     let expected_output = format!(
         "\
+The following is my code:
+
 ------ FILE START {} ------
 
 Hello
@@ -36,7 +38,14 @@ World!
 
 ------ {} FILE END ------
 
-
+Reminding the important rules:
+* Discuss code changes first. Don't suggest any changes until we've agreed on the approach.
+* Always think of alternative or better ways to achieve the goal. Don't blindly follow instructions.
+* Make one small code change at a time.
+* All code must be tested and documented (no need to comment on code if its purpose is obvious).
+* Prioritize clarity and simplicity, even if it means writing more code (avoid being overly clever or elegant).
+* Write small, single-purpose functions to keep the code simple and easy to test.
+* Be concise in any response text that is not code.
 ",
         path1.display(),
         path1.display(),
@@ -80,10 +89,35 @@ fn test_main_with_piped_input() {
     cmd.write_stdin(input);
 
     let expected_output = format!(
-        "\n\n-------\n{}\n-------\n\nHello\n\n-------\n{}\n-------\n\nWorld!\n",
-        file1.display(),
-        file2.display()
-    );
+      "\
+The following is my code:
+
+------ FILE START {} ------
+
+Hello
+
+------ {} FILE END ------
+
+------ FILE START {} ------
+
+World!
+
+------ {} FILE END ------
+
+Reminding the important rules:
+* Discuss code changes first. Don't suggest any changes until we've agreed on the approach.
+* Always think of alternative or better ways to achieve the goal. Don't blindly follow instructions.
+* Make one small code change at a time.
+* All code must be tested and documented (no need to comment on code if its purpose is obvious).
+* Prioritize clarity and simplicity, even if it means writing more code (avoid being overly clever or elegant).
+* Write small, single-purpose functions to keep the code simple and easy to test.
+* Be concise in any response text that is not code.
+",
+      file1.display(),
+      file1.display(),
+      file2.display(),
+      file2.display()
+  );
 
     cmd.assert().success().stdout(expected_output);
 }

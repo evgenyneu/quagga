@@ -258,9 +258,9 @@ Footer text1
         let result = read_and_validate_template(None);
         assert!(result.is_ok());
         let template_parts = result.unwrap();
-        assert!(template_parts.header.is_empty());
+        assert!(!template_parts.header.is_empty());
         assert!(!template_parts.item.is_empty());
-        assert!(template_parts.footer.is_empty());
+        assert!(!template_parts.footer.is_empty());
     }
 
     #[test]

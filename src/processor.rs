@@ -67,21 +67,35 @@ mod tests {
 
         // Create test files with contents
         let file1_path = td.mkfile_with_contents("file1.txt", "Hello");
-        let file2_path = td.mkfile_with_contents("file2.txt", " ");
-        let file3_path = td.mkfile_with_contents("file3.txt", "World!");
+        let file2_path = td.mkfile_with_contents("file3.txt", "World!");
 
         let mut cli = Cli::parse_from(&["test"]);
         cli.root = td.path_buf();
 
-        let result = process_files(&cli, TemplateParts::default());
+        let template = TemplateParts {
+            header: "Header".to_string(),
+            item: "File: {{FILEPATH}}\nContent:\n{{CONTENT}}\n---".to_string(),
+            footer: "Footer".to_string(),
+        };
+
+        let result = process_files(&cli, template);
 
         assert!(result.is_ok());
 
         let expected_output = format!(
-          "\n\n-------\n{}\n-------\n\nHello\n\n-------\n{}\n-------\n\n \n\n-------\n{}\n-------\n\nWorld!",
-          file1_path.display(),
-          file2_path.display(),
-          file3_path.display()
+            "\
+Header
+File: {}
+Content:
+Hello
+---
+File: {}
+Content:
+World!
+---
+Footer",
+            file1_path.display(),
+            file2_path.display()
         );
 
         assert_eq!(result.unwrap(), expected_output);
