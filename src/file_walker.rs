@@ -1,6 +1,7 @@
 use crate::binary_detector::is_valid_text_file;
 use crate::cli::Cli;
-use ignore::Walk;
+use crate::walk_overrides::build_overrides;
+use ignore::WalkBuilder;
 use std::error::Error;
 use std::path::PathBuf;
 
@@ -16,8 +17,10 @@ use std::path::PathBuf;
 /// * `Err(Box<dyn Error>)` if an error occurs during directory traversal or file reading.
 pub fn get_all_files(cli: &Cli) -> Result<Vec<PathBuf>, Box<dyn Error>> {
     let mut files = Vec::new();
+    let overrides = build_overrides(cli)?;
+    let walker = WalkBuilder::new(&cli.root).overrides(overrides).build();
 
-    for result in Walk::new(&cli.root) {
+    for result in walker {
         match result {
             Ok(entry) => {
                 if entry.file_type().unwrap().is_file() {

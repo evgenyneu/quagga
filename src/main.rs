@@ -5,6 +5,7 @@ mod file_walker;
 mod processor;
 mod test_utils;
 use std::path::PathBuf;
+pub mod walk_overrides;
 
 use clap::Parser;
 use cli::Cli;
