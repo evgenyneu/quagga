@@ -1,5 +1,5 @@
+use crate::cli::Cli;
 use std::error::Error;
-use std::path::Path;
 use std::path::PathBuf;
 
 use crate::file_reader::read_and_concatenate_files;
@@ -9,18 +9,18 @@ use crate::file_walker::get_all_files;
 ///
 /// # Arguments
 ///
-/// * `root` - A `PathBuf` representing the root directory to search for files.
+/// * `cli` - Command line arguments.
 /// * `paths` - An optional `Vec<PathBuf>` representing a list of file paths to process.
 ///
 /// # Returns
 ///
 /// A `Result` containing the concatenated contents of the files as a `String` if successful,
 /// or an error if any operation fails.
-pub fn run(root: PathBuf, paths: Option<Vec<PathBuf>>) -> Result<String, Box<dyn Error>> {
+pub fn run(cli: &Cli, paths: Option<Vec<PathBuf>>) -> Result<String, Box<dyn Error>> {
     if let Some(path_list) = paths {
         return read_and_concatenate_files(path_list).map_err(|e| Box::new(e) as Box<dyn Error>);
     } else {
-        return process_files(&root);
+        return process_files(cli);
     }
 }
 
@@ -30,7 +30,7 @@ pub fn run(root: PathBuf, paths: Option<Vec<PathBuf>>) -> Result<String, Box<dyn
 ///
 /// # Arguments
 ///
-/// * `root` - The root directory to start processing.
+/// * `cli` - Command line arguments.
 ///
 /// # Returns
 ///
@@ -42,9 +42,9 @@ pub fn run(root: PathBuf, paths: Option<Vec<PathBuf>>) -> Result<String, Box<dyn
 /// This function will return an error if:
 /// - Retrieving the list of files fails.
 /// - Reading any of the files fails.
-pub fn process_files(root: &Path) -> Result<String, Box<dyn Error>> {
+pub fn process_files(cli: &Cli) -> Result<String, Box<dyn Error>> {
     // Get all files starting from the root directory
-    let mut files = get_all_files(root)?;
+    let mut files = get_all_files(cli)?;
 
     // Sort the files alphabetically by their path
     files.sort();
@@ -57,6 +57,7 @@ pub fn process_files(root: &Path) -> Result<String, Box<dyn Error>> {
 mod tests {
     use super::*;
     use crate::test_utils::temp_dir::TempDir;
+    use clap::Parser;
 
     #[test]
     fn test_process_files_success() {
@@ -68,10 +69,11 @@ mod tests {
         let file2_path = td.mkfile_with_contents("file2.txt", " ");
         let file3_path = td.mkfile_with_contents("file3.txt", "World!");
 
-        // Call the function under test
-        let result = process_files(td.path());
+        let mut cli = Cli::parse_from(&["test"]);
+        cli.root = td.path_buf();
 
-        // Assert the result
+        let result = process_files(&cli);
+
         assert!(result.is_ok());
 
         let expected_output = format!(
@@ -86,13 +88,11 @@ mod tests {
 
     #[test]
     fn test_process_files_with_nonexistent_directory() {
-        // Create a path to a non-existent directory
-        let non_existent_path = Path::new("/path/to/nonexistent/directory");
+        let mut cli = Cli::parse_from(&["test"]);
+        cli.root = PathBuf::from("/path/to/nonexistent/directory");
 
-        // Call the function under test
-        let result = process_files(non_existent_path);
+        let result = process_files(&cli);
 
-        // Assert that an error is returned
         assert!(result.is_err());
     }
 }

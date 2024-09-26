@@ -1,23 +1,23 @@
 use crate::binary_detector::is_valid_text_file;
+use crate::cli::Cli;
 use ignore::Walk;
 use std::error::Error;
-use std::path::Path;
 use std::path::PathBuf;
 
 /// Walks through the directory tree starting from `root` and collects all file paths.
 ///
 /// # Arguments
 ///
-/// * `root` - The root directory to start walking from.
+/// * `cli` - Command line arguments.
 ///
 /// # Returns
 ///
 /// * `Ok(Vec<PathBuf>)` containing the paths of valid text files.
 /// * `Err(Box<dyn Error>)` if an error occurs during directory traversal or file reading.
-pub fn get_all_files(root: &Path) -> Result<Vec<PathBuf>, Box<dyn Error>> {
+pub fn get_all_files(cli: &Cli) -> Result<Vec<PathBuf>, Box<dyn Error>> {
     let mut files = Vec::new();
 
-    for result in Walk::new(root) {
+    for result in Walk::new(&cli.root) {
         match result {
             Ok(entry) => {
                 if entry.file_type().unwrap().is_file() {
@@ -41,6 +41,7 @@ pub fn get_all_files(root: &Path) -> Result<Vec<PathBuf>, Box<dyn Error>> {
 mod tests {
     use super::*;
     use crate::test_utils::temp_dir::TempDir;
+    use clap::Parser;
     use std::fs::File;
     use std::io::Write;
 
@@ -53,7 +54,10 @@ mod tests {
         td.mkfile(".hidden");
         td.mkfile("subdir/file3.txt");
 
-        let result = get_all_files(td.path());
+        let mut cli = Cli::parse_from(&["test"]);
+        cli.root = td.path_buf();
+
+        let result = get_all_files(&cli);
         assert!(result.is_ok());
 
         let files = result.unwrap();
@@ -82,7 +86,10 @@ mod tests {
         let binary_content = [0x00, 0xFF, 0x00, 0xFF];
         binary_file.write_all(&binary_content).unwrap();
 
-        let result = get_all_files(td.path());
+        let mut cli = Cli::parse_from(&["test"]);
+        cli.root = td.path_buf();
+
+        let result = get_all_files(&cli);
 
         assert!(result.is_ok());
 
@@ -103,8 +110,10 @@ mod tests {
     #[test]
     fn test_get_all_files_with_no_files() {
         let td = TempDir::new().unwrap();
+        let mut cli = Cli::parse_from(&["test"]);
+        cli.root = td.path_buf();
 
-        let result = get_all_files(td.path());
+        let result = get_all_files(&cli);
 
         assert!(result.is_ok());
         let files = result.unwrap();
@@ -113,9 +122,9 @@ mod tests {
 
     #[test]
     fn test_get_all_files_with_nonexistent_directory() {
-        let non_existent_path = Path::new("/path/to/nonexistent/directory");
-
-        let result = get_all_files(non_existent_path);
+        let mut cli = Cli::parse_from(&["test"]);
+        cli.root = PathBuf::from("/path/to/nonexistent/directory");
+        let result = get_all_files(&cli);
 
         assert!(result.is_err());
     }
@@ -134,9 +143,11 @@ mod tests {
             std::fs::set_permissions(&file_path, perms).unwrap();
         }
 
-        let result = get_all_files(td.path());
+        let mut cli = Cli::parse_from(&["test"]);
+        cli.root = td.path_buf();
 
-        // Assert that an error is returned
+        let result = get_all_files(&cli);
+
         assert!(result.is_err());
     }
 }

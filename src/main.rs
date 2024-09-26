@@ -17,7 +17,7 @@ fn main() {
     let args = Cli::parse();
     let piped_paths = piped_paths();
 
-    match run(args.root, piped_paths.clone()) {
+    match run(&args, piped_paths.clone()) {
         Ok(content) => {
             println!("{}", content);
         }

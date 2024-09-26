@@ -50,6 +50,10 @@ impl TempDir {
         &self.0
     }
 
+    pub fn path_buf(&self) -> PathBuf {
+        self.0.clone()
+    }
+
     /// Create directory
     pub fn mkdir<P: AsRef<Path>>(&self, path: P) {
         let full_path = self.path().join(path);
