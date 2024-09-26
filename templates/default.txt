@@ -3,7 +3,7 @@
 {{#}} Template tags:
 {{#}}
 {{#}} {{HEADER}} and {{FOOTER}} - The text between {{HEADER}} and {{FOOTER}} tags
-{{#}} is a template for individual file. The text above {{HEADER}} will be placed on
+{{#}} is a template for individual file. The text above {{HEADER}} will be placed at
 {{#}} top of the output prompt, and the text below {{FOOTER}} will be placed at the bottom.
 {{#}}
 {{#}} {{FILEPATH}} - The path to the file that is being included in the prompt.

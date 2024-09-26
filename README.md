@@ -21,8 +21,6 @@ Options:
   -i, --include <PATTERN>...        Include only file paths matching the glob patterns (e.g., src/*.js)
   -x, --exclude <PATTERN>...        Ignore file paths that match the glob patterns (e.g., node_modules)
   -C, --contain <TEXT>...           Include only files that contain the specified text
-  -b, --modified-before <INTERVAL>  Include only files modified before INTERVAL ago (1m, 1h, 1d, 1w, 1M, 1y)
-  -a, --modified-after <INTERVAL>   Include only files modified since INTERVAL ago (1m, 1h, 1d, 1w, 1M, 1y)
   -d, --max-depth <DEPTH>           Descend only DEPTH directories deep
   -f, --max-filesize <BYTES>        Ignore files above the specified size [default: 50000]
   -s, --max-total-size <BYTES>      Show error if total is over the specified size [default: 50000]
