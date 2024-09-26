@@ -19,6 +19,8 @@ use std::path::PathBuf;
     >\x1b[1m quagga --options quagga_options.json \x1b[0m \n\n  \
     Include only files that contain the words 'todo' or 'fixthis', look in '~/code/myapp' directory:\n  \
     >\x1b[1m quagga --contain todo fixthis -- ~/code/myapp \x1b[0m \n\n  \
+    Use custom ignore file:\n  \
+    >\x1b[1m quagga --ignore-file /path/to/.custom.ignore \x1b[0m \n\n  \
     Pipe file paths from another program:\n  \
     >\x1b[1m find . -name '*.txt' | quagga \x1b[0m \n\n  \
     Use a list of files from a text file:\n  \
@@ -29,21 +31,13 @@ pub struct Cli {
     #[arg(short = 'i', long, value_name = "PATTERN", num_args(1..))]
     pub include: Vec<String>,
 
-    /// Ignore file paths that match the glob patterns (e.g., node_modules)
+    /// Exclude file paths that match the glob patterns (e.g., node_modules)
     #[arg(short = 'x', long, value_name = "PATTERN", num_args(1..))]
     pub exclude: Vec<String>,
 
     /// Include only files that contain the specified text
     #[arg(short = 'C', long, value_name = "TEXT", num_args(1..))]
     pub contain: Vec<String>,
-
-    /// Include only files modified before INTERVAL ago (1m, 1h, 1d, 1w, 1M, 1y)
-    #[arg(short = 'b', long, value_name = "INTERVAL")]
-    pub modified_before: Option<String>,
-
-    /// Include only files modified since INTERVAL ago (1m, 1h, 1d, 1w, 1M, 1y)
-    #[arg(short = 'a', long, value_name = "INTERVAL")]
-    pub modified_after: Option<String>,
 
     /// Descend only DEPTH directories deep
     #[arg(short = 'd', long, value_name = "DEPTH")]
@@ -57,15 +51,23 @@ pub struct Cli {
     #[arg(short = 's', long, value_name = "BYTES", default_value_t = 50000)]
     pub max_total_size: u64,
 
-    /// Do not use .gitignore files (used by default)
+    /// Don't use .gitignore files (used by default)
     #[arg(short = 'g', long)]
     pub no_gitignore: bool,
 
-    /// Do not ignore binary files (ignored by default)
+    /// Don't use .quagga_ignore from project and home dirs (used by default)
+    #[arg(short = 'I', long)]
+    pub no_quagga_ignore: bool,
+
+    /// Path(s) to custom ignore file(s)
+    #[arg(short = 'u', long, value_name = "PATH", num_args(1..))]
+    pub ignore_file: Vec<PathBuf>,
+
+    /// Don't ignore binary files (ignored by default)
     #[arg(short = 'B', long)]
     pub binary: bool,
 
-    /// Do not ignore hidden files (ignored by default)
+    /// Don't ignore hidden files (ignored by default)
     #[arg(short = 'H', long)]
     pub hidden: bool,
 
@@ -116,10 +118,10 @@ mod tests {
                 include: Vec::new(),
                 exclude: Vec::new(),
                 contain: Vec::new(),
-                modified_before: None,
-                modified_after: None,
                 max_depth: None,
                 no_gitignore: false,
+                no_quagga_ignore: false,
+                ignore_file: Vec::new(),
                 binary: false,
                 hidden: false,
                 follow_links: false,
@@ -168,10 +170,10 @@ mod tests {
           --include *.js \
           --exclude node_modules \
           --contain hello \
-          --modified-before 1d \
-          --modified-after 7d \
           --max-depth 2 \
           --no-gitignore \
+          --no-quagga-ignore \
+          --ignore-file .custom_ignore \
           --binary \
           --hidden \
           --follow-links \
@@ -193,10 +195,10 @@ mod tests {
                 include: vec!["*.js".to_string()],
                 exclude: vec!["node_modules".to_string()],
                 contain: vec!("hello".to_string()),
-                modified_before: Some("1d".to_string()),
-                modified_after: Some("7d".to_string()),
                 max_depth: Some(2),
                 no_gitignore: true,
+                no_quagga_ignore: true,
+                ignore_file: vec!(PathBuf::from(".custom_ignore")),
                 binary: true,
                 hidden: true,
                 follow_links: true,
