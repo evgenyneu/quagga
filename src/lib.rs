@@ -5,3 +5,4 @@ pub mod file_walker;
 pub mod processor;
 pub mod test_utils;
 pub mod walk_overrides;
+pub mod template;

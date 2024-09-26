@@ -3,14 +3,15 @@ mod cli;
 mod file_reader;
 mod file_walker;
 mod processor;
+pub mod template;
 mod test_utils;
-use std::path::PathBuf;
 pub mod walk_overrides;
 
 use clap::Parser;
 use cli::Cli;
 use processor::run;
 use std::io::{self, BufRead, IsTerminal};
+use std::path::PathBuf;
 use std::process;
 
 /// Main entry point for the application.
