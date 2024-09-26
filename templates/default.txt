@@ -10,8 +10,8 @@
 {{#}}
 {{#}} {{CONTENT}} - The content of the file.
 {{#}}
-{{#}} {{#}} - Comment tag for adding comments to the template. The comment line will not
-{{#}} be included in the output.
+{{#}} {{#}} - Comment tag for adding line comments to the template. The text after {{#}}
+{{#}} will not be included in the output for that line.
 {{#}}
 {{HEADER}}
 ------ FILE START {{FILEPATH}} ------
