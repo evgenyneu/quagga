@@ -16,6 +16,16 @@ pub struct TemplateParts {
     pub footer: String,
 }
 
+impl Default for TemplateParts {
+    fn default() -> Self {
+        TemplateParts {
+            header: "".to_string(),
+            item: "".to_string(),
+            footer: "".to_string(),
+        }
+    }
+}
+
 /// Reads, validates, and parses a template from a given path or the default template.
 ///
 /// This function performs the following steps:

@@ -4,6 +4,7 @@ use std::path::PathBuf;
 
 use crate::file_reader::read_and_concatenate_files;
 use crate::file_walker::get_all_files;
+use crate::template::template::{read_and_validate_template, TemplateParts};
 
 /// Processes files based on provided root directory or list of file paths.
 ///
@@ -17,10 +18,14 @@ use crate::file_walker::get_all_files;
 /// A `Result` containing the concatenated contents of the files as a `String` if successful,
 /// or an error if any operation fails.
 pub fn run(cli: &Cli, paths: Option<Vec<PathBuf>>) -> Result<String, Box<dyn Error>> {
+    // Read and validate the template
+    let template = read_and_validate_template(cli.template.clone())?;
+
     if let Some(path_list) = paths {
-        return read_and_concatenate_files(path_list).map_err(|e| Box::new(e) as Box<dyn Error>);
+        return read_and_concatenate_files(path_list, template)
+            .map_err(|e| Box::new(e) as Box<dyn Error>);
     } else {
-        return process_files(cli);
+        return process_files(cli, template);
     }
 }
 
@@ -42,15 +47,11 @@ pub fn run(cli: &Cli, paths: Option<Vec<PathBuf>>) -> Result<String, Box<dyn Err
 /// This function will return an error if:
 /// - Retrieving the list of files fails.
 /// - Reading any of the files fails.
-pub fn process_files(cli: &Cli) -> Result<String, Box<dyn Error>> {
-    // Get all files starting from the root directory
+pub fn process_files(cli: &Cli, template: TemplateParts) -> Result<String, Box<dyn Error>> {
     let mut files = get_all_files(cli)?;
-
-    // Sort the files alphabetically by their path
     files.sort();
 
-    // Read and concatenate the contents of the files
-    return read_and_concatenate_files(files).map_err(|e| Box::new(e) as Box<dyn Error>);
+    read_and_concatenate_files(files, template).map_err(|e| Box::new(e) as Box<dyn Error>)
 }
 
 #[cfg(test)]
@@ -72,7 +73,7 @@ mod tests {
         let mut cli = Cli::parse_from(&["test"]);
         cli.root = td.path_buf();
 
-        let result = process_files(&cli);
+        let result = process_files(&cli, TemplateParts::default());
 
         assert!(result.is_ok());
 
@@ -91,7 +92,7 @@ mod tests {
         let mut cli = Cli::parse_from(&["test"]);
         cli.root = PathBuf::from("/path/to/nonexistent/directory");
 
-        let result = process_files(&cli);
+        let result = process_files(&cli, TemplateParts::default());
 
         assert!(result.is_err());
     }
