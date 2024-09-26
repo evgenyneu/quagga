@@ -73,19 +73,33 @@ mod tests {
         let td = TempDir::new().unwrap();
 
         let file1_path = td.mkfile_with_contents("file1.txt", "Hello");
-        let file2_path = td.mkfile_with_contents("file2.txt", " ");
-        let file3_path = td.mkfile_with_contents("file3.txt", "World!");
-        let files = vec![file1_path.clone(), file2_path.clone(), file3_path.clone()];
+        let file2_path = td.mkfile_with_contents("file32.txt", "World!");
+        let files = vec![file1_path.clone(), file2_path.clone()];
 
-        let result = read_and_concatenate_files(files, TemplateParts::default());
+        let template = TemplateParts {
+            header: "Header".to_string(),
+            item: "File: {{FILEPATH}}\nContent:\n{{CONTENT}}\n---".to_string(),
+            footer: "Footer".to_string(),
+        };
+
+        let result = read_and_concatenate_files(files, template);
 
         assert!(result.is_ok());
 
         let expected_output = format!(
-            "\n\n-------\n{}\n-------\n\nHello\n\n-------\n{}\n-------\n\n \n\n-------\n{}\n-------\n\nWorld!",
+            "\
+Header
+File: {}
+Content:
+Hello
+---
+File: {}
+Content:
+World!
+---
+Footer",
             file1_path.display(),
-            file2_path.display(),
-            file3_path.display()
+            file2_path.display()
         );
 
         assert_eq!(result.unwrap(), expected_output);

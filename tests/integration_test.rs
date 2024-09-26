@@ -23,8 +23,24 @@ fn test_main_success_run() {
     let output = output.replace("\r\n", "\n");
 
     let expected_output = format!(
-        "\n\n-------\n{}\n-------\n\nHello\n\n-------\n{}\n-------\n\nWorld!\n",
+        "\
+------ FILE START {} ------
+
+Hello
+
+------ {} FILE END ------
+
+------ FILE START {} ------
+
+World!
+
+------ {} FILE END ------
+
+
+",
         path1.display(),
+        path1.display(),
+        path2.display(),
         path2.display()
     );
 
