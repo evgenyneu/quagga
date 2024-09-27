@@ -2,37 +2,69 @@ use home::home_dir;
 use ignore::WalkBuilder;
 use std::path::PathBuf;
 
-/// Adds .quagga_ignore files from the project root and home directories to the WalkBuilder.
+/// Adds .quagga_ignore files from the project root and optionally from a specified home directory to the WalkBuilder.
 ///
 /// # Arguments
 ///
 /// * `builder` - The WalkBuilder to which ignore files will be added.
 /// * `project_root` - PathBuf of the project root directory.
+/// * `home_dir_override` - Optional PathBuf to override the default home directory.
 ///
 /// # Returns
 ///
-/// * Result<(), Box<dyn std::error::Error>> - Ok if the files were successfully added, Err otherwise.
+/// * `Result<(), Box<dyn std::error::Error>>` - Ok if the files were successfully added, Err otherwise.
 pub fn add_quagga_ignore_files(
     builder: &mut WalkBuilder,
     project_root: PathBuf,
+    home_dir_override: Option<PathBuf>,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    add_home_ignore_file(builder)?;
+    add_home_ignore_file(builder, home_dir_override)?;
     add_project_ignore_file(builder, project_root)?;
     Ok(())
 }
 
-fn add_home_ignore_file(builder: &mut WalkBuilder) -> Result<(), Box<dyn std::error::Error>> {
-    if let Some(home_dir) = home_dir() {
-        let home_ignore = home_dir.join(".quagga_ignore");
+/// Adds a .quagga_ignore file from the home directory to the WalkBuilder.
+///
+/// # Arguments
+///
+/// * `builder` - The WalkBuilder to which the home ignore file will be added.
+/// * `home_dir_override` - Optional PathBuf to override the default home directory.
+///
+/// # Returns
+///
+/// * `Result<(), Box<dyn std::error::Error>>` - Ok if the file was processed successfully, Err otherwise.
+fn add_home_ignore_file(
+    builder: &mut WalkBuilder,
+    home_dir_override: Option<PathBuf>,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let home_directory = if let Some(dir) = home_dir_override {
+        dir
+    } else if let Some(dir) = home_dir() {
+        dir
+    } else {
+        // If no home directory is found and no override is provided, skip adding the home ignore file.
+        return Ok(());
+    };
 
-        if home_ignore.exists() {
-            builder.add_ignore(home_ignore);
-        }
+    let home_ignore = home_directory.join(".quagga_ignore");
+
+    if home_ignore.exists() {
+        builder.add_ignore(home_ignore);
     }
 
     Ok(())
 }
 
+/// Adds a .quagga_ignore file from the project root to the WalkBuilder.
+///
+/// # Arguments
+///
+/// * `builder` - The WalkBuilder to which the project ignore file will be added.
+/// * `project_root` - PathBuf of the project root directory.
+///
+/// # Returns
+///
+/// * `Result<(), Box<dyn std::error::Error>>` - Ok if the file was processed successfully, Err otherwise.
 fn add_project_ignore_file(
     builder: &mut WalkBuilder,
     project_root: PathBuf,
@@ -50,7 +82,6 @@ fn add_project_ignore_file(
 mod tests {
     use super::*;
     use crate::test_utils::temp_dir::TempDir;
-    use std::env;
 
     #[test]
     fn test_use_quagga_ignore_files_from_project_dir() {
@@ -63,9 +94,8 @@ mod tests {
 
         td.mkfile_with_contents(".quagga_ignore", "*.md");
 
-        // Test in the context of the temporary project root
         let mut builder = WalkBuilder::new(td.path());
-        add_quagga_ignore_files(&mut builder, td.path_buf()).unwrap();
+        add_quagga_ignore_files(&mut builder, td.path_buf(), None).unwrap();
 
         let walker = builder.build();
 
@@ -73,7 +103,7 @@ mod tests {
             .filter_map(|entry| entry.ok().map(|e| e.path().to_path_buf()))
             .collect();
 
-        assert_eq!(paths.len(), 4); // two directories and two *.txt file
+        assert_eq!(paths.len(), 4); // two directories and two *.txt files
 
         // Present files
         td.assert_contains(&paths, "file.txt");
@@ -94,11 +124,10 @@ mod tests {
         // Home directory
         let home_td = TempDir::new().unwrap();
         home_td.mkfile_with_contents(".quagga_ignore", "*.md");
-        env::set_var("HOME", home_td.path());
 
         let mut builder = WalkBuilder::new(td.path());
 
-        add_quagga_ignore_files(&mut builder, td.path_buf()).unwrap();
+        add_quagga_ignore_files(&mut builder, td.path_buf(), Some(home_td.path_buf())).unwrap();
 
         let walker = builder.build();
 
@@ -106,16 +135,13 @@ mod tests {
             .filter_map(|entry| entry.ok().map(|e| e.path().to_path_buf()))
             .collect();
 
-        assert_eq!(paths.len(), 2); // Only one *.txt file and the project directory itself
+        assert_eq!(paths.len(), 2); // Only *.txt files and directories
 
         // Present file
         td.assert_contains(&paths, "file.txt");
 
         // Ignored file
         td.assert_not_contains(&paths, "file.md");
-
-        // Clean up: unset the HOME environment variable
-        env::remove_var("HOME");
     }
 
     #[test]
@@ -127,8 +153,7 @@ mod tests {
         td.mkfile_with_contents("file.txt", "text content");
 
         // Home directory
-        let home_td = TempDir::new().unwrap(); // Temporary home directory
-        env::set_var("HOME", home_td.path());
+        let home_td = TempDir::new().unwrap();
 
         // Home: ignore all .md files
         home_td.mkfile_with_contents(".quagga_ignore", "*.md");
@@ -137,7 +162,8 @@ mod tests {
         td.mkfile_with_contents(".quagga_ignore", "!README.md");
 
         let mut builder = WalkBuilder::new(td.path());
-        add_quagga_ignore_files(&mut builder, td.path_buf()).unwrap();
+
+        add_quagga_ignore_files(&mut builder, td.path_buf(), Some(home_td.path_buf())).unwrap();
 
         let walker = builder.build();
 
@@ -147,7 +173,7 @@ mod tests {
 
         assert_eq!(paths.len(), 3); // Two files plus the project directory
 
-        // Ensure README.md is white-listed (from project .quagga_ignore)
+        // Ensure README.md is whitelisted (from project .quagga_ignore)
         td.assert_contains(&paths, "README.md");
 
         // Ensure other .md files are still ignored (from home .quagga_ignore)
@@ -155,8 +181,5 @@ mod tests {
 
         // Ensure .txt files are included as expected
         td.assert_contains(&paths, "file.txt");
-
-        // Clean up: unset the HOME environment variable
-        env::remove_var("HOME");
     }
 }
