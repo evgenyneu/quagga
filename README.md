@@ -50,7 +50,7 @@ Examples:
   Use a template to customize the prompt text:
   > quagga --template prompt.json --include '*.txt'  
 
-  Supply options via a file instead of command-line arguments:
+  Read options from a file:
   > quagga --options quagga_options.json  
 
   Include only files that contain the words 'todo' or 'fixthis', look in '~/code/myapp' directory:
