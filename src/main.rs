@@ -3,6 +3,7 @@ mod cli;
 mod file_reader;
 mod file_walker;
 mod processor;
+pub mod quagga_ignore;
 pub mod template;
 mod test_utils;
 pub mod walk_overrides;

@@ -39,13 +39,16 @@ World!
 ------ {} FILE END ------
 
 Reminding the important rules:
-* Discuss code changes first. Don't suggest any changes until we've agreed on the approach.
-* Always think of alternative or better ways to achieve the goal. Don't blindly follow instructions.
-* Make one small code change at a time.
-* All code must be tested and documented (no need to comment on code if its purpose is obvious).
-* Prioritize clarity and simplicity, even if it means writing more code (avoid being overly clever or elegant).
-* Write small, single-purpose functions to keep the code simple and easy to test.
-* Be concise in any response text that is not code.
+* Discuss the code changes first, don't suggest any code changes before we agreed on the approach.
+* Think of an alternative/better way to do what I ask, don't simply follow my instructions.
+* One small code change at a time.
+* All code needs to be tested.
+* Write code in such a way that so it can be used as a library, which also means it needs proper comments and documentation.
+* Focus on code clarity and simplicity, even if it means writing more code (i.e. don't try to be smart or elegant D:).
+* Write small functions that do one thing :D It makes the code simpler and easier to test.
+* In the response text that is not the code, be very concise.
+
+What do you think? Let's discuss ideas first without code :D
 ",
         path1.display(),
         path1.display(),
@@ -105,13 +108,16 @@ World!
 ------ {} FILE END ------
 
 Reminding the important rules:
-* Discuss code changes first. Don't suggest any changes until we've agreed on the approach.
-* Always think of alternative or better ways to achieve the goal. Don't blindly follow instructions.
-* Make one small code change at a time.
-* All code must be tested and documented (no need to comment on code if its purpose is obvious).
-* Prioritize clarity and simplicity, even if it means writing more code (avoid being overly clever or elegant).
-* Write small, single-purpose functions to keep the code simple and easy to test.
-* Be concise in any response text that is not code.
+* Discuss the code changes first, don't suggest any code changes before we agreed on the approach.
+* Think of an alternative/better way to do what I ask, don't simply follow my instructions.
+* One small code change at a time.
+* All code needs to be tested.
+* Write code in such a way that so it can be used as a library, which also means it needs proper comments and documentation.
+* Focus on code clarity and simplicity, even if it means writing more code (i.e. don't try to be smart or elegant D:).
+* Write small functions that do one thing :D It makes the code simpler and easier to test.
+* In the response text that is not the code, be very concise.
+
+What do you think? Let's discuss ideas first without code :D
 ",
       file1.display(),
       file1.display(),
