@@ -2,21 +2,6 @@
 
 `quagga` is a command-line utility written in Rust that combines multiple text files into a single prompt suitable for Large Language Models (LLMs) like ChatGPT, Claude, or Perplexity. It automates the process of preparing prompts from coding project files, eliminating the need for manual copying and pasting.
 
-## Defaults
-
-Quagga uses the following defaults that can be overridden with command-line options:
-
-* Respects gitignore files (disable with `--no-gitignore`):
-  * Standard: `.ignore`, `.gitignore`, `.git/info/exclude`.
-  * Gitignore files from parent directories are respected.
-  * Global ignore file from `core.excludesFile` option in `$HOME/.gitconfig` file. If not set, then `$XDG_CONFIG_HOME/git/ignore` is used. If `$XDG_CONFIG_HOME` is not set, then `$HOME/.config/git/ignore` is used.
-  * Custom gitignore files can be set with the `--gitignore-file PATH` option.
-* Uses `.quagga_ignore` files from the project and home directories written in the same format as gitignore (disable with `--no-quagga-ignore`).
-* Ignores binary files (enable with `--binary`).
-* Ignores hidden files (enable with `--hidden`).
-* Ignores files larger than 50 KB (change with `--max-filesize BYTES`).
-* Symbolic links are not followed (enable with `--follow-links`).
-
 
 ## Installation
 
@@ -80,6 +65,21 @@ Examples:
   Use a list of files from a text file:
   > cat file_list.txt | quagga 
 ```
+
+## Defaults
+
+Quagga uses the following defaults that can be overridden with command-line options:
+
+* Respects gitignore files (disable with `--no-gitignore`):
+  * Standard: `.ignore`, `.gitignore`, `.git/info/exclude`.
+  * Gitignore files from parent directories are respected.
+  * Global ignore file from `core.excludesFile` option in `$HOME/.gitconfig` file. If not set, then `$XDG_CONFIG_HOME/git/ignore` is used. If `$XDG_CONFIG_HOME` is not set, then `$HOME/.config/git/ignore` is used.
+  * Custom gitignore files can be set with the `--gitignore-file PATH` option.
+* Uses `.quagga_ignore` files from the project and home directories written in the same format as gitignore (disable with `--no-quagga-ignore`).
+* Ignores binary files (enable with `--binary`).
+* Ignores hidden files (enable with `--hidden`).
+* Ignores files larger than 50 KB (change with `--max-filesize BYTES`).
+* Symbolic links are not followed (enable with `--follow-links`).
 
 ## What's Quagga?
 
