@@ -19,8 +19,8 @@ use std::path::PathBuf;
     >\x1b[1m quagga --options quagga_options.json \x1b[0m \n\n  \
     Include only files that contain the words 'todo' or 'fixthis', look in '~/code/myapp' directory:\n  \
     >\x1b[1m quagga --contain todo fixthis -- ~/code/myapp \x1b[0m \n\n  \
-    Use custom ignore file:\n  \
-    >\x1b[1m quagga --ignore-file /path/to/.custom.ignore \x1b[0m \n\n  \
+    Use custom gitignore file:\n  \
+    >\x1b[1m quagga --gitignore-file /path/to/.custom.ignore \x1b[0m \n\n  \
     Pipe file paths from another program:\n  \
     >\x1b[1m find . -name '*.txt' | quagga \x1b[0m \n\n  \
     Use a list of files from a text file:\n  \
@@ -59,9 +59,9 @@ pub struct Cli {
     #[arg(short = 'I', long)]
     pub no_quagga_ignore: bool,
 
-    /// Path(s) to custom ignore file(s)
+    /// Path(s) to custom gitignore file(s)
     #[arg(short = 'u', long, value_name = "PATH", num_args(1..))]
-    pub ignore_file: Vec<PathBuf>,
+    pub gitignore_file: Vec<PathBuf>,
 
     /// Don't ignore binary files (ignored by default)
     #[arg(short = 'B', long)]
@@ -121,7 +121,7 @@ mod tests {
                 max_depth: None,
                 no_gitignore: false,
                 no_quagga_ignore: false,
-                ignore_file: Vec::new(),
+                gitignore_file: Vec::new(),
                 binary: false,
                 hidden: false,
                 follow_links: false,
@@ -173,7 +173,7 @@ mod tests {
           --max-depth 2 \
           --no-gitignore \
           --no-quagga-ignore \
-          --ignore-file .custom_ignore \
+          --gitignore-file .custom_ignore \
           --binary \
           --hidden \
           --follow-links \
@@ -198,7 +198,7 @@ mod tests {
                 max_depth: Some(2),
                 no_gitignore: true,
                 no_quagga_ignore: true,
-                ignore_file: vec!(PathBuf::from(".custom_ignore")),
+                gitignore_file: vec!(PathBuf::from(".custom_ignore")),
                 binary: true,
                 hidden: true,
                 follow_links: true,

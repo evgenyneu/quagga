@@ -10,6 +10,7 @@ Quagga uses the following defaults that can be overridden with command-line opti
   * Standard: `.ignore`, `.gitignore`, `.git/info/exclude`.
   * Ignores files from parent directories are respected.
   * Global ignore file from `core.excludesFile` option in `$HOME/.gitconfig` file. If not set, then `$XDG_CONFIG_HOME/git/ignore` is used. If `$XDG_CONFIG_HOME` is not set, then `$HOME/.config/git/ignore` is used.
+  * Custom gitignore files can be set with the `--gitignore-file PATH` option.
 * Uses `.quagga_ignore` files from the project and home directories written in the same format as `.gitignore` (disable with `--no-quagga-ignore`).
 * Ignores binary files (enable with `--binary`).
 * Ignores hidden files (enable with `--hidden`).
@@ -33,46 +34,51 @@ Arguments:
   [DIRECTORY]  The root directory to search for files [default: .]
 
 Options:
-  -i, --include <PATTERN>...        Include only file paths matching the glob patterns (e.g., src/*.js)
-  -x, --exclude <PATTERN>...        Ignore file paths that match the glob patterns (e.g., node_modules)
-  -C, --contain <TEXT>...           Include only files that contain the specified text
-  -d, --max-depth <DEPTH>           Descend only DEPTH directories deep
-  -f, --max-filesize <BYTES>        Ignore files above the specified size [default: 50000]
-  -s, --max-total-size <BYTES>      Show error if total is over the specified size [default: 50000]
-  -g, --no-gitignore                Do not use .gitignore files (used by default)
-  -B, --binary                      Do not ignore binary files (ignored by default)
-  -H, --hidden                      Do not ignore hidden files (ignored by default)
-  -l, --follow-links                Follow symbolic links (not followed by default)
-  -t, --template <PATH>             Path to a custom template file
-  -o, --output <PATH>               Output to a file instead of stdout
-  -c, --clipboard                   Copy the output to the clipboard instead of stdout
-  -D, --dry-run                     Show paths to files without combining them
-  -p, --options <PATH>              Load options from a JSON file
-  -v, --verbose                     Show detailed information during execution
-  -h, --help                        Print help
-  -V, --version                     Print version
+  -i, --include <PATTERN>...      Include only file paths matching the glob patterns (e.g., src/*.js)
+  -x, --exclude <PATTERN>...      Exclude file paths that match the glob patterns (e.g., node_modules)
+  -C, --contain <TEXT>...         Include only files that contain the specified text
+  -d, --max-depth <DEPTH>         Descend only DEPTH directories deep
+  -f, --max-filesize <BYTES>      Ignore files above the specified size [default: 50000]
+  -s, --max-total-size <BYTES>    Show error if total is over the specified size [default: 50000]
+  -g, --no-gitignore              Don't use .gitignore files (used by default)
+  -I, --no-quagga-ignore          Don't use .quagga_ignore from project and home dirs (used by default)
+  -u, --gitignore-file <PATH>...  Path(s) to custom gitignore file(s)
+  -B, --binary                    Don't ignore binary files (ignored by default)
+  -H, --hidden                    Don't ignore hidden files (ignored by default)
+  -l, --follow-links              Follow symbolic links (not followed by default)
+  -t, --template <PATH>           Path to a custom template file
+  -o, --output <PATH>             Output to a file instead of stdout
+  -c, --clipboard                 Copy the output to the clipboard instead of stdout
+  -D, --dry-run                   Show paths to files without combining them
+  -p, --options <PATH>            Load options from a JSON file
+  -v, --verbose                   Show detailed information during execution
+  -h, --help                      Print help
+  -V, --version                   Print version
 
 Examples:
   Combine all Markdown files and copy the result to clipboard instead of stdout:
-  > quagga --include '*.md' --clipboard
+  > quagga --include '*.md' --clipboard  
 
-  Include only JavaScript, Typescript and test files, exclude 'node_modules' and 'dist' directories:
-  > quagga --include '*.{js,ts}' '*.test.*' --exclude node_modules dist
+  Include only JavaScript, Typescript, and test files, excluding 'node_modules' and 'dist' directories:
+  > quagga --include '*.{js,ts}' '*.test.*' --exclude node_modules dist  
 
   Use a template to customize the prompt text:
-  > quagga --template prompt.json --include '*.txt'
+  > quagga --template prompt.json --include '*.txt'  
 
-  Supply options via a file instead of command line arguments:
-  > quagga --options quagga_options.json
+  Supply options via a file instead of command-line arguments:
+  > quagga --options quagga_options.json  
 
-  Include only files that contain the words 'todo' or 'fixthis', look in '~/code/myapp' dir:
-  > quagga --contain todo fixthis -- ~/code/myapp
+  Include only files that contain the words 'todo' or 'fixthis', look in '~/code/myapp' directory:
+  > quagga --contain todo fixthis -- ~/code/myapp  
+
+  Use custom gitignore file:
+  > quagga --gitignore-file /path/to/.custom.ignore  
 
   Pipe file paths from another program:
-  > find . -name '*.txt' | quagga
+  > find . -name '*.txt' | quagga  
 
   Use a list of files from a text file:
-  > cat file_list.txt | quagga
+  > cat file_list.txt | quagga 
 ```
 
 ## What's Quagga?
