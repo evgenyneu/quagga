@@ -8,10 +8,10 @@ Quagga uses the following defaults that can be overridden with command-line opti
 
 * Respects gitignore files (disable with `--no-gitignore`):
   * Standard: `.ignore`, `.gitignore`, `.git/info/exclude`.
-  * Ignores files from parent directories are respected.
+  * Gitignore files from parent directories are respected.
   * Global ignore file from `core.excludesFile` option in `$HOME/.gitconfig` file. If not set, then `$XDG_CONFIG_HOME/git/ignore` is used. If `$XDG_CONFIG_HOME` is not set, then `$HOME/.config/git/ignore` is used.
   * Custom gitignore files can be set with the `--gitignore-file PATH` option.
-* Uses `.quagga_ignore` files from the project and home directories written in the same format as `.gitignore` (disable with `--no-quagga-ignore`).
+  * `.quagga_ignore` files from the project and home directories (disable with `--no-quagga-ignore`).
 * Ignores binary files (enable with `--binary`).
 * Ignores hidden files (enable with `--hidden`).
 * Ignores files larger than 50 KB (change with `--max-filesize BYTES`).
