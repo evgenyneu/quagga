@@ -42,28 +42,28 @@ Options:
 
 Examples:
   Combine all Markdown files and copy the result to clipboard instead of stdout:
-  > quagga --include '*.md' --clipboard  
+  > quagga --include '*.md' --clipboard
 
   Include only JavaScript, Typescript, and test files, excluding 'node_modules' and 'dist' directories:
-  > quagga --include '*.{js,ts}' '*.test.*' --exclude node_modules dist  
+  > quagga --include '*.{js,ts}' '*.test.*' --exclude node_modules dist
 
   Use a template to customize the prompt text:
-  > quagga --template prompt.json --include '*.txt'  
+  > quagga --template prompt.json --include '*.txt'
 
   Read options from a file:
-  > quagga --options quagga_options.json  
+  > quagga --options quagga_options.json
 
   Include only files that contain the words 'todo' or 'fixthis', look in '~/code/myapp' directory:
-  > quagga --contain todo fixthis -- ~/code/myapp  
+  > quagga --contain todo fixthis -- ~/code/myapp
 
   Use custom gitignore file:
-  > quagga --gitignore-file /path/to/.custom.ignore  
+  > quagga --gitignore-file /path/to/.custom.ignore
 
   Pipe file paths from another program:
-  > find . -name '*.txt' | quagga  
+  > find . -name '*.txt' | quagga
 
   Use a list of files from a text file:
-  > cat file_list.txt | quagga 
+  > cat file_list.txt | quagga
 ```
 
 ## Defaults
@@ -97,24 +97,20 @@ See [docs/development.md](docs/development.md) for instructions on how to set up
 See contributing guidelines in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 
-## ToDo
+## Alternative solutions
 
-Brainstorm ideas for future development:
+Here are some great programs from other developers that offer similar functionality:
 
-* Add more installation options (pip, cargo, brew, apt, yum etc).
-* Add platform-specific instructions on how to add binary to the PATH.
-* More usage examples.
-* Add file type based inclusions/exclusions (e.g. --include-type javascript --exclude-type binary image).
-* Add option to show file tree.
-* Set up continuous integration (CI) to run tests automatically on pushes and pull requests.
-* Add issue and pull request templates.
+* [simonw/files-to-prompt](https://github.com/simonw/files-to-prompt)
+* [mufeedvh/code2prompt](https://github.com/mufeedvh/code2prompt)
+* [banagale/FileKitty](https://github.com/banagale/FileKitty)
 
 
 ## Feedback is welcome
 
-If you need help or notice a bug, feel free to create an issue ticket. I will be happy to help. :D
+If you need help or notice a bug, feel free to create an issue ticket. We will be happy to help. :D
 
 
-## The unlicense
+## License
 
-This work is in [public domain](LICENSE).
+Quagga is released under the [MIT License](LICENSE).
