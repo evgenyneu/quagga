@@ -1,6 +1,6 @@
 # Quagga
 
-`quagga` is a command-line utility written in Rust that combines multiple text files into a single prompt suitable for Large Language Models (LLMs) like ChatGPT, Claude, or Perplexity. It automates the process of preparing prompts from coding project files, eliminating the need for manual copying and pasting.
+`quagga` is a command-line utility written in Rust that combines multiple text files into a single prompt suitable for Large Language Models (LLMs) like ChatGPT, Claude, or Perplexity. It automates the process of preparing a prompt from multiple text files in your coding project, so you don't need to locate those files manually and copy/paste them one by one into the LLM prompt.
 
 
 ## Installation
