@@ -44,8 +44,8 @@ pub fn concatenate_items(item_template: &str, files: Vec<FileContent>) -> String
 
     for file in files {
         let item = item_template
-            .replace("{{CONTENT}}", &file.content)
-            .replace("{{FILEPATH}}", &file.path.display().to_string());
+            .replace("{{FILEPATH}}", &file.path.display().to_string())
+            .replace("{{CONTENT}}", &file.content);
 
         contents.push_str(&item);
         contents.push('\n'); // Separate items with a newline
