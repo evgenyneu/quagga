@@ -1,5 +1,6 @@
 use crate::binary_detector::is_valid_text_file;
 use crate::cli::Cli;
+use crate::quagga_ignore::add_quagga_ignore_files;
 use crate::walk_overrides::build_overrides;
 use ignore::WalkBuilder;
 use std::error::Error;
@@ -18,7 +19,14 @@ use std::path::PathBuf;
 pub fn get_all_files(cli: &Cli) -> Result<Vec<PathBuf>, Box<dyn Error>> {
     let mut files = Vec::new();
     let overrides = build_overrides(cli)?;
-    let walker = WalkBuilder::new(&cli.root).overrides(overrides).build();
+    let mut walker_builder = WalkBuilder::new(&cli.root);
+    walker_builder.overrides(overrides);
+
+    if !cli.no_quagga_ignore {
+        add_quagga_ignore_files(&mut walker_builder, cli.root.clone(), None)?;
+    }
+
+    let walker = walker_builder.build();
 
     for result in walker {
         match result {
@@ -152,5 +160,46 @@ mod tests {
         let result = get_all_files(&cli);
 
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_get_all_files_respects_quagga_ignore() {
+        let td = TempDir::new().unwrap();
+        td.mkfile_with_contents("file1.txt", "Hello");
+        td.mkfile_with_contents("file2.md", "World!");
+        td.mkfile_with_contents(".quagga_ignore", "*.md");
+
+        let mut cli = Cli::parse_from(&["test"]);
+        cli.root = td.path_buf();
+
+        let result = get_all_files(&cli);
+        assert!(result.is_ok());
+
+        let files = result.unwrap();
+        assert_eq!(files.len(), 1);
+
+        td.assert_contains(&files, "file1.txt");
+        td.assert_not_contains(&files, "file2.md"); // Ignored in .quagga_ignore
+    }
+
+    #[test]
+    fn test_get_all_files_ignores_quagga_ignore_when_flag_is_set() {
+        let td = TempDir::new().unwrap();
+        td.mkfile_with_contents("file1.txt", "Hello");
+        td.mkfile_with_contents("file2.md", "World!");
+        td.mkfile_with_contents(".quagga_ignore", "*.md");
+
+        let mut cli = Cli::parse_from(&["test", "--no-quagga-ignore"]);
+        cli.root = td.path_buf();
+
+        let result = get_all_files(&cli);
+        assert!(result.is_ok());
+
+        let files = result.unwrap();
+        assert_eq!(files.len(), 2);
+
+        // Both files should be included because --no-quagga-ignore is passed
+        td.assert_contains(&files, "file1.txt");
+        td.assert_contains(&files, "file2.md");
     }
 }
