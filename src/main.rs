@@ -1,5 +1,6 @@
 pub mod binary_detector;
 mod cli;
+pub mod dry_run;
 mod file_reader;
 mod file_walker;
 mod processor;

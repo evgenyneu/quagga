@@ -7,3 +7,4 @@ pub mod quagga_ignore;
 pub mod template;
 pub mod test_utils;
 pub mod walk_overrides;
+pub mod dry_run;

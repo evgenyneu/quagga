@@ -1,4 +1,5 @@
 use crate::cli::Cli;
+use crate::dry_run::concatenate_file_paths;
 use std::error::Error;
 use std::path::PathBuf;
 
@@ -20,6 +21,10 @@ use crate::template::template::{read_and_validate_template, TemplateParts};
 /// A `Result` containing the concatenated contents of the files as a `String` if successful,
 /// or an error if any operation fails.
 pub fn run(cli: &Cli, piped_paths: Option<Vec<PathBuf>>) -> Result<String, Box<dyn Error>> {
+    if cli.dry_run {
+        return concatenate_file_paths(cli, piped_paths);
+    }
+
     let template = read_and_validate_template(cli.template.clone())?;
 
     if let Some(path_list) = piped_paths {
@@ -60,6 +65,22 @@ mod tests {
     use super::*;
     use crate::test_utils::temp_dir::TempDir;
     use clap::Parser;
+
+    #[test]
+    fn test_run_dry() {
+        let td = TempDir::new().unwrap();
+        let path1 = td.mkfile("file1.txt");
+        let path2 = td.mkfile("file2.txt");
+
+        let mut cli = Cli::parse_from(&["test", "--dry-run"]);
+        cli.root = td.path_buf();
+
+        let result = run(&cli, None);
+
+        assert!(result.is_ok());
+        let expected = format!("{}\n{}", path1.display(), path2.display());
+        assert_eq!(result.unwrap(), expected);
+    }
 
     #[test]
     fn test_process_files_success() {
