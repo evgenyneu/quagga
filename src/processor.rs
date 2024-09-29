@@ -93,7 +93,7 @@ mod tests {
 
         let template = TemplateParts {
             header: "Header".to_string(),
-            item: "File: {{FILEPATH}}\nContent:\n{{CONTENT}}\n---".to_string(),
+            item: "File: {{FILE_PATH}}\nContent:\n{{CONTENT}}\n---".to_string(),
             footer: "Footer".to_string(),
         };
 

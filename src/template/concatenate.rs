@@ -44,7 +44,7 @@ pub fn concatenate_items(item_template: &str, files: Vec<FileContent>) -> String
 
     for file in files {
         let item = item_template
-            .replace("{{FILEPATH}}", &file.path.display().to_string())
+            .replace("{{FILE_PATH}}", &file.path.display().to_string())
             .replace("{{CONTENT}}", &file.content);
 
         contents.push_str(&item);
@@ -64,7 +64,7 @@ mod tests {
     fn test_concatenate_files() {
         let template = TemplateParts {
             header: "Header".to_string(),
-            item: "File: {{FILEPATH}}\nContent:\n{{CONTENT}}\n---".to_string(),
+            item: "File: {{FILE_PATH}}\nContent:\n{{CONTENT}}\n---".to_string(),
             footer: "Footer".to_string(),
         };
 
@@ -99,7 +99,7 @@ Footer";
 
     #[test]
     fn test_concatenate_items() {
-        let item_template = "File: {{FILEPATH}}\nContent:\n{{CONTENT}}\n---";
+        let item_template = "File: {{FILE_PATH}}\nContent:\n{{CONTENT}}\n---";
 
         let file1 = FileContent {
             path: PathBuf::from("file1.txt"),
