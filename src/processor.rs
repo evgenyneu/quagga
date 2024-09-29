@@ -6,22 +6,23 @@ use crate::file_reader::read_and_concatenate_files;
 use crate::file_walker::get_all_files;
 use crate::template::template::{read_and_validate_template, TemplateParts};
 
-/// Processes files based on provided root directory or list of file paths.
+/// The function called by `main.rs` that processes files based on provided command line options.
 ///
 /// # Arguments
 ///
 /// * `cli` - Command line arguments.
-/// * `paths` - An optional `Vec<PathBuf>` representing a list of file paths to process.
+/// * `piped_paths` - An optional `Vec<PathBuf>` representing a list of file paths the user
+///                  has piped in via stdin. When present, the program will process the
+///                  files in the list instead of walking the root directory.
 ///
 /// # Returns
 ///
 /// A `Result` containing the concatenated contents of the files as a `String` if successful,
 /// or an error if any operation fails.
-pub fn run(cli: &Cli, paths: Option<Vec<PathBuf>>) -> Result<String, Box<dyn Error>> {
-    // Read and validate the template
+pub fn run(cli: &Cli, piped_paths: Option<Vec<PathBuf>>) -> Result<String, Box<dyn Error>> {
     let template = read_and_validate_template(cli.template.clone())?;
 
-    if let Some(path_list) = paths {
+    if let Some(path_list) = piped_paths {
         return read_and_concatenate_files(path_list, template)
             .map_err(|e| Box::new(e) as Box<dyn Error>);
     } else {
@@ -30,7 +31,7 @@ pub fn run(cli: &Cli, paths: Option<Vec<PathBuf>>) -> Result<String, Box<dyn Err
 }
 
 /// Processes files starting from the given root path:
-/// - Retrieves all files.
+/// - Retrieves file paths by walking the root directory.
 /// - Reads and concatenates their contents.
 ///
 /// # Arguments
@@ -62,10 +63,7 @@ mod tests {
 
     #[test]
     fn test_process_files_success() {
-        // Create a temporary directory for the test
         let td = TempDir::new().unwrap();
-
-        // Create test files with contents
         let file1_path = td.mkfile_with_contents("file1.txt", "Hello");
         let file2_path = td.mkfile_with_contents("file3.txt", "World!");
 
