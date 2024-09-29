@@ -127,3 +127,31 @@ What do you think? Let's discuss ideas first without code :D
 
     cmd.assert().success().stdout(expected_output);
 }
+
+#[test]
+fn test_main_dry_run() {
+    let td = TempDir::new().unwrap();
+    let path1 = td.mkfile("file1.txt");
+    let path2 = td.mkfile("file2.txt");
+
+    let quagga_bin = assert_cmd::cargo::cargo_bin("quagga");
+
+    // Spawn the quagga binary in a terminal
+    let mut p = expectrl::spawn(format!(
+        "{} --dry-run {}",
+        quagga_bin.display(),
+        td.path().display()
+    ))
+    .expect("Failed to spawn quagga binary");
+
+    let mut output = String::new();
+
+    p.read_to_string(&mut output)
+        .expect("Failed to read output from quagga");
+
+    let output = output.replace("\r\n", "\n");
+
+    let expected = format!("{}\n{}\n", path1.display(), path2.display());
+    assert_eq!(output, expected);
+    p.expect(Eof).expect("Failed to expect EOF");
+}
