@@ -22,8 +22,8 @@ use std::path::PathBuf;
 /// A string containing ASCII tree representation of the file paths.
 pub fn file_paths_to_tree(paths: Vec<PathBuf>, root: PathBuf) -> String {
     let tree = build_tree_structure(&paths, &root);
-    let mut output = String::from(".\n");
-    build_tree(&tree, String::new(), &mut output);
+    let mut output = String::new();
+    build_tree(&tree, String::new(), &mut output, true);
     output
 }
 
@@ -42,13 +42,30 @@ fn build_tree_structure(paths: &Vec<PathBuf>, root: &PathBuf) -> BTreeMap<String
 
     // Insert paths into the tree structure.
     for path in paths {
-        let relative_path = path.strip_prefix(&root).unwrap_or(&path);
+        let mut current = &mut tree;
+
+        // Check if the path can be made relative to the root
+        let relative_path = if let Ok(stripped) = path.strip_prefix(&root) {
+            // Use the full root path as the node key
+            // For example, if root path is /dir1/dir2 and it contains the file /dir1/dir2/dir3/file.txt
+            // then the tree node will be /dir1/dir2 (i.e. we don't need to split the path into individual components /, dir1 and dir2)
+            // This way to tree will be more compact and easier to read.
+            // See the test_root_directory_matches_some_of_the_paths test as example.
+            current = current
+                .entry(root.as_os_str().to_str().unwrap().to_string())
+                .or_insert_with(|| Node::Directory(BTreeMap::new()))
+                .as_directory_mut();
+
+            stripped.to_path_buf() // If so, use the relative path
+        } else {
+            path.clone() // If not, use the full path
+        };
+
         let components: Vec<_> = relative_path
             .components()
             .map(|c| c.as_os_str().to_str().unwrap().to_string())
             .collect();
 
-        let mut current = &mut tree;
         for (i, component) in components.iter().enumerate() {
             if i == components.len() - 1 {
                 current.entry(component.clone()).or_insert(Node::File);
@@ -90,22 +107,43 @@ fn node_order((name1, node1): &(&String, &Node), (name2, node2): &(&String, &Nod
 }
 
 /// Helper function to recursively build the tree string.
-fn build_tree(tree: &BTreeMap<String, Node>, prefix: String, output: &mut String) {
+fn build_tree(
+    tree: &BTreeMap<String, Node>,
+    prefix: String,
+    output: &mut String,
+    is_top_level: bool,
+) {
     let mut sorted_entries: Vec<_> = tree.iter().collect();
     sorted_entries.sort_by(node_order); // Sort by custom order
 
     for (i, (name, node)) in sorted_entries.iter().enumerate() {
         let is_last = i == tree.len() - 1;
-        let connector = if is_last { "└── " } else { "├── " };
+
+        let connector = if is_top_level {
+            ""
+        } else {
+            if is_last {
+                "└── "
+            } else {
+                "├── "
+            }
+        };
+
+        // let connector = if is_last { "└── " } else { "├── " };
         output.push_str(&format!("{}{}{}\n", prefix, connector, name));
 
         if let Node::Directory(ref sub_tree) = node {
-            let new_prefix = if is_last {
-                format!("{}    ", prefix)
+            let new_prefix = if is_top_level {
+                "".to_string()
             } else {
-                format!("{}│   ", prefix)
+                if is_last {
+                    format!("{}    ", prefix)
+                } else {
+                    format!("{}│   ", prefix)
+                }
             };
-            build_tree(sub_tree, new_prefix, output);
+
+            build_tree(sub_tree, new_prefix, output, false);
         }
     }
 }
@@ -149,7 +187,7 @@ mod tests {
 
         let result = file_paths_to_tree(paths, root);
 
-        let expected = r#".
+        let expected = r#"/dir1/dir2
 ├── docs
 │   └── development.md
 ├── src
@@ -193,7 +231,7 @@ mod tests {
         let paths = vec![];
         let root = PathBuf::from("/dir1");
         let result = file_paths_to_tree(paths, root);
-        assert_eq!(result, ".\n");
+        assert_eq!(result, "");
     }
 
     #[test]
@@ -201,7 +239,7 @@ mod tests {
         let paths = vec![PathBuf::from("/dir1")];
         let root = PathBuf::from("/dir1");
         let result = file_paths_to_tree(paths, root);
-        assert_eq!(result, ".\n");
+        assert_eq!(result, "/dir1\n");
     }
 
     #[test]
@@ -211,7 +249,7 @@ mod tests {
 
         let result = file_paths_to_tree(paths, root);
 
-        let expected = r#".
+        let expected = r#"/dir1
 └── file.txt
 "#;
 
@@ -225,7 +263,7 @@ mod tests {
 
         let result = file_paths_to_tree(paths, root);
 
-        let expected = r#".
+        let expected = r#"/dir1
 └── level1
     └── level2
         └── level3
@@ -246,7 +284,7 @@ mod tests {
 
         let result = file_paths_to_tree(paths, root);
 
-        let expected = r#".
+        let expected = r#"/dir1
 ├── dirA
 │   └── file.txt
 └── dirB
@@ -267,7 +305,7 @@ mod tests {
 
         let result = file_paths_to_tree(paths, root);
 
-        let expected = r#".
+        let expected = r#"/dir1
 ├── File.txt
 └── file.txt
 "#;
@@ -286,7 +324,7 @@ mod tests {
 
         let result = file_paths_to_tree(paths, root);
 
-        let expected = r#".
+        let expected = r#"/dir1
 ├── dir with space
 │   └── file.txt
 └── special@file.txt
@@ -310,13 +348,61 @@ mod tests {
     }
 
     #[test]
-    fn test_root_directory_mismatch_print_full_paths() {
+    fn test_root_directory_mismatch() {
         let paths = vec![PathBuf::from("/file1.txt"), PathBuf::from("/file2.txt")];
-        let root = PathBuf::from("/dirB"); // Root is different from paths
+        let root = PathBuf::from("dir"); // Root is different from paths
 
         let result = file_paths_to_tree(paths, root);
 
         let expected = r#"/
+├── file1.txt
+└── file2.txt
+"#;
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_root_directory_mismatch_with_subdirs() {
+        let paths = vec![
+            PathBuf::from("dir1/dir2/file1.txt"),
+            PathBuf::from("dir1/dir2/file2.txt"),
+        ];
+        let root = PathBuf::from("dir"); // Root is different from paths
+
+        let result = file_paths_to_tree(paths, root);
+
+        let expected = r#"dir1
+└── dir2
+    ├── file1.txt
+    └── file2.txt
+"#;
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_root_directory_matches_some_of_the_paths() {
+        let paths = vec![
+            PathBuf::from("/dir1/dir2/file1.txt"),
+            PathBuf::from("/dir1/dir2/file2.txt"),
+            PathBuf::from("/dir3/dir4/file1.txt"),
+            PathBuf::from("/dir3/dir4/file2.txt"),
+        ];
+
+        let root = PathBuf::from("/dir1/dir2");
+
+        let result = file_paths_to_tree(paths, root);
+
+        // Since the root "/dir1/dir2" dir contains the files "/dir1/dir2/file1.txt" and "/dir1/dir2/file2.txt"
+        // the dir "/dir1/dir2" will be use as tree node (i.e. we don't need to split the tree into individual components /, dir1 and dir2)
+        // This way to tree will be more compact and easier to read.
+        let expected = r#"/
+└── dir3
+    └── dir4
+        ├── file1.txt
+        └── file2.txt
+/dir1/dir2
 ├── file1.txt
 └── file2.txt
 "#;
