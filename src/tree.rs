@@ -2,13 +2,25 @@ use std::cmp::Ordering;
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 
+#[derive(Debug)]
+pub enum TreeBuildError {
+    RootMismatch { path: PathBuf, root: PathBuf },
+}
+
 /// Builds an ASCII tree from a list of file paths and a root directory.
-pub fn file_paths_to_tree(paths: Vec<PathBuf>, root: PathBuf) -> String {
+pub fn file_paths_to_tree(paths: Vec<PathBuf>, root: PathBuf) -> Result<String, TreeBuildError> {
     let mut tree = BTreeMap::new();
 
     // Insert paths into the tree structure.
     for path in paths {
-        let relative_path = path.strip_prefix(&root).unwrap_or(&path);
+        // Check if path matches root, otherwise return an error.
+        let relative_path = path
+            .strip_prefix(&root)
+            .map_err(|_| TreeBuildError::RootMismatch {
+                path: path.clone(),
+                root: root.clone(),
+            })?;
+
         let components: Vec<_> = relative_path
             .components()
             .map(|c| c.as_os_str().to_str().unwrap().to_string())
@@ -30,7 +42,7 @@ pub fn file_paths_to_tree(paths: Vec<PathBuf>, root: PathBuf) -> String {
     // Build the ASCII tree string.
     let mut output = String::from(".\n");
     build_tree(&tree, String::new(), &mut output);
-    output
+    Ok(output)
 }
 
 /// Represents a node in the directory tree (either a directory or a file).
@@ -115,7 +127,9 @@ mod tests {
         ];
 
         let root = PathBuf::from("/dir1/dir2");
-        let result = file_paths_to_tree(paths, root);
+
+        let result = file_paths_to_tree(paths, root).unwrap();
+
         let expected = r#".
 ├── docs
 │   └── development.md
@@ -159,7 +173,7 @@ mod tests {
     fn test_empty_paths() {
         let paths = vec![];
         let root = PathBuf::from("/dir1");
-        let result = file_paths_to_tree(paths, root);
+        let result = file_paths_to_tree(paths, root).unwrap();
         assert_eq!(result, ".\n");
     }
 
@@ -167,7 +181,7 @@ mod tests {
     fn test_root_directory_only() {
         let paths = vec![PathBuf::from("/dir1")];
         let root = PathBuf::from("/dir1");
-        let result = file_paths_to_tree(paths, root);
+        let result = file_paths_to_tree(paths, root).unwrap();
         assert_eq!(result, ".\n");
     }
 
@@ -175,7 +189,8 @@ mod tests {
     fn test_single_file_in_root() {
         let paths = vec![PathBuf::from("/dir1/file.txt")];
         let root = PathBuf::from("/dir1");
-        let result = file_paths_to_tree(paths, root);
+
+        let result = file_paths_to_tree(paths, root).unwrap();
 
         let expected = r#".
 └── file.txt
@@ -188,6 +203,9 @@ mod tests {
     fn test_deeply_nested_directory() {
         let paths = vec![PathBuf::from("/dir1/level1/level2/level3/level4/file.txt")];
         let root = PathBuf::from("/dir1");
+
+        let result = file_paths_to_tree(paths, root).unwrap();
+
         let expected = r#".
 └── level1
     └── level2
@@ -195,7 +213,7 @@ mod tests {
             └── level4
                 └── file.txt
 "#;
-        let result = file_paths_to_tree(paths, root);
+
         assert_eq!(result, expected);
     }
 
@@ -206,13 +224,16 @@ mod tests {
             PathBuf::from("/dir1/dirB/file.txt"),
         ];
         let root = PathBuf::from("/dir1");
+
+        let result = file_paths_to_tree(paths, root).unwrap();
+
         let expected = r#".
 ├── dirA
 │   └── file.txt
 └── dirB
     └── file.txt
 "#;
-        let result = file_paths_to_tree(paths, root);
+
         assert_eq!(result, expected);
     }
 
@@ -222,12 +243,16 @@ mod tests {
             PathBuf::from("/dir1/File.txt"),
             PathBuf::from("/dir1/file.txt"),
         ];
+
         let root = PathBuf::from("/dir1");
+
+        let result = file_paths_to_tree(paths, root).unwrap();
+
         let expected = r#".
 ├── File.txt
 └── file.txt
 "#;
-        let result = file_paths_to_tree(paths, root);
+
         assert_eq!(result, expected);
     }
 
@@ -237,42 +262,49 @@ mod tests {
             PathBuf::from("/dir1/special@file.txt"),
             PathBuf::from("/dir1/dir with space/file.txt"),
         ];
+
         let root = PathBuf::from("/dir1");
+
+        let result = file_paths_to_tree(paths, root).unwrap();
+
         let expected = r#".
 ├── dir with space
 │   └── file.txt
 └── special@file.txt
 "#;
-        let result = file_paths_to_tree(paths, root);
         assert_eq!(result, expected);
     }
 
     #[test]
     fn test_start_with_dot_dir() {
-        let paths = vec![PathBuf::from("./file1.txt"), PathBuf::from("file2.txt")];
-        let root = PathBuf::from("."); // Root is different from paths
+        let paths = vec![PathBuf::from("./file1.txt"), PathBuf::from("./file2.txt")];
+        let root = PathBuf::from(".");
 
         let expected = r#".
 ├── file1.txt
 └── file2.txt
 "#;
-        let result = file_paths_to_tree(paths, root);
+        let result = file_paths_to_tree(paths, root).unwrap();
         assert_eq!(result, expected);
     }
 
     #[test]
-    fn test_root_directory_does_not_match() {
+    fn test_root_directory_mismatch() {
         let paths = vec![
             PathBuf::from("/dirA/file1.txt"),
             PathBuf::from("/dirA/file2.txt"),
         ];
+
         let root = PathBuf::from("/dirB"); // Root is different from paths
-        let expected = r#".
-└── dirA
-    ├── file1.txt
-    └── file2.txt
-"#;
+
         let result = file_paths_to_tree(paths, root);
-        assert_eq!(result, expected);
+
+        match result {
+            Err(TreeBuildError::RootMismatch { path, root }) => {
+                assert_eq!(path, PathBuf::from("/dirA/file1.txt"));
+                assert_eq!(root, PathBuf::from("/dirB"));
+            }
+            _ => panic!("Expected RootMismatch error"),
+        }
     }
 }
