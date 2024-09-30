@@ -45,7 +45,7 @@ Options:
   -t, --template <PATH>           Path to a custom template file
   -o, --output <PATH>             Output to a file instead of stdout
   -c, --clipboard                 Copy the output to the clipboard instead of stdout
-  -D, --dry-run                   Show paths to files without combining them
+  -D, --show-paths                Show paths to files without combining them
   -p, --options <PATH>            Load options from a JSON file
   -v, --verbose                   Show detailed information during execution
   -h, --help                      Print help

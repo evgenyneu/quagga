@@ -163,7 +163,7 @@ mod tests {
             PathBuf::from("/dir1/dir2/docs/development.md"),
             PathBuf::from("/dir1/dir2/src/binary_detector.rs"),
             PathBuf::from("/dir1/dir2/src/cli.rs"),
-            PathBuf::from("/dir1/dir2/src/dry_run.rs"),
+            PathBuf::from("/dir1/dir2/src/show_paths.rs"),
             PathBuf::from("/dir1/dir2/src/file_walker.rs"),
             PathBuf::from("/dir1/dir2/src/lib.rs"),
             PathBuf::from("/dir1/dir2/tests/integration_test.rs"),
@@ -204,13 +204,13 @@ mod tests {
 │   │   └── temp_dir.rs
 │   ├── binary_detector.rs
 │   ├── cli.rs
-│   ├── dry_run.rs
 │   ├── file_reader.rs
 │   ├── file_walker.rs
 │   ├── lib.rs
 │   ├── main.rs
 │   ├── processor.rs
 │   ├── quagga_ignore.rs
+│   ├── show_paths.rs
 │   └── walk_overrides.rs
 ├── templates
 │   └── default.txt

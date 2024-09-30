@@ -141,7 +141,7 @@ What do you think? Let's discuss ideas first without code :D
 }
 
 #[test]
-fn test_main_dry_run() {
+fn test_main_show_paths() {
     let td = TempDir::new().unwrap();
     let path1 = td.mkfile("file1.txt");
     let path2 = td.mkfile("file2.txt");
@@ -150,7 +150,7 @@ fn test_main_dry_run() {
 
     // Spawn the quagga binary in a terminal
     let mut p = expectrl::spawn(format!(
-        "{} --dry-run {}",
+        "{} --show-paths {}",
         quagga_bin.display(),
         td.path().display()
     ))

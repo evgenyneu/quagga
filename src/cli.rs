@@ -88,8 +88,12 @@ pub struct Cli {
     pub clipboard: bool,
 
     /// Show paths to files without combining them
-    #[arg(short = 'D', long)]
-    pub dry_run: bool,
+    #[arg(short = 'S', long)]
+    pub show_paths: bool,
+
+    /// Show paths to files in ASCII tree format without combining them
+    #[arg(short = 'T', long)]
+    pub tree: bool,
 
     /// Load options from a JSON file
     #[arg(short = 'p', long, value_name = "PATH")]
@@ -128,7 +132,8 @@ mod tests {
                 template: None,
                 output: None,
                 clipboard: false,
-                dry_run: false,
+                show_paths: false,
+                tree: false,
                 options: None,
                 verbose: false,
                 max_filesize: 50000,
@@ -180,7 +185,8 @@ mod tests {
           --template template.txt \
           --output output.txt \
           --clipboard \
-          --dry-run \
+          --show-paths \
+          --tree \
           --options options.json \
           --verbose \
           --max-filesize 10000 \
@@ -205,7 +211,8 @@ mod tests {
                 template: Some(PathBuf::from("template.txt")),
                 output: Some(PathBuf::from("output.txt")),
                 clipboard: true,
-                dry_run: true,
+                show_paths: true,
+                tree: true,
                 options: Some(PathBuf::from("options.json")),
                 verbose: true,
                 max_filesize: 10000,

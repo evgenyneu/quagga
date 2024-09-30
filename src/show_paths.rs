@@ -3,7 +3,7 @@ use crate::file_walker::get_all_files;
 use std::error::Error;
 use std::path::PathBuf;
 
-/// Concatenates file paths for the --dry-run functionality.
+/// Concatenates file paths for the --show-paths command line option.
 /// Returns a single string of file paths separated by newlines.
 ///
 /// # Arguments
