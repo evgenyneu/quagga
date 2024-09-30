@@ -133,4 +133,34 @@ World!
 
         assert_eq!(result, expected_output);
     }
+
+    #[test]
+    fn test_concatenate_files_process_all_file_paths_tag() {
+        let template = TemplateParts {
+            header: "Header with paths: {{ALL_FILE_PATHS}}".to_string(),
+            item: "Item: {{CONTENT}}".to_string(),
+            footer: "Footer with paths: {{ALL_FILE_PATHS}}".to_string(),
+        };
+
+        let files = vec![
+            FileContent {
+                path: PathBuf::from("file1.txt"),
+                content: "Content1".to_string(),
+            },
+            FileContent {
+                path: PathBuf::from("file2.txt"),
+                content: "Content2".to_string(),
+            },
+        ];
+
+        let result = concatenate_files(template, files);
+
+        assert_eq!(
+            result,
+            "Header with paths: file1.txt\nfile2.txt\n\
+Item: Content1\n\
+Item: Content2\n\
+Footer with paths: file1.txt\nfile2.txt"
+        );
+    }
 }
