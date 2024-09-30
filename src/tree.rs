@@ -2,10 +2,10 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 /// Helper function to recursively build the tree string.
-fn build_tree(tree: &BTreeMap<String, Node>, prefix: String, is_last: bool, output: &mut String) {
-    let connector = if is_last { "└── " } else { "├── " };
+fn build_tree(tree: &BTreeMap<String, Node>, prefix: String, output: &mut String) {
     for (i, (name, node)) in tree.iter().enumerate() {
         let is_last = i == tree.len() - 1;
+        let connector = if is_last { "└── " } else { "├── " };
         output.push_str(&format!("{}{}{}\n", prefix, connector, name));
 
         if let Node::Directory(ref sub_tree) = node {
@@ -14,7 +14,7 @@ fn build_tree(tree: &BTreeMap<String, Node>, prefix: String, is_last: bool, outp
             } else {
                 format!("{}│   ", prefix)
             };
-            build_tree(sub_tree, new_prefix, is_last, output);
+            build_tree(sub_tree, new_prefix, output);
         }
     }
 }
@@ -52,7 +52,7 @@ pub fn file_paths_to_tree(paths: Vec<PathBuf>, root: PathBuf) -> String {
 
     // Build the ASCII tree string.
     let mut output = String::from(".\n");
-    build_tree(&tree, String::new(), true, &mut output);
+    build_tree(&tree, String::new(), &mut output);
     output
 }
 
@@ -73,30 +73,30 @@ mod tests {
     #[test]
     fn test_file_paths_to_tree() {
         let paths = vec![
-            PathBuf::from("/dir1/dir2/CONTRIBUTING.md"),
             PathBuf::from("/dir1/dir2/Cargo.toml"),
-            PathBuf::from("/dir1/dir2/LICENSE"),
-            PathBuf::from("/dir1/dir2/README.md"),
+            PathBuf::from("/dir1/dir2/CONTRIBUTING.md"),
+            PathBuf::from("/dir1/dir2/src/file_reader.rs"),
             PathBuf::from("/dir1/dir2/TODO.md"),
+            PathBuf::from("/dir1/dir2/README.md"),
             PathBuf::from("/dir1/dir2/docs/development.md"),
             PathBuf::from("/dir1/dir2/src/binary_detector.rs"),
             PathBuf::from("/dir1/dir2/src/cli.rs"),
             PathBuf::from("/dir1/dir2/src/dry_run.rs"),
-            PathBuf::from("/dir1/dir2/src/file_reader.rs"),
             PathBuf::from("/dir1/dir2/src/file_walker.rs"),
             PathBuf::from("/dir1/dir2/src/lib.rs"),
+            PathBuf::from("/dir1/dir2/tests/integration_test.rs"),
             PathBuf::from("/dir1/dir2/src/main.rs"),
             PathBuf::from("/dir1/dir2/src/processor.rs"),
+            PathBuf::from("/dir1/dir2/src/template/template.rs"),
             PathBuf::from("/dir1/dir2/src/quagga_ignore.rs"),
             PathBuf::from("/dir1/dir2/src/template/concatenate.rs"),
             PathBuf::from("/dir1/dir2/src/template/mod.rs"),
-            PathBuf::from("/dir1/dir2/src/template/template.rs"),
             PathBuf::from("/dir1/dir2/src/template/validator.rs"),
             PathBuf::from("/dir1/dir2/src/test_utils/mod.rs"),
+            PathBuf::from("/dir1/dir2/LICENSE"),
             PathBuf::from("/dir1/dir2/src/test_utils/temp_dir.rs"),
             PathBuf::from("/dir1/dir2/src/walk_overrides.rs"),
             PathBuf::from("/dir1/dir2/templates/default.txt"),
-            PathBuf::from("/dir1/dir2/tests/integration_test.rs"),
         ];
 
         let root = PathBuf::from("/dir1/dir2");
