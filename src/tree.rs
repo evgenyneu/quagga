@@ -154,4 +154,125 @@ mod tests {
 
         assert_eq!(result, expected);
     }
+
+    #[test]
+    fn test_empty_paths() {
+        let paths = vec![];
+        let root = PathBuf::from("/dir1");
+        let result = file_paths_to_tree(paths, root);
+        assert_eq!(result, ".\n");
+    }
+
+    #[test]
+    fn test_root_directory_only() {
+        let paths = vec![PathBuf::from("/dir1")];
+        let root = PathBuf::from("/dir1");
+        let result = file_paths_to_tree(paths, root);
+        assert_eq!(result, ".\n");
+    }
+
+    #[test]
+    fn test_single_file_in_root() {
+        let paths = vec![PathBuf::from("/dir1/file.txt")];
+        let root = PathBuf::from("/dir1");
+        let result = file_paths_to_tree(paths, root);
+
+        let expected = r#".
+└── file.txt
+"#;
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_deeply_nested_directory() {
+        let paths = vec![PathBuf::from("/dir1/level1/level2/level3/level4/file.txt")];
+        let root = PathBuf::from("/dir1");
+        let expected = r#".
+└── level1
+    └── level2
+        └── level3
+            └── level4
+                └── file.txt
+"#;
+        let result = file_paths_to_tree(paths, root);
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_same_file_name_in_different_directories() {
+        let paths = vec![
+            PathBuf::from("/dir1/dirA/file.txt"),
+            PathBuf::from("/dir1/dirB/file.txt"),
+        ];
+        let root = PathBuf::from("/dir1");
+        let expected = r#".
+├── dirA
+│   └── file.txt
+└── dirB
+    └── file.txt
+"#;
+        let result = file_paths_to_tree(paths, root);
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_mixed_case_sensitivity() {
+        let paths = vec![
+            PathBuf::from("/dir1/File.txt"),
+            PathBuf::from("/dir1/file.txt"),
+        ];
+        let root = PathBuf::from("/dir1");
+        let expected = r#".
+├── File.txt
+└── file.txt
+"#;
+        let result = file_paths_to_tree(paths, root);
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_special_characters_in_paths() {
+        let paths = vec![
+            PathBuf::from("/dir1/special@file.txt"),
+            PathBuf::from("/dir1/dir with space/file.txt"),
+        ];
+        let root = PathBuf::from("/dir1");
+        let expected = r#".
+├── dir with space
+│   └── file.txt
+└── special@file.txt
+"#;
+        let result = file_paths_to_tree(paths, root);
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_start_with_dot_dir() {
+        let paths = vec![PathBuf::from("./file1.txt"), PathBuf::from("file2.txt")];
+        let root = PathBuf::from("."); // Root is different from paths
+
+        let expected = r#".
+├── file1.txt
+└── file2.txt
+"#;
+        let result = file_paths_to_tree(paths, root);
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_root_directory_does_not_match() {
+        let paths = vec![
+            PathBuf::from("/dirA/file1.txt"),
+            PathBuf::from("/dirA/file2.txt"),
+        ];
+        let root = PathBuf::from("/dirB"); // Root is different from paths
+        let expected = r#".
+└── dirA
+    ├── file1.txt
+    └── file2.txt
+"#;
+        let result = file_paths_to_tree(paths, root);
+        assert_eq!(result, expected);
+    }
 }
