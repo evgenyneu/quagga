@@ -15,48 +15,16 @@ use std::path::PathBuf;
 /// # Arguments
 ///
 /// * `paths` - A vector of `PathBuf` objects representing file paths to include in the tree.
-/// * `root` - A `PathBuf` object representing the root directory. All file paths are expected to
-///            be relative to this directory. If any path does not match the root, an error is returned.
+/// * `root` - A `PathBuf` object representing the root directory.
 ///
 /// # Returns
 ///
-/// This function returns a `Result`:
-/// * `Ok(String)` - An ASCII tree representation of the file paths, relative to the root directory.
-/// * `Err(TreeBuildError)` - An error if any path does not match the root directory.
-///
-pub fn file_paths_to_tree(paths: Vec<PathBuf>, root: PathBuf) -> Result<String, TreeBuildError> {
-    let tree = build_tree_structure(&paths, &root)?;
+/// A string containing ASCII tree representation of the file paths.
+pub fn file_paths_to_tree(paths: Vec<PathBuf>, root: PathBuf) -> String {
+    let tree = build_tree_structure(&paths, &root);
     let mut output = String::from(".\n");
     build_tree(&tree, String::new(), &mut output);
-    Ok(output)
-}
-
-/// Represents errors that can occur when building the ASCII tree from file paths.
-#[derive(Debug)]
-pub enum TreeBuildError {
-    /// Occurs when a provided file path does not match the root directory.
-    ///
-    /// # Fields
-    ///
-    /// * `path` - The file path that does not match the root.
-    /// * `root` - The root directory.
-    /// # Example
-    ///
-    /// ```
-    /// use std::path::PathBuf;
-    /// use quagga::tree::{file_paths_to_tree, TreeBuildError};
-    ///
-    /// let paths = vec![PathBuf::from("/other_dir/file.txt")];
-    /// let root = PathBuf::from("/root_dir");
-    ///
-    /// match file_paths_to_tree(paths, root) {
-    ///     Ok(_) => println!("Tree built successfully."),
-    ///     Err(TreeBuildError::RootMismatch { path, root }) => {
-    ///         println!("Error: Path '{}' does not match root '{}'", path.display(), root.display());
-    ///     }
-    /// }
-    /// ```
-    RootMismatch { path: PathBuf, root: PathBuf },
+    output
 }
 
 /// Build the tree structure from the paths.
@@ -68,29 +36,19 @@ pub enum TreeBuildError {
 ///
 /// # Returns
 ///
-/// * `Result<BTreeMap<String, Node>, TreeBuildError>` - The tree structure or an error if paths do not match the root.
-fn build_tree_structure(
-    paths: &Vec<PathBuf>,
-    root: &PathBuf,
-) -> Result<BTreeMap<String, Node>, TreeBuildError> {
+/// The tree structure of the paths as a `BTreeMap`.
+fn build_tree_structure(paths: &Vec<PathBuf>, root: &PathBuf) -> BTreeMap<String, Node> {
     let mut tree = BTreeMap::new();
 
+    // Insert paths into the tree structure.
     for path in paths {
-        // Extract path relative to the root directory.
-        let relative_path = path
-            .strip_prefix(&root)
-            .map_err(|_| TreeBuildError::RootMismatch {
-                path: path.clone(),
-                root: root.clone(),
-            })?;
-
+        let relative_path = path.strip_prefix(&root).unwrap_or(&path);
         let components: Vec<_> = relative_path
             .components()
             .map(|c| c.as_os_str().to_str().unwrap().to_string())
             .collect();
 
         let mut current = &mut tree;
-
         for (i, component) in components.iter().enumerate() {
             if i == components.len() - 1 {
                 current.entry(component.clone()).or_insert(Node::File);
@@ -103,7 +61,7 @@ fn build_tree_structure(
         }
     }
 
-    Ok(tree)
+    tree
 }
 
 /// Represents a node in the directory tree (either a directory or a file).
@@ -189,7 +147,7 @@ mod tests {
 
         let root = PathBuf::from("/dir1/dir2");
 
-        let result = file_paths_to_tree(paths, root).unwrap();
+        let result = file_paths_to_tree(paths, root);
 
         let expected = r#".
 ├── docs
@@ -234,7 +192,7 @@ mod tests {
     fn test_empty_paths() {
         let paths = vec![];
         let root = PathBuf::from("/dir1");
-        let result = file_paths_to_tree(paths, root).unwrap();
+        let result = file_paths_to_tree(paths, root);
         assert_eq!(result, ".\n");
     }
 
@@ -242,7 +200,7 @@ mod tests {
     fn test_root_directory_only() {
         let paths = vec![PathBuf::from("/dir1")];
         let root = PathBuf::from("/dir1");
-        let result = file_paths_to_tree(paths, root).unwrap();
+        let result = file_paths_to_tree(paths, root);
         assert_eq!(result, ".\n");
     }
 
@@ -251,7 +209,7 @@ mod tests {
         let paths = vec![PathBuf::from("/dir1/file.txt")];
         let root = PathBuf::from("/dir1");
 
-        let result = file_paths_to_tree(paths, root).unwrap();
+        let result = file_paths_to_tree(paths, root);
 
         let expected = r#".
 └── file.txt
@@ -265,7 +223,7 @@ mod tests {
         let paths = vec![PathBuf::from("/dir1/level1/level2/level3/level4/file.txt")];
         let root = PathBuf::from("/dir1");
 
-        let result = file_paths_to_tree(paths, root).unwrap();
+        let result = file_paths_to_tree(paths, root);
 
         let expected = r#".
 └── level1
@@ -286,7 +244,7 @@ mod tests {
         ];
         let root = PathBuf::from("/dir1");
 
-        let result = file_paths_to_tree(paths, root).unwrap();
+        let result = file_paths_to_tree(paths, root);
 
         let expected = r#".
 ├── dirA
@@ -307,7 +265,7 @@ mod tests {
 
         let root = PathBuf::from("/dir1");
 
-        let result = file_paths_to_tree(paths, root).unwrap();
+        let result = file_paths_to_tree(paths, root);
 
         let expected = r#".
 ├── File.txt
@@ -326,7 +284,7 @@ mod tests {
 
         let root = PathBuf::from("/dir1");
 
-        let result = file_paths_to_tree(paths, root).unwrap();
+        let result = file_paths_to_tree(paths, root);
 
         let expected = r#".
 ├── dir with space
@@ -345,27 +303,27 @@ mod tests {
 ├── file1.txt
 └── file2.txt
 "#;
-        let result = file_paths_to_tree(paths, root).unwrap();
+        let result = file_paths_to_tree(paths, root);
         assert_eq!(result, expected);
     }
 
-    #[test]
-    fn test_root_directory_mismatch() {
-        let paths = vec![
-            PathBuf::from("/dirA/file1.txt"),
-            PathBuf::from("/dirA/file2.txt"),
-        ];
+    // #[test]
+    // fn test_root_directory_mismatch() {
+    //     let paths = vec![
+    //         PathBuf::from("/dirA/file1.txt"),
+    //         PathBuf::from("/dirA/file2.txt"),
+    //     ];
 
-        let root = PathBuf::from("/dirB"); // Root is different from paths
+    //     let root = PathBuf::from("/dirB"); // Root is different from paths
 
-        let result = file_paths_to_tree(paths, root);
+    //     let result = file_paths_to_tree(paths, root);
 
-        match result {
-            Err(TreeBuildError::RootMismatch { path, root }) => {
-                assert_eq!(path, PathBuf::from("/dirA/file1.txt"));
-                assert_eq!(root, PathBuf::from("/dirB"));
-            }
-            _ => panic!("Expected RootMismatch error"),
-        }
-    }
+    //     match result {
+    //         Err(TreeBuildError::RootMismatch { path, root }) => {
+    //             assert_eq!(path, PathBuf::from("/dirA/file1.txt"));
+    //             assert_eq!(root, PathBuf::from("/dirB"));
+    //         }
+    //         _ => panic!("Expected RootMismatch error"),
+    //     }
+    // }
 }
