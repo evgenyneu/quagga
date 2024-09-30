@@ -38,6 +38,9 @@ The following is my code:
 ------ {{FILE_PATH}} FILE END ------
 
 {{FOOTER}}
+All files:
+{{ALL_FILE_PATHS}}
+
 Reminding the important rules:
 * Discuss the code changes first, don't suggest any code changes before we agreed on the approach.
 * Think of an alternative/better way to do what I ask, don't simply follow my instructions.

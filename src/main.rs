@@ -7,6 +7,7 @@ mod processor;
 pub mod quagga_ignore;
 pub mod template;
 mod test_utils;
+pub mod tree;
 pub mod walk_overrides;
 
 use clap::Parser;

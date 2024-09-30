@@ -38,6 +38,10 @@ World!
 
 ------ {} FILE END ------
 
+All files:
+{}
+{}
+
 Reminding the important rules:
 * Discuss the code changes first, don't suggest any code changes before we agreed on the approach.
 * Think of an alternative/better way to do what I ask, don't simply follow my instructions.
@@ -53,6 +57,8 @@ What do you think? Let's discuss ideas first without code :D
         path1.display(),
         path1.display(),
         path2.display(),
+        path2.display(),
+        path1.display(),
         path2.display()
     );
 
@@ -83,16 +89,16 @@ fn test_main_with_piped_input() {
     let mut cmd = Command::cargo_bin("quagga").unwrap();
     let td = TempDir::new().unwrap();
 
-    let file1 = td.mkfile_with_contents("file1.txt", "Hello");
-    let file2 = td.mkfile_with_contents("file2.txt", "World!");
+    let path1 = td.mkfile_with_contents("file1.txt", "Hello");
+    let path2 = td.mkfile_with_contents("file2.txt", "World!");
     td.mkfile_with_contents("ignore.txt", "ignore"); // This file should be ignored since its path is not piped-in
 
-    let input = format!("{}\n{}", file1.display(), file2.display());
+    let input = format!("{}\n{}", path1.display(), path2.display());
 
     cmd.write_stdin(input);
 
     let expected_output = format!(
-      "\
+        "\
 The following is my code:
 
 ------ FILE START {} ------
@@ -107,6 +113,10 @@ World!
 
 ------ {} FILE END ------
 
+All files:
+{}
+{}
+
 Reminding the important rules:
 * Discuss the code changes first, don't suggest any code changes before we agreed on the approach.
 * Think of an alternative/better way to do what I ask, don't simply follow my instructions.
@@ -119,11 +129,13 @@ Reminding the important rules:
 
 What do you think? Let's discuss ideas first without code :D
 ",
-      file1.display(),
-      file1.display(),
-      file2.display(),
-      file2.display()
-  );
+        path1.display(),
+        path1.display(),
+        path2.display(),
+        path2.display(),
+        path1.display(),
+        path2.display()
+    );
 
     cmd.assert().success().stdout(expected_output);
 }
