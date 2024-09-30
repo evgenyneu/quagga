@@ -1,29 +1,6 @@
+use std::cmp::Ordering;
 use std::collections::BTreeMap;
-use std::path::{Path, PathBuf};
-
-/// Helper function to recursively build the tree string.
-fn build_tree(tree: &BTreeMap<String, Node>, prefix: String, output: &mut String) {
-    for (i, (name, node)) in tree.iter().enumerate() {
-        let is_last = i == tree.len() - 1;
-        let connector = if is_last { "└── " } else { "├── " };
-        output.push_str(&format!("{}{}{}\n", prefix, connector, name));
-
-        if let Node::Directory(ref sub_tree) = node {
-            let new_prefix = if is_last {
-                format!("{}    ", prefix)
-            } else {
-                format!("{}│   ", prefix)
-            };
-            build_tree(sub_tree, new_prefix, output);
-        }
-    }
-}
-
-/// Represents a node in the directory tree (either a directory or a file).
-enum Node {
-    Directory(BTreeMap<String, Node>),
-    File,
-}
+use std::path::PathBuf;
 
 /// Builds an ASCII tree from a list of file paths and a root directory.
 pub fn file_paths_to_tree(paths: Vec<PathBuf>, root: PathBuf) -> String {
@@ -56,12 +33,48 @@ pub fn file_paths_to_tree(paths: Vec<PathBuf>, root: PathBuf) -> String {
     output
 }
 
+/// Represents a node in the directory tree (either a directory or a file).
+enum Node {
+    Directory(BTreeMap<String, Node>),
+    File,
+}
+
 /// Helper method to turn a `Node` into a mutable `Directory`.
 impl Node {
     fn as_directory_mut(&mut self) -> &mut BTreeMap<String, Node> {
         match self {
             Node::Directory(ref mut map) => map,
             _ => panic!("Tried to access a file as a directory"),
+        }
+    }
+}
+
+/// Custom comparator to ensure directories are listed before files, and case-insensitive sorting.
+fn node_order((name1, node1): &(&String, &Node), (name2, node2): &(&String, &Node)) -> Ordering {
+    match (node1, node2) {
+        (Node::Directory(_), Node::File) => Ordering::Less, // Directories before files
+        (Node::File, Node::Directory(_)) => Ordering::Greater, // Files after directories
+        _ => name1.to_lowercase().cmp(&name2.to_lowercase()), // Case-insensitive comparison
+    }
+}
+
+/// Helper function to recursively build the tree string.
+fn build_tree(tree: &BTreeMap<String, Node>, prefix: String, output: &mut String) {
+    let mut sorted_entries: Vec<_> = tree.iter().collect();
+    sorted_entries.sort_by(node_order); // Sort by custom order
+
+    for (i, (name, node)) in sorted_entries.iter().enumerate() {
+        let is_last = i == tree.len() - 1;
+        let connector = if is_last { "└── " } else { "├── " };
+        output.push_str(&format!("{}{}{}\n", prefix, connector, name));
+
+        if let Node::Directory(ref sub_tree) = node {
+            let new_prefix = if is_last {
+                format!("{}    ", prefix)
+            } else {
+                format!("{}│   ", prefix)
+            };
+            build_tree(sub_tree, new_prefix, output);
         }
     }
 }
@@ -88,10 +101,12 @@ mod tests {
             PathBuf::from("/dir1/dir2/src/main.rs"),
             PathBuf::from("/dir1/dir2/src/processor.rs"),
             PathBuf::from("/dir1/dir2/src/template/template.rs"),
+            PathBuf::from("/dir1/dir2/src/template/tags/mod.rs"),
             PathBuf::from("/dir1/dir2/src/quagga_ignore.rs"),
             PathBuf::from("/dir1/dir2/src/template/concatenate.rs"),
             PathBuf::from("/dir1/dir2/src/template/mod.rs"),
             PathBuf::from("/dir1/dir2/src/template/validator.rs"),
+            PathBuf::from("/dir1/dir2/src/template/tags/all_file_paths.rs"),
             PathBuf::from("/dir1/dir2/src/test_utils/mod.rs"),
             PathBuf::from("/dir1/dir2/LICENSE"),
             PathBuf::from("/dir1/dir2/src/test_utils/temp_dir.rs"),
@@ -101,8 +116,7 @@ mod tests {
 
         let root = PathBuf::from("/dir1/dir2");
         let result = file_paths_to_tree(paths, root);
-        let expected = r#"
-.
+        let expected = r#".
 ├── docs
 │   └── development.md
 ├── src
