@@ -1,5 +1,7 @@
 use crate::file_reader::FileContent;
+use crate::template::tags::all_file_paths::replace_all_file_paths_tag;
 use crate::template::template::TemplateParts;
+use std::path::PathBuf;
 
 /// Concatenates the contents of multiple files using the provided template parts.
 ///
@@ -12,18 +14,21 @@ use crate::template::template::TemplateParts;
 ///
 /// A `String` containing the concatenated contents with header and footer.
 pub fn concatenate_files(template: TemplateParts, files: Vec<FileContent>) -> String {
-    let items = concatenate_items(&template.item, files);
+    let items = concatenate_items(&template.item, &files);
     let mut contents = String::new();
+    let file_paths: Vec<PathBuf> = files.iter().map(|f| f.path.clone()).collect();
 
     if !template.header.is_empty() {
-        contents.push_str(&template.header);
+        let header = replace_all_file_paths_tag(&template.header, file_paths.clone());
+        contents.push_str(&header);
         contents.push('\n');
     }
 
     contents.push_str(&items);
 
     if !template.footer.is_empty() {
-        contents.push_str(&template.footer);
+        let footer = replace_all_file_paths_tag(&template.footer, file_paths.clone());
+        contents.push_str(&footer);
     }
 
     contents
@@ -39,7 +44,7 @@ pub fn concatenate_files(template: TemplateParts, files: Vec<FileContent>) -> St
 /// # Returns
 ///
 /// A `String` containing all items concatenated after applying the item template.
-pub fn concatenate_items(item_template: &str, files: Vec<FileContent>) -> String {
+pub fn concatenate_items(item_template: &str, files: &Vec<FileContent>) -> String {
     let mut contents = String::new();
 
     for file in files {
@@ -113,7 +118,7 @@ Footer";
 
         let files = vec![file1, file2];
 
-        let result = concatenate_items(item_template, files);
+        let result = concatenate_items(item_template, &files);
 
         let expected_output = "\
 File: file1.txt
