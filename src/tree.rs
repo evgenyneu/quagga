@@ -2,18 +2,62 @@ use std::cmp::Ordering;
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 
+/// Represents errors that can occur when building the ASCII tree from file paths.
 #[derive(Debug)]
 pub enum TreeBuildError {
+    /// Occurs when a provided file path does not match the root directory.
+    ///
+    /// # Fields
+    ///
+    /// * `path` - The file path that does not match the root.
+    /// * `root` - The root directory.
+    /// # Example
+    ///
+    /// ```
+    /// use std::path::PathBuf;
+    /// use quagga::tree::{file_paths_to_tree, TreeBuildError};
+    ///
+    /// let paths = vec![PathBuf::from("/other_dir/file.txt")];
+    /// let root = PathBuf::from("/root_dir");
+    ///
+    /// match file_paths_to_tree(paths, root) {
+    ///     Ok(_) => println!("Tree built successfully."),
+    ///     Err(TreeBuildError::RootMismatch { path, root }) => {
+    ///         println!("Error: Path '{}' does not match root '{}'", path.display(), root.display());
+    ///     }
+    /// }
+    /// ```
     RootMismatch { path: PathBuf, root: PathBuf },
 }
 
-/// Builds an ASCII tree from a list of file paths and a root directory.
+/// Builds an ASCII tree representation from a list of file paths, relative to a specified root directory:
+/// .
+/// ├── subdir
+/// │   └── file2.txt
+/// └── file1.txt
+///
+/// This function takes a list of file paths and organizes them into a structured, human-readable
+/// ASCII tree. Each file or directory is displayed in hierarchical order based on its relationship
+/// to the provided root directory.
+///
+/// # Arguments
+///
+/// * `paths` - A vector of `PathBuf` objects representing file paths to include in the tree.
+/// * `root` - A `PathBuf` object representing the root directory. All file paths are expected to
+///            be relative to this directory. If any path does not match the root, an error is returned.
+///
+/// # Returns
+///
+/// This function returns a `Result`:
+/// * `Ok(String)` - An ASCII tree representation of the file paths, relative to the root directory.
+/// * `Err(TreeBuildError)` - An error if any path does not match the root directory.
+///
 pub fn file_paths_to_tree(paths: Vec<PathBuf>, root: PathBuf) -> Result<String, TreeBuildError> {
     let mut tree = BTreeMap::new();
 
     // Insert paths into the tree structure.
     for path in paths {
-        // Check if path matches root, otherwise return an error.
+        // Extract path relative to the root directory.
         let relative_path = path
             .strip_prefix(&root)
             .map_err(|_| TreeBuildError::RootMismatch {
@@ -27,6 +71,7 @@ pub fn file_paths_to_tree(paths: Vec<PathBuf>, root: PathBuf) -> Result<String, 
             .collect();
 
         let mut current = &mut tree;
+
         for (i, component) in components.iter().enumerate() {
             if i == components.len() - 1 {
                 current.entry(component.clone()).or_insert(Node::File);
