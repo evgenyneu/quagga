@@ -299,31 +299,28 @@ mod tests {
         let paths = vec![PathBuf::from("./file1.txt"), PathBuf::from("./file2.txt")];
         let root = PathBuf::from(".");
 
+        let result = file_paths_to_tree(paths, root);
+
         let expected = r#".
 ├── file1.txt
 └── file2.txt
 "#;
-        let result = file_paths_to_tree(paths, root);
+
         assert_eq!(result, expected);
     }
 
-    // #[test]
-    // fn test_root_directory_mismatch() {
-    //     let paths = vec![
-    //         PathBuf::from("/dirA/file1.txt"),
-    //         PathBuf::from("/dirA/file2.txt"),
-    //     ];
+    #[test]
+    fn test_root_directory_mismatch_print_full_paths() {
+        let paths = vec![PathBuf::from("/file1.txt"), PathBuf::from("/file2.txt")];
+        let root = PathBuf::from("/dirB"); // Root is different from paths
 
-    //     let root = PathBuf::from("/dirB"); // Root is different from paths
+        let result = file_paths_to_tree(paths, root);
 
-    //     let result = file_paths_to_tree(paths, root);
+        let expected = r#"/
+├── file1.txt
+└── file2.txt
+"#;
 
-    //     match result {
-    //         Err(TreeBuildError::RootMismatch { path, root }) => {
-    //             assert_eq!(path, PathBuf::from("/dirA/file1.txt"));
-    //             assert_eq!(root, PathBuf::from("/dirB"));
-    //         }
-    //         _ => panic!("Expected RootMismatch error"),
-    //     }
-    // }
+        assert_eq!(result, expected);
+    }
 }
