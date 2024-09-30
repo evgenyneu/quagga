@@ -29,7 +29,16 @@ pub fn concatenate_file_paths(
     Ok(format_file_paths(files))
 }
 
-fn format_file_paths(file_paths: Vec<PathBuf>) -> String {
+/// Converts a list file paths to string. The paths are sorted.
+///
+/// # Arguments
+///
+/// * `sorted_paths` - A list of file paths.
+///
+/// # Returns
+///
+/// A string containing the file paths separated by newlines.
+pub fn format_file_paths(file_paths: Vec<PathBuf>) -> String {
     let mut sorted_paths = file_paths.clone();
     sorted_paths.sort();
 
