@@ -119,7 +119,7 @@ You can disable `.quagga_template` locations by using the `--no-quagga-template`
 * Ignores files larger than 50 KB (change with `--max-filesize BYTES`).
 * Symbolic links are not followed (enable with `--follow-links`).
 
-## What's Quagga?
+## What does the word Quagga mean?
 
 <img src='./images/quagga.jpg' alt='Picture of Quagga'>
 
