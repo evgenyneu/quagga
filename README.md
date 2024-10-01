@@ -20,64 +20,92 @@ Download the `quagga` binary from the [releases page](https://github.com/evgenyn
 
 ## Usage
 
+### Basic command
+
+```bash
+quagga [OPTIONS] [DIRECTORY]
 ```
-> quagga --help
-Combine text files into a single LLM prompt.
 
-Usage: quagga [OPTIONS] [DIRECTORY]
+*DIRECTORY*: The root directory to search for files. Default is current directory `.`.
 
-Arguments:
-  [DIRECTORY]  The root directory to search for files [default: .]
+### Examples
 
-Options:
-  -i, --include <PATTERN>...      Include only file paths matching the glob patterns (e.g., src/*.js)
-  -x, --exclude <PATTERN>...      Exclude file paths that match the glob patterns (e.g., node_modules)
-  -C, --contain <TEXT>...         Include only files that contain the specified text
-  -d, --max-depth <DEPTH>         Descend only DEPTH directories deep
-  -f, --max-filesize <BYTES>      Ignore files above the specified size [default: 50000]
-  -s, --max-total-size <BYTES>    Show error if total is over the specified size [default: 50000]
-  -g, --no-gitignore              Don't use .gitignore files (used by default)
-  -I, --no-quagga-ignore          Don't use .quagga_ignore from project and home dirs (used by default)
-  -u, --gitignore-file <PATH>...  Path(s) to custom gitignore file(s)
-  -B, --binary                    Don't ignore binary files (ignored by default)
-  -H, --hidden                    Don't ignore hidden files (ignored by default)
-  -l, --follow-links              Follow symbolic links (not followed by default)
-  -t, --template <PATH>           Path to a custom template file
-  -m, --copy-template             Copy default template to .quagga_template in the current directory
-  -o, --output <PATH>             Output to a file instead of stdout
-  -c, --clipboard                 Copy the output to the clipboard instead of stdout
-  -S, --show-paths                Show paths to files without combining them
-  -T, --tree                      Show paths to files in ASCII tree format without combining them
-  -p, --options <PATH>            Load options from a JSON file
-  -v, --verbose                   Show detailed information during execution
-  -h, --help                      Print help
-  -V, --version                   Print version
 
-Examples:
-  Combine all Markdown files and copy the result to clipboard instead of stdout:
-  > quagga --include '*.md' --clipboard
+#### Combine markdown files and copy to clipboard
 
-  Include only JavaScript, Typescript, and test files, excluding 'node_modules' and 'dist' directories:
-  > quagga --include '*.{js,ts}' '*.test.*' --exclude node_modules dist
-
-  Use a template to customize the prompt text:
-  > quagga --template prompt.json --include '*.txt'
-
-  Read options from a file:
-  > quagga --options quagga_options.json
-
-  Include only files that contain the words 'todo' or 'fixthis', look in '~/code/myapp' directory:
-  > quagga --contain todo fixthis -- ~/code/myapp
-
-  Use custom gitignore file:
-  > quagga --gitignore-file /path/to/.custom.ignore
-
-  Pipe file paths from another program:
-  > find . -name '*.txt' | quagga
-
-  Use a list of files from a text file:
-  > cat file_list.txt | quagga
+```bash
+quagga --include '*.md' --clipboard
 ```
+
+Combines all Markdown files in the current directory and copies the result to the clipboard.
+
+
+#### Include specific file types and exclude directories
+
+```bash
+quagga --include '*.{js,ts}' '*.test.*' --exclude node_modules dist
+```
+
+Includes JavaScript, TypeScript, and test files while excluding `node_modules` and `dist` directories.
+
+
+#### Use a custom template
+
+```bash
+quagga --template prompt.json --include '*.txt'
+```
+
+Uses a template to customize the prompt text (see [Templates section](#templates) for details).
+
+#### Include only files that contain specific text
+
+```bash
+quagga --contain todo fixthis -- ~/code/myapp
+```
+
+Includes only files that contain the words 'todo' or 'fixthis', look in the `~/code/myapp` directory. Notice the use of `--` to separate options from the directory path.
+
+
+#### Pipe file paths from another program
+
+```bash
+find . -name '*.txt' | quagga
+cat file_list.txt | quagga
+```
+
+Pipes file paths from another program or a text file into quagga instead of searching the directory.
+
+#### Get the full list of options
+
+```bash
+quagga --help
+```
+
+## Templates
+
+Quagga uses templates to format the combined output of your files. Templates allow you to define how the output is structured, including headers, footers, and placeholders for file content. By default, it applies a built-in template, but you can customize this to suit your needs.
+
+### Create a custom template
+
+Use the `--copy-template` option to generate a default template file in the current directory:
+
+```bash
+quagga --copy-template
+```
+
+This command creates a .quagga_template file that you can modify to customize the output format.
+
+### Template locations
+
+When Quagga runs, it searches for a template in the following order:
+
+1. A `.quagga_template` file in the current directory.
+1. A `.quagga_template` file in your home directory.
+1. A custom template file specified with the `--template <PATH>` option.
+1. If none of the above are found, Quagga uses its built-in default template.
+
+You can disable `.quagga_template` locations by using the `--no-quagga-template` option.
+
 
 ## Defaults
 
