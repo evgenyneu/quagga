@@ -92,7 +92,7 @@ Use the `--copy-template` option to generate a default template file in the curr
 quagga --copy-template
 ```
 
-This command creates a .quagga_template file that you can modify to customize the output format.
+This command copies the default template to `.quagga_template` file that you can modify to customize the output format.
 
 ### Template locations
 
