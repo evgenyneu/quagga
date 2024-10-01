@@ -28,7 +28,7 @@ pub fn non_template_output(
     let files = get_paths(cli, paths)?;
 
     if cli.tree {
-        return Ok(Some(file_paths_to_tree(files, cli.root.clone())));
+        return Ok(Some(file_paths_to_tree(files, Some(cli.root.clone()))));
     }
 
     if cli.show_paths {
