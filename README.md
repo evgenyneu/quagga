@@ -43,6 +43,7 @@ Options:
   -H, --hidden                    Don't ignore hidden files (ignored by default)
   -l, --follow-links              Follow symbolic links (not followed by default)
   -t, --template <PATH>           Path to a custom template file
+  -m, --copy-template             Copy default template to .quagga_template in the current directory
   -o, --output <PATH>             Output to a file instead of stdout
   -c, --clipboard                 Copy the output to the clipboard instead of stdout
   -S, --show-paths                Show paths to files without combining them

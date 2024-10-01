@@ -79,6 +79,10 @@ pub struct Cli {
     #[arg(short = 't', long, value_name = "PATH")]
     pub template: Option<PathBuf>,
 
+    /// Copy default template to .quagga_template in the current directory
+    #[arg(short = 'm', long)]
+    pub copy_template: bool,
+
     /// Output to a file instead of stdout
     #[arg(short = 'o', long, value_name = "PATH")]
     pub output: Option<PathBuf>,
@@ -130,6 +134,7 @@ mod tests {
                 hidden: false,
                 follow_links: false,
                 template: None,
+                copy_template: false,
                 output: None,
                 clipboard: false,
                 show_paths: false,
@@ -183,6 +188,7 @@ mod tests {
           --hidden \
           --follow-links \
           --template template.txt \
+          --copy-template \
           --output output.txt \
           --clipboard \
           --show-paths \
@@ -209,6 +215,7 @@ mod tests {
                 hidden: true,
                 follow_links: true,
                 template: Some(PathBuf::from("template.txt")),
+                copy_template: true,
                 output: Some(PathBuf::from("output.txt")),
                 clipboard: true,
                 show_paths: true,

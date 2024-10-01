@@ -1,6 +1,7 @@
 use crate::cli::Cli;
 use crate::file_walker::get_all_files;
 use crate::show_paths::format_file_paths;
+use crate::template::copy::copy_template;
 use crate::tree::file_paths_to_tree;
 use std::error::Error;
 use std::path::PathBuf;
@@ -21,8 +22,13 @@ pub fn non_template_output(
     cli: &Cli,
     paths: Option<Vec<PathBuf>>,
 ) -> Result<Option<String>, Box<dyn Error>> {
-    if !cli.show_paths && !cli.tree {
+    if !cli.show_paths && !cli.tree && !cli.copy_template {
         return Ok(None);
+    }
+
+    if cli.copy_template {
+        let output = copy_template(&cli.root.clone())?;
+        return Ok(Some(output));
     }
 
     let files = get_paths(cli, paths)?;

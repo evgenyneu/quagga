@@ -207,3 +207,32 @@ fn test_main_show_tree() {
     assert_eq!(output, expected);
     p.expect(Eof).expect("Failed to expect EOF");
 }
+
+#[test]
+fn test_main_copy_template() {
+    let td = TempDir::new().unwrap();
+    let quagga_bin = assert_cmd::cargo::cargo_bin("quagga");
+
+    // Spawn the quagga binary in a terminal
+    let mut p = expectrl::spawn(format!(
+        "{} --copy-template {}",
+        quagga_bin.display(),
+        td.path().display()
+    ))
+    .expect("Failed to spawn quagga binary");
+
+    let mut output = String::new();
+
+    p.read_to_string(&mut output)
+        .expect("Failed to read output from quagga");
+
+    let output = output.replace("\r\n", "\n");
+
+    let expected = format!(
+        "Template was copied to '{}'.\n",
+        td.path().join(".quagga_template").display()
+    );
+
+    assert_eq!(output, expected);
+    p.expect(Eof).expect("Failed to expect EOF");
+}
