@@ -167,3 +167,43 @@ fn test_main_show_paths() {
     assert_eq!(output, expected);
     p.expect(Eof).expect("Failed to expect EOF");
 }
+
+#[test]
+fn test_main_show_tree() {
+    let td = TempDir::new().unwrap();
+    td.mkfile("file1.txt");
+    td.mkfile("file2.txt");
+    td.mkdir("subdir");
+    td.mkfile("subdir/file3.txt");
+
+    let quagga_bin = assert_cmd::cargo::cargo_bin("quagga");
+
+    // Spawn the quagga binary in a terminal
+    let mut p = expectrl::spawn(format!(
+        "{} --tree {}",
+        quagga_bin.display(),
+        td.path().display()
+    ))
+    .expect("Failed to spawn quagga binary");
+
+    let mut output = String::new();
+
+    p.read_to_string(&mut output)
+        .expect("Failed to read output from quagga");
+
+    let output = output.replace("\r\n", "\n");
+
+    let expected = format!(
+        r#"{}
+├── subdir
+│   └── file3.txt
+├── file1.txt
+└── file2.txt
+
+"#,
+        td.path().display()
+    );
+
+    assert_eq!(output, expected);
+    p.expect(Eof).expect("Failed to expect EOF");
+}

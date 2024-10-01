@@ -85,6 +85,34 @@ mod tests {
     }
 
     #[test]
+    fn test_show_tree() {
+        let td = TempDir::new().unwrap();
+        td.mkfile("file1.txt");
+        td.mkfile("file2.txt");
+        td.mkdir("subdir");
+        td.mkfile("subdir/file3.txt");
+
+        let mut cli = Cli::parse_from(&["test", "--tree"]);
+        cli.root = td.path_buf();
+
+        let result = run(&cli, None);
+
+        assert!(result.is_ok());
+
+        let expected = format!(
+            r#"{}
+├── subdir
+│   └── file3.txt
+├── file1.txt
+└── file2.txt
+"#,
+            td.path().display()
+        );
+
+        assert_eq!(result.unwrap(), expected);
+    }
+
+    #[test]
     fn test_process_files_success() {
         let td = TempDir::new().unwrap();
         let file1_path = td.mkfile_with_contents("file1.txt", "Hello");

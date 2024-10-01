@@ -1,10 +1,22 @@
 use crate::cli::Cli;
 use crate::file_walker::get_all_files;
 use crate::show_paths::format_file_paths;
-use crate::tree::tree::file_paths_to_tree;
+use crate::tree::file_paths_to_tree;
 use std::error::Error;
 use std::path::PathBuf;
 
+/// Generates output like `--show-paths`` or `--tree`` that does not involve concatenating the files,
+///
+/// # Arguments
+///
+/// * `cli` - Command line arguments.
+/// * `paths` - An optional `Vec<PathBuf>` representing a list of file paths.
+///             When present, the program will simply concatenate the paths and return them,
+///             without traversing the root directory.
+///
+/// # Returns
+///
+/// `Ok(String)` containing the output text, or an error if something goes wrong.
 pub fn non_template_output(
     cli: &Cli,
     paths: Option<Vec<PathBuf>>,
