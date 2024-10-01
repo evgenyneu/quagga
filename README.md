@@ -119,11 +119,6 @@ You can disable `.quagga_template` locations by using the `--no-quagga-template`
 * Ignores files larger than 50 KB (change with `--max-filesize BYTES`).
 * Symbolic links are not followed (enable with `--follow-links`).
 
-## What does the word Quagga mean?
-
-<img src='./images/quagga.jpg' alt='Picture of Quagga'>
-
-*The quagga is an extinct subspecies of plains zebra that lived in South Africa until it was hunted to extinction in the late 19th century. This is the only known photograph of a living quagga, taken at the London Zoo in 1870 by Frederick York. Source: [Wikimedia Commons](https://en.wikipedia.org/wiki/Quagga#/media/File:Quagga_photo.jpg).*
 
 ## Development
 
@@ -133,6 +128,13 @@ See [docs/development.md](docs/development.md) for instructions on how to set up
 ## Contributing
 
 See contributing guidelines in [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## What does the word Quagga mean?
+
+<img src='./images/quagga.jpg' alt='Picture of Quagga'>
+
+*The quagga is an extinct subspecies of the plains zebra that lived in South Africa until it was hunted to extinction in the late 19th century. This is the only known photograph of a living quagga, taken at the London Zoo in 1870 by Frederick York. Source: [Wikimedia Commons](https://en.wikipedia.org/wiki/Quagga#/media/File:Quagga_photo.jpg).*
+
 
 
 ## Alternative solutions
