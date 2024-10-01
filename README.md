@@ -6,11 +6,10 @@
 > quagga --include '*.js' 'README.md' --exclude 'node_modules'
 ```
 
-The main focus of `quagga` is **speed**, thanks to its implementation in Rust, and **useful defaults**, such as respecting `.gitignore`, ignoring binary, and hidden files. It follows the Unix philosophy of doing one thing well and is designed to be used with other tools by sending the prompt to stdout and receiving file paths from stdin:
+The main focus of `quagga` is **speed**, thanks to its implementation in Rust, and [**useful defaults**](#defaults), such as respecting `.gitignore`, ignoring binary, and hidden files. It follows the Unix philosophy of doing one thing well and is designed to be used with other tools by sending the prompt to stdout and receiving file paths from stdin:
 
 ```bash
 > quagga > prompt.txt
-
 > find . -name '*.txt' | quagga
 ```
 
