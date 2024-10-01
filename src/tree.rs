@@ -17,7 +17,7 @@ use std::path::PathBuf;
 /// * `paths` - A vector of `PathBuf` objects representing file paths to include in the tree.
 /// * `root` - A `PathBuf` object representing the root directory. The point of this
 ///            arg is to make the tree more compact. For example. if root path is /dir1/dir2 and
-///            it contains the file /dir1/dir2/dir3/file.txt then the root tree node will be /dir1/dir2
+///            it contains the file /dir1/dir2/dir3/file.txt then the top tree node will be /dir1/dir2
 ///            (i.e. we don't need to split the path into individual components /, dir1 and dir2)
 //             This way to tree will be more compact and easier to read.
 ///
