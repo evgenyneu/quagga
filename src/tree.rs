@@ -16,10 +16,12 @@ use std::path::PathBuf;
 ///
 /// * `paths` - A vector of `PathBuf` objects representing file paths to include in the tree.
 /// * `root` - A `PathBuf` object representing the root directory. The point of this
-///            arg is to make the tree more compact. For example. if root path is /dir1/dir2 and
-///            it contains the file /dir1/dir2/dir3/file.txt then the top tree node will be /dir1/dir2
-///            (i.e. we don't need to split the path into individual components /, dir1 and dir2)
-//             This way to tree will be more compact and easier to read.
+///            arg is to make the tree more compact. For example, if root path is /dir1/dir2 and
+///            it contains the file /dir1/dir2/file.txt then the top tree node will be /dir1/dir2:
+///             /dir1/dir2
+///             └── file.txt
+///            In this case we don't split the path into individual components /, dir1 and dir2,
+//             which makes the tree more compact.
 ///
 /// # Returns
 ///
@@ -53,8 +55,8 @@ fn build_tree_structure(paths: &Vec<PathBuf>, root: &PathBuf) -> BTreeMap<String
             // Use the full root path as the node key
             // For example, if root path is /dir1/dir2 and it contains the file /dir1/dir2/dir3/file.txt
             // then the tree node will be /dir1/dir2 (i.e. we don't need to split the path into individual components /, dir1 and dir2)
-            // This way to tree will be more compact and easier to read.
-            // See the test_root_directory_matches_some_of_the_paths test as example.
+            // In this case we don't split the path into individual components /, dir1 and dir2,
+            // which makes the tree more compact
             current = current
                 .entry(root.as_os_str().to_str().unwrap().to_string())
                 .or_insert_with(|| Node::Directory(BTreeMap::new()))
@@ -399,8 +401,9 @@ mod tests {
         let result = file_paths_to_tree(paths, root);
 
         // Since the root "/dir1/dir2" dir contains the files "/dir1/dir2/file1.txt" and "/dir1/dir2/file2.txt"
-        // the dir "/dir1/dir2" will be use as tree node (i.e. we don't need to split the tree into individual components /, dir1 and dir2)
-        // This way to tree will be more compact and easier to read.
+        // the dir "/dir1/dir2" will be use as tree node.
+        // In this case we don't split the path into individual components /, dir1 and dir2,
+        // which makes the tree more compact
         let expected = r#"/
 └── dir3
     └── dir4
