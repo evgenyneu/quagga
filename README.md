@@ -1,6 +1,6 @@
 # Quagga
 
-`quagga` is a command-line utility that combines multiple text files into a single prompt suitable for Large Language Models (LLMs) like ChatGPT. By eliminating the need to manually locate and copy/paste content, quagga streamlines prompt preparation for developers:
+`quagga` is a command-line utility that combines multiple text files into a single prompt suitable for Large Language Models (LLMs) like ChatGPT. By eliminating the need to manually locate and copy/paste content, quagga streamlines prompt preparation for software developers:
 
 ```bash
 > quagga --include '*.js' 'README.md' --exclude 'node_modules'
