@@ -86,7 +86,7 @@ Quagga uses templates to format the combined output of your files. Templates all
 
 ### Create a custom template
 
-Use the `--copy-template` option to generate a default template file in the current directory that you can modify to customize the output format:
+Use the `--copy-template` option to generate a default template file in the current directory:
 
 ```bash
 quagga --copy-template
