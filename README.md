@@ -97,11 +97,11 @@ This command creates a .quagga_template file that you can modify to customize th
 
 ### Template locations
 
-When Quagga runs, it searches for a template in the following order:
+When Quagga runs, it looks for a template in the following order:
 
+1. A custom template file specified with the `--template <PATH>` option.
 1. A `.quagga_template` file in the current directory.
 1. A `.quagga_template` file in your home directory.
-1. A custom template file specified with the `--template <PATH>` option.
 1. If none of the above are found, Quagga uses its built-in default template.
 
 You can disable `.quagga_template` locations by using the `--no-quagga-template` option.
