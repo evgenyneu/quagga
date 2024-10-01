@@ -72,7 +72,7 @@ find . -name '*.txt' | quagga
 cat file_list.txt | quagga
 ```
 
-Pipes file paths from another program or a text file into quagga instead of searching the directory.
+Pipes file paths from another program or a text file into `quagga` instead of searching the directory.
 
 #### Get the full list of options
 
@@ -82,7 +82,7 @@ quagga --help
 
 ## Templates
 
-Quagga uses templates to format the combined output of your files. Templates allow you to define how the output is structured, including headers, footers, placeholders for file content, as well as providing instructions for an LLM.  By default, it applies a [built-in template](templates/default.txt), but you can customize this to suit your needs.
+`quagga` uses templates to format the combined output of your files. Templates allow you to define how the output is structured, including headers, footers, placeholders for file content, as well as providing instructions for an LLM.  By default, it applies a [built-in template](templates/default.txt), but you can customize this to suit your needs.
 
 ### Create a custom template
 
@@ -94,7 +94,7 @@ quagga --copy-template
 
 ### Template locations
 
-When Quagga runs, it looks for a template in the following order:
+When `quagga` runs, it looks for a template in the following order:
 
 1. A custom template file specified with the `--template <PATH>` option.
 1. A `.quagga_template` file in the current directory.
@@ -106,7 +106,7 @@ You can disable `.quagga_template` locations by using the `--no-quagga-template`
 
 ## Defaults
 
-Quagga uses the following defaults that can be overridden with command-line options:
+`quagga` uses the following defaults that can be overridden with command-line options:
 
 * Respects gitignore files (disable with `--no-gitignore`):
   * Standard: `.ignore`, `.gitignore`, `.git/info/exclude`.
