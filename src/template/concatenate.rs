@@ -1,5 +1,7 @@
+use crate::cli::Cli;
 use crate::file_reader::FileContent;
 use crate::template::tags::all_file_paths::replace_all_file_paths_tag;
+use crate::template::tags::tree::replace_tree_tag;
 use crate::template::template::TemplateParts;
 use std::path::PathBuf;
 
@@ -13,13 +15,14 @@ use std::path::PathBuf;
 /// # Returns
 ///
 /// A `String` containing the concatenated contents with header and footer.
-pub fn concatenate_files(template: TemplateParts, files: Vec<FileContent>) -> String {
+pub fn concatenate_files(template: TemplateParts, files: Vec<FileContent>, cli: &Cli) -> String {
     let items = concatenate_items(&template.item, &files);
     let mut contents = String::new();
     let file_paths: Vec<PathBuf> = files.iter().map(|f| f.path.clone()).collect();
 
     if !template.header.is_empty() {
         let header = replace_all_file_paths_tag(&template.header, file_paths.clone());
+        let header = replace_tree_tag(&header, file_paths.clone(), cli.root.clone());
         contents.push_str(&header);
         contents.push('\n');
     }
@@ -28,6 +31,7 @@ pub fn concatenate_files(template: TemplateParts, files: Vec<FileContent>) -> St
 
     if !template.footer.is_empty() {
         let footer = replace_all_file_paths_tag(&template.footer, file_paths.clone());
+        let footer = replace_tree_tag(&footer, file_paths.clone(), cli.root.clone());
         contents.push_str(&footer);
     }
 
@@ -63,6 +67,7 @@ pub fn concatenate_items(item_template: &str, files: &Vec<FileContent>) -> Strin
 mod tests {
     use super::*;
     use crate::template::template::TemplateParts;
+    use clap::Parser;
     use std::path::PathBuf;
 
     #[test]
@@ -84,8 +89,9 @@ mod tests {
         };
 
         let files = vec![file1, file2];
+        let cli = Cli::parse_from(&["test"]);
 
-        let result = concatenate_files(template, files);
+        let result = concatenate_files(template, files, &cli);
 
         let expected_output = "\
 Header
@@ -100,6 +106,38 @@ World!
 Footer";
 
         assert_eq!(result, expected_output);
+    }
+
+    #[test]
+    fn test_concatenate_files_with_all_file_paths_tag() {
+        let template = TemplateParts {
+            header: "Header with paths: {{ALL_FILE_PATHS}}".to_string(),
+            item: "Item: {{CONTENT}}".to_string(),
+            footer: "Footer with paths: {{ALL_FILE_PATHS}}".to_string(),
+        };
+
+        let files = vec![
+            FileContent {
+                path: PathBuf::from("file1.txt"),
+                content: "Content1".to_string(),
+            },
+            FileContent {
+                path: PathBuf::from("file2.txt"),
+                content: "Content2".to_string(),
+            },
+        ];
+
+        let cli = Cli::parse_from(&["test"]);
+
+        let result = concatenate_files(template, files, &cli);
+
+        assert_eq!(
+            result,
+            "Header with paths: file1.txt\nfile2.txt\n\
+Item: Content1\n\
+Item: Content2\n\
+Footer with paths: file1.txt\nfile2.txt"
+        );
     }
 
     #[test]
@@ -132,35 +170,5 @@ World!
 ";
 
         assert_eq!(result, expected_output);
-    }
-
-    #[test]
-    fn test_concatenate_files_process_all_file_paths_tag() {
-        let template = TemplateParts {
-            header: "Header with paths: {{ALL_FILE_PATHS}}".to_string(),
-            item: "Item: {{CONTENT}}".to_string(),
-            footer: "Footer with paths: {{ALL_FILE_PATHS}}".to_string(),
-        };
-
-        let files = vec![
-            FileContent {
-                path: PathBuf::from("file1.txt"),
-                content: "Content1".to_string(),
-            },
-            FileContent {
-                path: PathBuf::from("file2.txt"),
-                content: "Content2".to_string(),
-            },
-        ];
-
-        let result = concatenate_files(template, files);
-
-        assert_eq!(
-            result,
-            "Header with paths: file1.txt\nfile2.txt\n\
-Item: Content1\n\
-Item: Content2\n\
-Footer with paths: file1.txt\nfile2.txt"
-        );
     }
 }

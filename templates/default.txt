@@ -20,6 +20,7 @@
 {{#}}
 {{#}} These tags are used in the header and footer:
 {{#}} {{ALL_FILE_PATHS}} - Paths to all files that are included in the output prompt.
+{{#}} {{TREE}} - An ASCII tree representation the files paths.
 {{#}}
 {{#}} Global tags
 {{#}} --------------
@@ -39,7 +40,7 @@ The following is my code:
 
 {{FOOTER}}
 All files:
-{{ALL_FILE_PATHS}}
+{{TREE}}
 
 Reminding the important rules:
 * Discuss the code changes first, don't suggest any code changes before we agreed on the approach.

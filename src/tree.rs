@@ -37,7 +37,7 @@ pub fn file_paths_to_tree(paths: Vec<PathBuf>, root: Option<PathBuf>) -> String 
     let tree = build_tree_structure(&paths, &root);
     let mut output = String::new();
     build_tree(&tree, String::new(), &mut output, true);
-    output
+    output.trim_end().to_string() // Remove trailing newline
 }
 
 /// Build the tree structure from the paths.
@@ -237,8 +237,7 @@ mod tests {
 ├── CONTRIBUTING.md
 ├── LICENSE
 ├── README.md
-└── TODO.md
-"#;
+└── TODO.md"#;
 
         assert_eq!(result, expected);
     }
@@ -256,7 +255,7 @@ mod tests {
         let paths = vec![PathBuf::from("/dir1")];
         let root = PathBuf::from("/dir1");
         let result = file_paths_to_tree(paths, Some(root));
-        assert_eq!(result, "/dir1\n");
+        assert_eq!(result, "/dir1");
     }
 
     #[test]
@@ -267,8 +266,7 @@ mod tests {
         let result = file_paths_to_tree(paths, Some(root));
 
         let expected = r#"/dir1
-└── file.txt
-"#;
+└── file.txt"#;
 
         assert_eq!(result, expected);
     }
@@ -285,8 +283,7 @@ mod tests {
     └── level2
         └── level3
             └── level4
-                └── file.txt
-"#;
+                └── file.txt"#;
 
         assert_eq!(result, expected);
     }
@@ -305,8 +302,7 @@ mod tests {
 ├── dirA
 │   └── file.txt
 └── dirB
-    └── file.txt
-"#;
+    └── file.txt"#;
 
         assert_eq!(result, expected);
     }
@@ -324,8 +320,7 @@ mod tests {
 
         let expected = r#"/dir1
 ├── File.txt
-└── file.txt
-"#;
+└── file.txt"#;
 
         assert_eq!(result, expected);
     }
@@ -344,8 +339,7 @@ mod tests {
         let expected = r#"/dir1
 ├── dir with space
 │   └── file.txt
-└── special@file.txt
-"#;
+└── special@file.txt"#;
         assert_eq!(result, expected);
     }
 
@@ -358,8 +352,7 @@ mod tests {
 
         let expected = r#".
 ├── file1.txt
-└── file2.txt
-"#;
+└── file2.txt"#;
 
         assert_eq!(result, expected);
     }
@@ -373,8 +366,7 @@ mod tests {
 
         let expected = r#"/
 ├── file1.txt
-└── file2.txt
-"#;
+└── file2.txt"#;
 
         assert_eq!(result, expected);
     }
@@ -392,8 +384,7 @@ mod tests {
         let expected = r#"dir1
 └── dir2
     ├── file1.txt
-    └── file2.txt
-"#;
+    └── file2.txt"#;
 
         assert_eq!(result, expected);
     }
@@ -422,8 +413,7 @@ mod tests {
         └── file2.txt
 /dir1/dir2
 ├── file1.txt
-└── file2.txt
-"#;
+└── file2.txt"#;
 
         assert_eq!(result, expected);
     }
@@ -442,8 +432,7 @@ mod tests {
     ├── dirA
     │   └── file.txt
     └── dirB
-        └── file.txt
-"#;
+        └── file.txt"#;
 
         assert_eq!(result, expected);
     }

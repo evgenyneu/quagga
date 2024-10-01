@@ -1,3 +1,4 @@
+use crate::cli::Cli;
 use crate::template::concatenate::concatenate_files;
 use crate::template::template::TemplateParts;
 use std::fs;
@@ -30,9 +31,10 @@ pub struct FileContent {
 pub fn read_and_concatenate_files(
     files: Vec<PathBuf>,
     template: TemplateParts,
+    cli: &Cli,
 ) -> io::Result<String> {
     let file_contents = read_files(files)?;
-    let concatenated = concatenate_files(template, file_contents);
+    let concatenated = concatenate_files(template, file_contents, cli);
     Ok(concatenated)
 }
 
@@ -67,6 +69,7 @@ mod tests {
     use super::*;
     use crate::template::template::TemplateParts;
     use crate::test_utils::temp_dir::TempDir;
+    use clap::Parser;
 
     #[test]
     fn test_read_and_concatenate_files() {
@@ -82,7 +85,9 @@ mod tests {
             footer: "Footer".to_string(),
         };
 
-        let result = read_and_concatenate_files(files, template);
+        let cli = Cli::parse_from(&["test"]);
+
+        let result = read_and_concatenate_files(files, template, &cli);
 
         assert!(result.is_ok());
 
@@ -111,8 +116,9 @@ Footer",
         let file1_path = td.mkfile_with_contents("file1.txt", "Hello");
         let file2_path = td.path().join("nonexistent.txt");
         let files = vec![file1_path, file2_path];
+        let cli = Cli::parse_from(&["test"]);
 
-        let result = read_and_concatenate_files(files, TemplateParts::default());
+        let result = read_and_concatenate_files(files, TemplateParts::default(), &cli);
 
         assert!(result.is_err());
     }

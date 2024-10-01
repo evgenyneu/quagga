@@ -5,7 +5,7 @@ use std::io::Read;
 
 #[test]
 fn test_main_success_run() {
-    let td = TempDir::new().unwrap();
+    let td: TempDir = TempDir::new().unwrap();
     let path1 = td.mkfile_with_contents("file1.txt", "Hello");
     let path2 = td.mkfile_with_contents("file2.txt", "World!");
 
@@ -40,7 +40,8 @@ World!
 
 All files:
 {}
-{}
+├── file1.txt
+└── file2.txt
 
 Reminding the important rules:
 * Discuss the code changes first, don't suggest any code changes before we agreed on the approach.
@@ -58,8 +59,7 @@ What do you think? Let's discuss ideas first without code :D
         path1.display(),
         path2.display(),
         path2.display(),
-        path1.display(),
-        path2.display()
+        td.path().display()
     );
 
     assert_eq!(output, expected_output);
@@ -86,8 +86,9 @@ fn test_main_with_nonexistent_directory() {
 
 #[test]
 fn test_main_with_piped_input() {
-    let mut cmd = Command::cargo_bin("quagga").unwrap();
     let td = TempDir::new().unwrap();
+    let mut cmd = Command::cargo_bin("quagga").unwrap();
+    cmd.arg(td.path());
 
     let path1 = td.mkfile_with_contents("file1.txt", "Hello");
     let path2 = td.mkfile_with_contents("file2.txt", "World!");
@@ -115,7 +116,8 @@ World!
 
 All files:
 {}
-{}
+├── file1.txt
+└── file2.txt
 
 Reminding the important rules:
 * Discuss the code changes first, don't suggest any code changes before we agreed on the approach.
@@ -133,8 +135,7 @@ What do you think? Let's discuss ideas first without code :D
         path1.display(),
         path2.display(),
         path2.display(),
-        path1.display(),
-        path2.display()
+        td.path().display()
     );
 
     cmd.assert().success().stdout(expected_output);
@@ -199,7 +200,6 @@ fn test_main_show_tree() {
 │   └── file3.txt
 ├── file1.txt
 └── file2.txt
-
 "#,
         td.path().display()
     );

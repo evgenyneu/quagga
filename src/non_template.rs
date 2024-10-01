@@ -5,7 +5,7 @@ use crate::tree::file_paths_to_tree;
 use std::error::Error;
 use std::path::PathBuf;
 
-/// Generates output like `--show-paths`` or `--tree`` that does not involve concatenating the files,
+/// Generates output for options like `--show-paths`` or `--tree`` that do not involve concatenating the files,
 ///
 /// # Arguments
 ///

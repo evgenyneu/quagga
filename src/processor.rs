@@ -30,7 +30,7 @@ pub fn run(cli: &Cli, piped_paths: Option<Vec<PathBuf>>) -> Result<String, Box<d
     let template = read_and_validate_template(cli.template.clone())?;
 
     if let Some(path_list) = piped_paths {
-        return read_and_concatenate_files(path_list, template)
+        return read_and_concatenate_files(path_list, template, cli)
             .map_err(|e| Box::new(e) as Box<dyn Error>);
     } else {
         return process_files(cli, template);
@@ -59,7 +59,7 @@ pub fn process_files(cli: &Cli, template: TemplateParts) -> Result<String, Box<d
     let mut files = get_all_files(cli)?;
     files.sort();
 
-    read_and_concatenate_files(files, template).map_err(|e| Box::new(e) as Box<dyn Error>)
+    read_and_concatenate_files(files, template, cli).map_err(|e| Box::new(e) as Box<dyn Error>)
 }
 
 #[cfg(test)]
@@ -104,8 +104,7 @@ mod tests {
 ├── subdir
 │   └── file3.txt
 ├── file1.txt
-└── file2.txt
-"#,
+└── file2.txt"#,
             td.path().display()
         );
 
