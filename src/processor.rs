@@ -1,6 +1,5 @@
 use crate::cli::Cli;
-use crate::show_paths::concatenate_file_paths;
-use crate::tree::concatenate::file_paths_to_tree;
+use crate::non_template::non_template_output;
 use std::error::Error;
 use std::path::PathBuf;
 
@@ -22,12 +21,10 @@ use crate::template::template::{read_and_validate_template, TemplateParts};
 /// A `Result` containing the concatenated contents of the files as a `String` if successful,
 /// or an error if any operation fails.
 pub fn run(cli: &Cli, piped_paths: Option<Vec<PathBuf>>) -> Result<String, Box<dyn Error>> {
-    if cli.show_paths {
-        return concatenate_file_paths(cli, piped_paths);
-    }
+    let output = non_template_output(cli, piped_paths.clone())?;
 
-    if cli.tree {
-        return file_paths_to_tree(cli, piped_paths);
+    if let Some(output) = output {
+        return Ok(output);
     }
 
     let template = read_and_validate_template(cli.template.clone())?;
