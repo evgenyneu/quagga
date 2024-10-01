@@ -82,7 +82,7 @@ quagga --help
 
 ## Templates
 
-Quagga uses templates to format the combined output of your files. Templates allow you to define how the output is structured, including headers, footers, and placeholders for file content. By default, it applies a [built-in template](templates/default.txt), but you can customize this to suit your needs.
+Quagga uses templates to format the combined output of your files. Templates allow you to define how the output is structured, including headers, footers, placeholders for file content, as well as providing instructions for an LLM.  By default, it applies a [built-in template](templates/default.txt), but you can customize this to suit your needs.
 
 ### Create a custom template
 
