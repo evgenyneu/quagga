@@ -22,7 +22,8 @@ pub fn get_all_files(cli: &Cli) -> Result<Vec<PathBuf>, Box<dyn Error>> {
     let overrides = build_overrides(cli)?;
     let mut walker_builder = WalkBuilder::new(&cli.root);
     walker_builder.overrides(overrides);
-    // walker_builder.git_ignore(!cli.no_gitignore);
+    walker_builder.git_ignore(!cli.no_gitignore);
+    walker_builder.require_git(false); // Apply git-related gitignore rules even if .git directory is missing
 
     if !cli.no_quagga_ignore {
         add_quagga_ignore_files(&mut walker_builder, cli.root.clone(), None)?;
