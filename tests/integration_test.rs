@@ -164,19 +164,19 @@ fn test_main_with_contain_option() {
 fn test_main_respect_gitignore() {
     let td = TempDir::new().unwrap();
     add_template(&td);
-    td.mkfile_with_contents(".gitignore", "ignored.txt\n");
+    td.mkfile_with_contents(".gitignore", "ignored.txt");
 
     // Create files that should be included
-    td.mkfile_with_contents("file1.txt", "Content of file1");
-    td.mkfile_with_contents("file2.txt", "Content of file2");
+    td.mkfile_with_contents("file1.txt", "file1");
+    td.mkfile_with_contents("file2.txt", "file2");
 
     // Create a file that should be ignored by .gitignore
-    td.mkfile_with_contents("ignored.txt", "Content of ignored file");
+    td.mkfile_with_contents("ignored.txt", "ignored");
 
     let output = run_in_terminal(td.path().display().to_string());
 
-    let expected = r#"Content of file1
-Content of file2
+    let expected = r#"file1
+file2
 
 "#;
 
@@ -187,17 +187,17 @@ Content of file2
 fn test_main_no_gitignore() {
     let td = TempDir::new().unwrap();
     add_template(&td);
-    td.mkfile_with_contents(".gitignore", "ignored.txt\n");
-    td.mkfile_with_contents("file1.txt", "Content of file1");
-    td.mkfile_with_contents("file2.txt", "Content of file2");
-    td.mkfile_with_contents("ignored.txt", "Content of ignored file");
+    td.mkfile_with_contents(".gitignore", "ignored.txt");
+    td.mkfile_with_contents("file1.txt", "file1");
+    td.mkfile_with_contents("file2.txt", "file2");
+    td.mkfile_with_contents("ignored.txt", "ignored");
 
     // Ignore .gitignore
     let output = run_in_terminal(format!("--no-gitignore {}", td.path().display()));
 
-    let expected = r#"Content of file1
-Content of file2
-Content of ignored file
+    let expected = r#"file1
+file2
+ignored
 
 "#;
 
