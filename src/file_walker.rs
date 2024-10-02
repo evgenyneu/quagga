@@ -7,7 +7,8 @@ use ignore::WalkBuilder;
 use std::error::Error;
 use std::path::PathBuf;
 
-/// Walks through the directory tree starting from `root` and collects all file paths.
+/// Walks through the directory tree starting from `root` and collects all paths
+/// to text files for the output prompt.
 ///
 /// # Arguments
 ///
@@ -15,7 +16,7 @@ use std::path::PathBuf;
 ///
 /// # Returns
 ///
-/// * `Ok(Vec<PathBuf>)` containing the paths of valid text files.
+/// * `Ok(Vec<PathBuf>)` containing the paths to text files for the output prompt.
 /// * `Err<Box<dyn Error>>` if an error occurs during directory traversal or file reading.
 pub fn get_all_files(cli: &Cli) -> Result<Vec<PathBuf>, Box<dyn Error>> {
     let overrides = build_overrides(cli)?;
