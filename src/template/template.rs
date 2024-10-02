@@ -297,6 +297,7 @@ Quagga Item Section
 Quagga Footer
 "#;
 
+        // Create a .quagga_template file to ensure it's ignored when custom template is provided
         td.mkfile_with_contents(".quagga_template", quagga_template_content);
 
         let result = read_and_validate_template(td.path_buf(), Some(template_path));
