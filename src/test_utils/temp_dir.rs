@@ -1,3 +1,4 @@
+// This code is based on `ignore` crate https://github.com/BurntSushi/ripgrep/tree/master/crates/ignore
 use std::env;
 use std::fs;
 use std::io::Write;
