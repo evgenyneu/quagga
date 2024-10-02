@@ -182,6 +182,7 @@ pub fn parse_template(template_content: &str) -> io::Result<TemplateParts> {
 mod tests {
     use super::*;
     use crate::test_utils::temp_dir::TempDir;
+    use clap::Parser;
 
     #[test]
     fn test_read_template_with_none() {
@@ -348,5 +349,59 @@ Footer line
         assert_eq!(result.header.trim(), "Header line");
         assert_eq!(result.item.trim(), "Item line\n{{CONTENT}}");
         assert_eq!(result.footer.trim(), "Footer line");
+    }
+
+    #[test]
+    fn test_path_to_custom_template_template_provided_via_cli() {
+        let td = TempDir::new().unwrap();
+        let custom_template_path = td.mkfile("custom_template.txt");
+
+        let cli = Cli::parse_from(&[
+            "quagga",
+            "--template",
+            custom_template_path.to_str().unwrap(),
+        ]);
+
+        let result = path_to_custom_template(&cli);
+
+        assert_eq!(result.unwrap(), custom_template_path);
+    }
+
+    #[test]
+    fn test_path_to_custom_template_no_quagga_template_option_set() {
+        let td = TempDir::new().unwrap();
+        td.mkfile(".quagga_template");
+
+        let mut cli = Cli::parse_from(&["quagga", "--no-quagga-template"]);
+        cli.root = td.path_buf();
+
+        let result = path_to_custom_template(&cli);
+
+        assert!(result.is_none());
+    }
+
+    #[test]
+    fn test_path_to_custom_template_quagga_template_in_project_directory() {
+        let project_dir = TempDir::new().unwrap();
+        let project_template_path = project_dir.mkfile(".quagga_template");
+
+        let mut cli = Cli::parse_from(&["quagga"]);
+        cli.root = project_dir.path_buf();
+
+        let result = path_to_custom_template(&cli);
+
+        assert_eq!(result.unwrap(), project_template_path);
+    }
+
+    #[test]
+    fn test_path_to_custom_template_no_template_found() {
+        let project_dir = TempDir::new().unwrap();
+
+        let mut cli = Cli::parse_from(&["quagga"]);
+        cli.root = project_dir.path_buf();
+
+        let result = path_to_custom_template(&cli);
+
+        assert!(result.is_none());
     }
 }
