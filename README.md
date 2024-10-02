@@ -106,7 +106,7 @@ You can ask the program to ignore `.quagga_template` files by using the `--no-qu
 
 ### Filtering files with `.quagga_ignore`
 
-An alternative (and often more convenient) way to filter files is to use a `.quagga_ignore` file instead of the `--include` and `--exclude` command-line options. The `.quagga_ignore` has the same format as `.gitignore` and can be placed in the project and home directories:
+An alternative (and often more convenient) way to filter files is to use a `.quagga_ignore` file instead of the `--include` and `--exclude` command-line options. The `.quagga_ignore` has the same format as `.gitignore` and can be placed in the project and home directories. The `--include` For example, one can only include *.rs test files with the following `.quagga_ignore` file:
 
 ```gitignore
 # Ignore everything
@@ -117,7 +117,7 @@ An alternative (and often more convenient) way to filter files is to use a `.qua
 !tests/**/*.rs
 ```
 
-By default, `quagga`  looks for `.quagga_ignore` files, but you can disable this behavior with the `--no-quagga-ignore` option.
+The `--include` behavior can be replicated using the whitelist `!` syntax. By default, `quagga`  looks for `.quagga_ignore` files, but you can disable this behavior with the `--no-quagga-ignore` option.
 
 
 ## Defaults
