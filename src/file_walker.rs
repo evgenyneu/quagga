@@ -1,5 +1,6 @@
 use crate::binary_detector::is_valid_text_file;
 use crate::cli::Cli;
+use crate::contain::file_contains_text;
 use crate::quagga_ignore::add_quagga_ignore_files;
 use crate::walk_overrides::build_overrides;
 use ignore::WalkBuilder;
@@ -34,8 +35,20 @@ pub fn get_all_files(cli: &Cli) -> Result<Vec<PathBuf>, Box<dyn Error>> {
                 if entry.file_type().unwrap().is_file() {
                     let path = entry.path().to_path_buf();
 
+                    // Check if the file is a valid text file
                     match is_valid_text_file(path.clone()) {
-                        Ok(true) => files.push(path),
+                        Ok(true) => {
+                            // If `--contain` option is used, check if file contains the specified texts
+                            if !cli.contain.is_empty() {
+                                match file_contains_text(&path, &cli.contain) {
+                                    Ok(true) => files.push(path),
+                                    Ok(false) => continue, // Skip files that don't contain the text
+                                    Err(e) => return Err(Box::new(e)), // Propagate the error
+                                }
+                            } else {
+                                files.push(path);
+                            }
+                        }
                         Ok(false) => continue,             // Skip binary files
                         Err(e) => return Err(Box::new(e)), // Propagate the error
                     }
@@ -201,5 +214,20 @@ mod tests {
         // Both files should be included because --no-quagga-ignore is passed
         td.assert_contains(&files, "file1.txt");
         td.assert_contains(&files, "file2.md");
+    }
+
+    #[test]
+    fn test_get_all_files_with_contain_option() {
+        let td = TempDir::new().unwrap();
+        let file1 = td.mkfile_with_contents("file1.txt", "This is a test file.");
+        td.mkfile_with_contents("file2.txt", "Another sample.");
+
+        let mut cli = Cli::parse_from(&["test", "--contain", "test"]);
+        cli.root = td.path_buf();
+
+        let result = get_all_files(&cli).unwrap();
+
+        assert_eq!(result.len(), 1);
+        assert_eq!(result[0], file1);
     }
 }

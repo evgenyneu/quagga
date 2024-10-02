@@ -6,8 +6,16 @@ use std::io::Read;
 #[test]
 fn test_main_success_run() {
     let td: TempDir = TempDir::new().unwrap();
-    let path1 = td.mkfile_with_contents("file1.txt", "Hello");
-    let path2 = td.mkfile_with_contents("file2.txt", "World!");
+
+    let custom_template = r#"
+{{HEADER}}
+{{CONTENT}}
+{{FOOTER}}"#;
+
+    td.mkfile_with_contents(".quagga_template", custom_template);
+
+    td.mkfile_with_contents("file1.txt", "Hello");
+    td.mkfile_with_contents("file2.txt", "World!");
 
     let quagga_bin = assert_cmd::cargo::cargo_bin("quagga");
 
@@ -22,45 +30,10 @@ fn test_main_success_run() {
 
     let output = output.replace("\r\n", "\n");
 
-    let expected_output = format!(
-        "\
-The following is my code:
-
------- FILE START {} ------
-
-Hello
-
------- {} FILE END ------
-
------- FILE START {} ------
-
+    let expected_output = r#"Hello
 World!
 
------- {} FILE END ------
-
-All files:
-{}
-├── file1.txt
-└── file2.txt
-
-Reminding the important rules:
-* Discuss the code changes first, don't suggest any code changes before we agreed on the approach.
-* Think of an alternative/better way to do what I ask, don't simply follow my instructions.
-* One small code change at a time.
-* All code needs to be tested.
-* Write code in such a way that so it can be used as a library, which also means it needs proper comments and documentation.
-* Focus on code clarity and simplicity, even if it means writing more code (i.e. don't try to be smart or elegant D:).
-* Write small functions that do one thing :D It makes the code simpler and easier to test.
-* In the response text that is not the code, be very concise.
-
-What do you think? Let's discuss ideas first without code :D
-",
-        path1.display(),
-        path1.display(),
-        path2.display(),
-        path2.display(),
-        td.path().display()
-    );
+"#;
 
     assert_eq!(output, expected_output);
     p.expect(Eof).expect("Failed to expect EOF");
@@ -87,6 +60,14 @@ fn test_main_with_nonexistent_directory() {
 #[test]
 fn test_main_with_piped_input() {
     let td = TempDir::new().unwrap();
+
+    let custom_template = r#"
+{{HEADER}}
+{{CONTENT}}
+{{FOOTER}}"#;
+
+    td.mkfile_with_contents(".quagga_template", custom_template);
+
     let mut cmd = Command::cargo_bin("quagga").unwrap();
     cmd.arg(td.path());
 
@@ -98,45 +79,10 @@ fn test_main_with_piped_input() {
 
     cmd.write_stdin(input);
 
-    let expected_output = format!(
-        "\
-The following is my code:
-
------- FILE START {} ------
-
-Hello
-
------- {} FILE END ------
-
------- FILE START {} ------
-
+    let expected_output = r#"Hello
 World!
 
------- {} FILE END ------
-
-All files:
-{}
-├── file1.txt
-└── file2.txt
-
-Reminding the important rules:
-* Discuss the code changes first, don't suggest any code changes before we agreed on the approach.
-* Think of an alternative/better way to do what I ask, don't simply follow my instructions.
-* One small code change at a time.
-* All code needs to be tested.
-* Write code in such a way that so it can be used as a library, which also means it needs proper comments and documentation.
-* Focus on code clarity and simplicity, even if it means writing more code (i.e. don't try to be smart or elegant D:).
-* Write small functions that do one thing :D It makes the code simpler and easier to test.
-* In the response text that is not the code, be very concise.
-
-What do you think? Let's discuss ideas first without code :D
-",
-        path1.display(),
-        path1.display(),
-        path2.display(),
-        path2.display(),
-        td.path().display()
-    );
+"#;
 
     cmd.assert().success().stdout(expected_output);
 }
@@ -242,15 +188,14 @@ fn test_main_uses_quagga_template_by_default() {
     let td = TempDir::new().unwrap();
 
     // Create a custom .quagga_template in the temporary directory
-    let custom_template = "\
-Custom Header
+    let custom_template = r#"Custom Header
 
 {{HEADER}}
 Custom Item: {{CONTENT}}
 {{FOOTER}}
 
 Custom Footer
-";
+"#;
     td.mkfile_with_contents(".quagga_template", custom_template);
 
     td.mkfile_with_contents("file1.txt", "Hello");
@@ -269,15 +214,53 @@ Custom Footer
 
     let output = output.replace("\r\n", "\n");
 
-    let expected = format!(
-        "Custom Header
+    let expected = r#"Custom Header
 
 Custom Item: Hello
 Custom Item: World!
 
 Custom Footer
-"
-    );
+"#;
+
+    assert_eq!(output, expected);
+    p.expect(Eof).expect("Failed to expect EOF");
+}
+
+#[test]
+fn test_main_with_contain_option() {
+    let td: TempDir = TempDir::new().unwrap();
+
+    let custom_template = r#"
+{{HEADER}}
+{{CONTENT}}
+{{FOOTER}}
+"#;
+    td.mkfile_with_contents(".quagga_template", custom_template);
+
+    // Create files with and without the target content
+    td.mkfile_with_contents("file_with_keyword.txt", "This file contains the keyword.");
+    td.mkfile_with_contents("file_without_keyword.txt", "This file does not contain it.");
+
+    let quagga_bin = assert_cmd::cargo::cargo_bin("quagga");
+
+    // Spawn the quagga binary in a terminal
+    let mut p = expectrl::spawn(format!(
+        "{} --contain keyword -- {}",
+        quagga_bin.display(),
+        td.path().display()
+    ))
+    .expect("Failed to spawn quagga binary");
+
+    let mut output = String::new();
+
+    p.read_to_string(&mut output)
+        .expect("Failed to read output from quagga");
+
+    let output = output.replace("\r\n", "\n");
+
+    let expected = r#"This file contains the keyword.
+
+"#;
 
     assert_eq!(output, expected);
     p.expect(Eof).expect("Failed to expect EOF");

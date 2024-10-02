@@ -1,5 +1,6 @@
 pub mod binary_detector;
 mod cli;
+pub mod contain;
 mod file_reader;
 mod file_walker;
 pub mod non_template;
