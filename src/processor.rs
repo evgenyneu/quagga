@@ -5,7 +5,9 @@ use std::path::PathBuf;
 
 use crate::file_reader::read_and_concatenate_files;
 use crate::file_walker::get_all_files;
-use crate::template::template::{read_and_validate_template, TemplateParts};
+use crate::template::template::{
+    path_to_custom_template, read_and_validate_template, TemplateParts,
+};
 
 /// The function called by `main.rs` that processes files based on provided command line options.
 ///
@@ -27,7 +29,8 @@ pub fn run(cli: &Cli, piped_paths: Option<Vec<PathBuf>>) -> Result<String, Box<d
         return Ok(output);
     }
 
-    let template = read_and_validate_template(cli.root.clone(), cli.template.clone())?;
+    let template_path = path_to_custom_template(cli);
+    let template = read_and_validate_template(template_path)?;
 
     if let Some(path_list) = piped_paths {
         return read_and_concatenate_files(path_list, template, cli)

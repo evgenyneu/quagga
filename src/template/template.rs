@@ -1,4 +1,5 @@
 use super::quagga_template::quagga_template_path;
+use crate::cli::Cli;
 use std::error::Error;
 use std::fs;
 use std::io;
@@ -38,29 +39,43 @@ impl Default for TemplateParts {
 /// # Arguments
 ///
 /// * `template_path` - An `Option<PathBuf>` specifying the path to the template file.
-/// * `project_root` - PathBuf of the project root directory.
+///                     If `None`, the default embedded template is used.
 ///
 /// # Returns
 ///
 /// * `Ok(TemplateParts)` containing the parsed template components.
 /// * `Err<Box<dyn Error>>` if an error occurs during reading, validation, or parsing.
 pub fn read_and_validate_template(
-    project_root: PathBuf,
     template_path: Option<PathBuf>,
 ) -> Result<TemplateParts, Box<dyn Error>> {
-    let template_path = if let Some(path) = template_path {
-        Some(path) // Use the provided template from --template option
-    } else if let Some(path) = quagga_template_path(project_root, None) {
-        Some(path) // Use the .quagga_template
-    } else {
-        None
-    };
-
     let template_content = read_template(template_path)?;
     let cleaned_template = remove_comments(&template_content);
     validator::validate(&cleaned_template)?;
     let parsed_template = parse_template(&cleaned_template)?;
     Ok(parsed_template)
+}
+
+/// Retrieves the path to the curstom template:
+/// - If a custom template path is provided via the CLI, it is used.
+/// - Use `.quagga_template` file from the current or home directory,
+///   unless the `--no-quagga-template` command line option is used.
+///
+/// # Arguments
+///
+/// * `cli` - Command line arguments.
+///
+/// # Returns
+///
+/// * An `Option<PathBuf>` containing the path to the custom template file if used.
+pub fn path_to_custom_template(cli: &Cli) -> Option<PathBuf> {
+    if let Some(path) = cli.template.clone() {
+        Some(path) // Use the provided template from --template option
+    } else if cli.no_quagga_template {
+        None
+    } else {
+        // Use the .quagga_template file from the current or home directory
+        quagga_template_path(cli.root.clone(), None)
+    }
 }
 
 /// Reads the template from a given path or falls back to the default embedded template.
@@ -266,7 +281,7 @@ Footer text1
 
     #[test]
     fn test_read_and_validate_template_with_default_template() {
-        let result = read_and_validate_template(PathBuf::from("nonexist"), None);
+        let result = read_and_validate_template(None);
         assert!(result.is_ok());
         let template_parts = result.unwrap();
         assert!(!template_parts.header.is_empty());
@@ -288,52 +303,13 @@ Global Footer
 "#;
         let template_path = td.mkfile_with_contents("template.txt", template_content);
 
-        let quagga_template_content = r#"
-Quagga Header
-{{HEADER}}
-Quagga Item Section
-{{CONTENT}}
-{{FOOTER}}
-Quagga Footer
-"#;
-
-        // Create a .quagga_template file to ensure it's ignored when custom template is provided
-        td.mkfile_with_contents(".quagga_template", quagga_template_content);
-
-        let result = read_and_validate_template(td.path_buf(), Some(template_path));
+        let result = read_and_validate_template(Some(template_path));
 
         assert!(result.is_ok());
         let template_parts = result.unwrap();
         assert_eq!(template_parts.header.trim(), "Global Header");
         assert_eq!(template_parts.item.trim(), "Item Section\n{{CONTENT}}");
         assert_eq!(template_parts.footer.trim(), "Global Footer");
-    }
-
-    #[test]
-    fn test_read_and_validate_template_from_quagga_template() {
-        let td: TempDir = TempDir::new().unwrap();
-
-        let quagga_template_content = r#"
-Quagga Header
-{{HEADER}}
-Quagga Item Section
-{{CONTENT}}
-{{FOOTER}}
-Quagga Footer
-"#;
-
-        td.mkfile_with_contents(".quagga_template", quagga_template_content);
-
-        let result = read_and_validate_template(td.path_buf(), None);
-
-        assert!(result.is_ok());
-        let template_parts = result.unwrap();
-        assert_eq!(template_parts.header.trim(), "Quagga Header");
-        assert_eq!(
-            template_parts.item.trim(),
-            "Quagga Item Section\n{{CONTENT}}"
-        );
-        assert_eq!(template_parts.footer.trim(), "Quagga Footer");
     }
 
     #[test]
@@ -344,7 +320,7 @@ Quagga Footer
         let template_path =
             td.mkfile_with_contents("invalid_template.txt", invalid_template_content);
 
-        let result = read_and_validate_template(td.path_buf(), Some(template_path));
+        let result = read_and_validate_template(Some(template_path));
 
         assert!(result.is_err());
         assert_eq!(
@@ -367,7 +343,7 @@ Footer line
         let td = TempDir::new().unwrap();
         let template_path = td.mkfile_with_contents("template.txt", template);
 
-        let result = read_and_validate_template(td.path_buf(), Some(template_path)).unwrap();
+        let result = read_and_validate_template(Some(template_path)).unwrap();
 
         assert_eq!(result.header.trim(), "Header line");
         assert_eq!(result.item.trim(), "Item line\n{{CONTENT}}");
