@@ -94,14 +94,14 @@ quagga --copy-template
 
 ### Template locations
 
-When `quagga` runs, it looks for a template in the following order:
+`quagga` looks for a template in the following order:
 
 1. A custom template file specified with the `--template <PATH>` option.
 1. A `.quagga_template` file in the current directory.
 1. A `.quagga_template` file in your home directory.
 1. If none of the above are found, Quagga uses its built-in [default template](templates/default.txt).
 
-You can disable `.quagga_template` locations by using the `--no-quagga-template` option.
+You can ask the program to ignore `.quagga_template` files by using the `--no-quagga-template` option.
 
 
 ## Defaults
