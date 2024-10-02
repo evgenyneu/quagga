@@ -112,7 +112,7 @@ An alternative (and often more convenient) way to filter files is to use a `.qua
 # Exclude everything
 *
 
-# Include
+# Include Rust test files
 !tests/
 !tests/**/*.rs
 ```
