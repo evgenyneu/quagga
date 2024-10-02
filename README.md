@@ -117,7 +117,7 @@ An alternative (and often more convenient) way to filter files is to use a `.qua
 !tests/**/*.rs
 ```
 
-In this example, we only include `*.rs` test files by using the whitelist `!` syntax. By default, `quagga`  looks for `.quagga_ignore` files, but you can disable this behavior with the `--no-quagga-ignore` option.
+In this example, we only include `*.rs` test files by using the un-ignore `!` syntax. By default, `quagga`  looks for `.quagga_ignore` files, but you can disable this behavior with the `--no-quagga-ignore` option.
 
 
 ## Defaults
