@@ -27,7 +27,7 @@ pub fn run(cli: &Cli, piped_paths: Option<Vec<PathBuf>>) -> Result<String, Box<d
         return Ok(output);
     }
 
-    let template = read_and_validate_template(cli.template.clone())?;
+    let template = read_and_validate_template(cli.root.clone(), cli.template.clone())?;
 
     if let Some(path_list) = piped_paths {
         return read_and_concatenate_files(path_list, template, cli)
