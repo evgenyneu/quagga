@@ -32,7 +32,7 @@ pub fn run_in_terminal(params: String) -> String {
     p.read_to_string(&mut output)
         .expect("Failed to read output");
 
-    output.replace("\r\n", "\n")
+    output.replace("\r\n", "\n") // Normalize line endings
 }
 
 /// Adds a custom template to the provided temporary directory.

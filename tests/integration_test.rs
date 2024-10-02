@@ -161,9 +161,10 @@ fn test_main_with_contain_option() {
 }
 
 #[test]
-fn test_main_no_gitignore() {
+fn test_main_respect_gitignore() {
     let td = TempDir::new().unwrap();
     add_template(&td);
+    td.mkfile_with_contents(".gitignore", "ignored.txt\n");
 
     // Create files that should be included
     td.mkfile_with_contents("file1.txt", "Content of file1");
@@ -172,31 +173,7 @@ fn test_main_no_gitignore() {
     // Create a file that should be ignored by .gitignore
     td.mkfile_with_contents("ignored.txt", "Content of ignored file");
 
-    // Create a .gitignore file that ignores 'ignored.txt'
-    td.mkfile_with_contents(".gitignore", "ignored.txt");
-
     let output = run_in_terminal(td.path().display().to_string());
 
     assert!(output.contains("Content of file1"));
-
-    // Verify that 'ignored.txt' is NOT included
-    // let stdout = String::from_utf8(output.stdout).expect("Invalid UTF-8 in stdout");
-    // assert!(stdout.contains("Content of file1"));
-    // assert!(stdout.contains("Content of file2"));
-    // assert!(!stdout.contains("Content of ignored file"));
-
-    // // Run quagga with --no-gitignore
-    // let mut cmd_no_gitignore = Command::new(&quagga_bin);
-    // cmd_no_gitignore.arg("--no-gitignore");
-    // cmd_no_gitignore.arg(td.path());
-    // let output_no_gitignore = cmd_no_gitignore
-    //     .output()
-    //     .expect("Failed to execute command");
-
-    // // Verify that 'ignored.txt' IS included
-    // let stdout_no_gitignore =
-    //     String::from_utf8(output_no_gitignore.stdout).expect("Invalid UTF-8 in stdout");
-    // assert!(stdout_no_gitignore.contains("Content of file1"));
-    // assert!(stdout_no_gitignore.contains("Content of file2"));
-    // assert!(stdout_no_gitignore.contains("Content of ignored file"));
 }
