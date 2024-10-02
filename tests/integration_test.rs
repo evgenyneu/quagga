@@ -236,3 +236,49 @@ fn test_main_copy_template() {
     assert_eq!(output, expected);
     p.expect(Eof).expect("Failed to expect EOF");
 }
+
+#[test]
+fn test_main_uses_quagga_template_by_default() {
+    let td = TempDir::new().unwrap();
+
+    // Create a custom .quagga_template in the temporary directory
+    let custom_template = "\
+Custom Header
+
+{{HEADER}}
+Custom Item: {{CONTENT}}
+{{FOOTER}}
+
+Custom Footer
+";
+    td.mkfile_with_contents(".quagga_template", custom_template);
+
+    td.mkfile_with_contents("file1.txt", "Hello");
+    td.mkfile_with_contents("file2.txt", "World!");
+
+    let quagga_bin = assert_cmd::cargo::cargo_bin("quagga");
+
+    // Spawn the quagga binary in a terminal
+    let mut p = expectrl::spawn(format!("{} {}", quagga_bin.display(), td.path().display()))
+        .expect("Failed to spawn quagga binary");
+
+    let mut output = String::new();
+
+    p.read_to_string(&mut output)
+        .expect("Failed to read output from quagga");
+
+    let output = output.replace("\r\n", "\n");
+
+    let expected = format!(
+        "Custom Header
+
+Custom Item: Hello
+Custom Item: World!
+
+Custom Footer
+"
+    );
+
+    assert_eq!(output, expected);
+    p.expect(Eof).expect("Failed to expect EOF");
+}
