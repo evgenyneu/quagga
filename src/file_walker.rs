@@ -16,9 +16,8 @@ use std::path::PathBuf;
 /// # Returns
 ///
 /// * `Ok(Vec<PathBuf>)` containing the paths of valid text files.
-/// * `Err(Box<dyn Error>)` if an error occurs during directory traversal or file reading.
+/// * `Err<Box<dyn Error>>` if an error occurs during directory traversal or file reading.
 pub fn get_all_files(cli: &Cli) -> Result<Vec<PathBuf>, Box<dyn Error>> {
-    let mut files = Vec::new();
     let overrides = build_overrides(cli)?;
     let mut walker_builder = WalkBuilder::new(&cli.root);
     walker_builder.overrides(overrides);
@@ -28,37 +27,47 @@ pub fn get_all_files(cli: &Cli) -> Result<Vec<PathBuf>, Box<dyn Error>> {
     }
 
     let walker = walker_builder.build();
+    let mut files = Vec::new();
 
-    for result in walker {
-        match result {
-            Ok(entry) => {
-                if entry.file_type().unwrap().is_file() {
-                    let path = entry.path().to_path_buf();
+    for entry in walker {
+        let entry = entry?;
+        let path = entry.path().to_path_buf();
 
-                    // Check if the file is a valid text file
-                    match is_valid_text_file(path.clone()) {
-                        Ok(true) => {
-                            // If `--contain` option is used, check if file contains the specified texts
-                            if !cli.contain.is_empty() {
-                                match file_contains_text(&path, &cli.contain) {
-                                    Ok(true) => files.push(path),
-                                    Ok(false) => continue, // Skip files that don't contain the text
-                                    Err(e) => return Err(Box::new(e)), // Propagate the error
-                                }
-                            } else {
-                                files.push(path);
-                            }
-                        }
-                        Ok(false) => continue,             // Skip binary files
-                        Err(e) => return Err(Box::new(e)), // Propagate the error
-                    }
-                }
-            }
-            Err(err) => return Err(Box::new(err)),
+        if should_include_path(&path, cli)? {
+            files.push(path);
         }
     }
 
     Ok(files)
+}
+
+/// Determines whether a path should be included in the output prompt.
+///
+/// # Arguments
+///
+/// * `path` - The path to evaluate.
+/// * `cli` - Command line arguments.
+///
+/// # Returns
+///
+/// * `Ok(true)` if the file should be included.
+/// * `Ok(false)` if the file should be skipped.
+/// * `Err<Box<dyn Error>>` if an error occurs during evaluation.
+fn should_include_path(path: &PathBuf, cli: &Cli) -> Result<bool, Box<dyn Error>> {
+    if !path.is_file() {
+        return Ok(false);
+    }
+
+    if !is_valid_text_file(path.clone())? {
+        return Ok(false);
+    }
+
+    // If `--contain` option is used, check if file contains the specified texts
+    if !cli.contain.is_empty() && !file_contains_text(path, &cli.contain)? {
+        return Ok(false);
+    }
+
+    Ok(true)
 }
 
 #[cfg(test)]
