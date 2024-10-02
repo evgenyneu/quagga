@@ -6,7 +6,7 @@ use crate::walk::file_walker::get_all_files;
 use std::error::Error;
 use std::path::PathBuf;
 
-/// Generates info output for options like `--show-paths`` or `--tree`` that do
+/// Generates info output for options like `--show-paths` or `--tree` that do
 /// not involve concatenating the files.
 ///
 /// # Arguments
