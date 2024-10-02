@@ -1,16 +1,10 @@
-pub mod binary_detector;
 mod cli;
-pub mod contain;
 mod file_reader;
-mod file_walker;
-pub mod non_template;
+mod info;
 mod processor;
-pub mod quagga_ignore;
-pub mod show_paths;
-pub mod template;
+mod template;
 mod test_utils;
-pub mod tree;
-pub mod walk_overrides;
+mod walk;
 
 use clap::Parser;
 use cli::Cli;

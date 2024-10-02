@@ -1,4 +1,4 @@
-use crate::show_paths::format_file_paths;
+use crate::info::show_paths::format_file_paths;
 use std::path::PathBuf;
 
 /// Replaces the `{{ALL_FILE_PATHS}}` tag in the given text with the actual file paths.

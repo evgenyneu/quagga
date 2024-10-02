@@ -1,8 +1,8 @@
-use crate::binary_detector::is_valid_text_file;
 use crate::cli::Cli;
-use crate::contain::file_contains_text;
-use crate::quagga_ignore::add_quagga_ignore_files;
-use crate::walk_overrides::build_overrides;
+use crate::walk::binary_detector::is_valid_text_file;
+use crate::walk::contain::file_contains_text;
+use crate::walk::quagga_ignore::add_quagga_ignore_files;
+use crate::walk::walk_overrides::build_overrides;
 use ignore::WalkBuilder;
 use std::error::Error;
 use std::path::PathBuf;

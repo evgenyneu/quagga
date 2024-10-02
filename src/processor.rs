@@ -1,13 +1,15 @@
 use crate::cli::Cli;
-use crate::non_template::non_template_output;
+use crate::info::info::info_output;
 use std::error::Error;
 use std::path::PathBuf;
 
 use crate::file_reader::read_and_concatenate_files;
-use crate::file_walker::get_all_files;
+
 use crate::template::template::{
     path_to_custom_template, read_and_validate_template, TemplateParts,
 };
+
+use crate::walk::file_walker::get_all_files;
 
 /// The function called by `main.rs` that processes files based on provided command line options.
 ///
@@ -23,7 +25,7 @@ use crate::template::template::{
 /// A `Result` containing the concatenated contents of the files as a `String` if successful,
 /// or an error if any operation fails.
 pub fn run(cli: &Cli, piped_paths: Option<Vec<PathBuf>>) -> Result<String, Box<dyn Error>> {
-    let output = non_template_output(cli, piped_paths.clone())?;
+    let output = info_output(cli, piped_paths.clone())?;
 
     if let Some(output) = output {
         return Ok(output);

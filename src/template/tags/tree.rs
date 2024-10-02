@@ -1,4 +1,4 @@
-use crate::tree::file_paths_to_tree;
+use crate::info::tree::file_paths_to_tree;
 use std::path::PathBuf;
 
 /// Replaces the `{{TREE}}` tag with the ASCII tree representation of the file paths.

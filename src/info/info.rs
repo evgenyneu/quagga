@@ -1,12 +1,13 @@
 use crate::cli::Cli;
-use crate::file_walker::get_all_files;
-use crate::show_paths::format_file_paths;
+use crate::info::show_paths::format_file_paths;
+use crate::info::tree::file_paths_to_tree;
 use crate::template::copy::copy_template;
-use crate::tree::file_paths_to_tree;
+use crate::walk::file_walker::get_all_files;
 use std::error::Error;
 use std::path::PathBuf;
 
-/// Generates output for options like `--show-paths`` or `--tree`` that do not involve concatenating the files,
+/// Generates info output for options like `--show-paths`` or `--tree`` that do
+/// not involve concatenating the files.
 ///
 /// # Arguments
 ///
@@ -18,7 +19,7 @@ use std::path::PathBuf;
 /// # Returns
 ///
 /// `Ok(String)` containing the output text, or an error if something goes wrong.
-pub fn non_template_output(
+pub fn info_output(
     cli: &Cli,
     paths: Option<Vec<PathBuf>>,
 ) -> Result<Option<String>, Box<dyn Error>> {
