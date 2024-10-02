@@ -83,6 +83,10 @@ pub struct Cli {
     #[arg(short = 'm', long)]
     pub copy_template: bool,
 
+    /// Don't use .quagga_template from project and home dirs (used by default)
+    #[arg(short = 'n', long)]
+    pub no_quagga_template: bool,
+
     /// Output to a file instead of stdout
     #[arg(short = 'o', long, value_name = "PATH")]
     pub output: Option<PathBuf>,
@@ -135,6 +139,7 @@ mod tests {
                 follow_links: false,
                 template: None,
                 copy_template: false,
+                no_quagga_template: false,
                 output: None,
                 clipboard: false,
                 show_paths: false,
@@ -189,6 +194,7 @@ mod tests {
           --follow-links \
           --template template.txt \
           --copy-template \
+          --no-quagga-template \
           --output output.txt \
           --clipboard \
           --show-paths \
@@ -216,6 +222,7 @@ mod tests {
                 follow_links: true,
                 template: Some(PathBuf::from("template.txt")),
                 copy_template: true,
+                no_quagga_template: true,
                 output: Some(PathBuf::from("output.txt")),
                 clipboard: true,
                 show_paths: true,
