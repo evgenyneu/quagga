@@ -24,6 +24,7 @@ pub fn get_all_files(cli: &Cli) -> Result<Vec<PathBuf>, Box<dyn Error>> {
     walker_builder.overrides(overrides);
     walker_builder.git_ignore(!cli.no_gitignore);
     walker_builder.max_depth(cli.max_depth);
+    walker_builder.max_filesize(Some(cli.max_filesize));
     walker_builder.require_git(false); // Apply git-related gitignore rules even if .git directory is missing
 
     if !cli.no_quagga_ignore {
@@ -291,5 +292,23 @@ mod tests {
         assert_eq!(files.len(), 2);
         td.assert_contains(&files, "file.txt");
         td.assert_contains(&files, "dir1/file1.txt");
+    }
+
+    #[test]
+    fn test_get_all_files_max_filesize() {
+        let td = TempDir::new().unwrap();
+        td.mkfile_with_contents("file_four_bytes.txt", "1234");
+        td.mkfile_with_contents("file_five_bytes.txt", "12345");
+
+        // Set the maximum file size to 4 bytes
+        let mut cli = Cli::parse_from(&["test", "--max-filesize", "4"]);
+        cli.root = td.path_buf();
+
+        let result = get_all_files(&cli);
+
+        assert!(result.is_ok());
+        let files = result.unwrap();
+        assert_eq!(files.len(), 1);
+        td.assert_contains(&files, "file_four_bytes.txt");
     }
 }

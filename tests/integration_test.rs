@@ -225,3 +225,19 @@ file0
 
     assert_eq!(output, expected);
 }
+
+#[test]
+fn test_main_max_filesize() {
+    let td = TempDir::new().unwrap();
+    add_template(&td);
+    td.mkfile_with_contents("four_bytes.txt", "1234");
+    td.mkfile_with_contents("five_bytes.txt", "12345");
+
+    let output = run_in_terminal(format!("--max-filesize 4 {}", td.path().display()));
+
+    let expected = r#"1234
+
+"#;
+
+    assert_eq!(output, expected);
+}
