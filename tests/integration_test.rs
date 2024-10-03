@@ -203,3 +203,25 @@ ignored
 
     assert_eq!(output, expected);
 }
+
+#[test]
+fn test_main_max_depth() {
+    let td = TempDir::new().unwrap();
+    add_template(&td);
+    td.mkfile_with_contents("file0.txt", "file0");
+    td.mkdir("dir1");
+    td.mkfile_with_contents("dir1/file1.txt", "file1");
+    td.mkdir("dir1/dir2");
+    td.mkfile_with_contents("dir1/dir2/file2.txt", "file2");
+    td.mkdir("dir1/dir2/dir3");
+    td.mkfile_with_contents("dir1/dir2/dir3/file3.txt", "file3");
+
+    let output = run_in_terminal(format!("--max-depth 2 {}", td.path().display()));
+
+    let expected = r#"file1
+file0
+
+"#;
+
+    assert_eq!(output, expected);
+}

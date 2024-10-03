@@ -23,6 +23,7 @@ pub fn get_all_files(cli: &Cli) -> Result<Vec<PathBuf>, Box<dyn Error>> {
     let mut walker_builder = WalkBuilder::new(&cli.root);
     walker_builder.overrides(overrides);
     walker_builder.git_ignore(!cli.no_gitignore);
+    walker_builder.max_depth(cli.max_depth);
     walker_builder.require_git(false); // Apply git-related gitignore rules even if .git directory is missing
 
     if !cli.no_quagga_ignore {
@@ -87,27 +88,21 @@ mod tests {
         td.mkdir("subdir");
         td.mkfile("file1.txt");
         td.mkfile("file2.txt");
-        td.mkfile(".hidden");
+        td.mkfile(".hidden"); // Should be ignored
         td.mkfile("subdir/file3.txt");
 
         let mut cli = Cli::parse_from(&["test"]);
         cli.root = td.path_buf();
 
         let result = get_all_files(&cli);
-        assert!(result.is_ok());
 
+        assert!(result.is_ok());
         let files = result.unwrap();
         assert_eq!(files.len(), 3);
 
         td.assert_contains(&files, "file1.txt");
         td.assert_contains(&files, "file2.txt");
         td.assert_contains(&files, "subdir/file3.txt");
-
-        // Ensure no directories are included
-        td.assert_not_contains(&files, "subdir");
-
-        // Ensure hidden files are included
-        td.assert_not_contains(&files, ".hidden");
     }
 
     #[test]
@@ -128,7 +123,6 @@ mod tests {
         let result = get_all_files(&cli);
 
         assert!(result.is_ok());
-
         let files = result.unwrap();
 
         let file_names: Vec<String> = files
@@ -160,6 +154,7 @@ mod tests {
     fn test_get_all_files_with_nonexistent_directory() {
         let mut cli = Cli::parse_from(&["test"]);
         cli.root = PathBuf::from("/path/to/nonexistent/directory");
+
         let result = get_all_files(&cli);
 
         assert!(result.is_err());
@@ -198,11 +193,10 @@ mod tests {
         cli.root = td.path_buf();
 
         let result = get_all_files(&cli);
-        assert!(result.is_ok());
 
+        assert!(result.is_ok());
         let files = result.unwrap();
         assert_eq!(files.len(), 1);
-
         td.assert_contains(&files, "file1.txt");
         td.assert_not_contains(&files, "file2.md"); // Ignored in .quagga_ignore
     }
@@ -218,12 +212,10 @@ mod tests {
         cli.root = td.path_buf();
 
         let result = get_all_files(&cli);
-        assert!(result.is_ok());
 
+        assert!(result.is_ok());
         let files = result.unwrap();
         assert_eq!(files.len(), 2);
-
-        // Both files should be included because --no-quagga-ignore is passed
         td.assert_contains(&files, "file1.txt");
         td.assert_contains(&files, "file2.md");
     }
@@ -241,5 +233,63 @@ mod tests {
 
         assert_eq!(result.len(), 1);
         assert_eq!(result[0], file1);
+    }
+
+    #[test]
+    fn test_get_all_files_respect_gitingore() {
+        let td = TempDir::new().unwrap();
+        td.mkfile_with_contents("file1.txt", "Hello");
+        td.mkfile_with_contents("file2.md", "World!");
+        td.mkfile_with_contents(".gitignore", "*.md");
+
+        let mut cli = Cli::parse_from(&["test"]);
+        cli.root = td.path_buf();
+
+        let result = get_all_files(&cli);
+
+        assert!(result.is_ok());
+        let files = result.unwrap();
+        assert_eq!(files.len(), 1);
+        td.assert_contains(&files, "file1.txt");
+    }
+
+    #[test]
+    fn test_get_all_files_no_gitignore() {
+        let td = TempDir::new().unwrap();
+        td.mkfile_with_contents("file1.txt", "Hello");
+        td.mkfile_with_contents("file2.md", "World!");
+        td.mkfile_with_contents(".gitignore", "*.md");
+
+        let mut cli = Cli::parse_from(&["test", "--no-gitignore"]);
+        cli.root = td.path_buf();
+
+        let result = get_all_files(&cli);
+
+        assert!(result.is_ok());
+        let files = result.unwrap();
+        assert_eq!(files.len(), 2);
+        td.assert_contains(&files, "file1.txt");
+        td.assert_contains(&files, "file2.md");
+    }
+
+    #[test]
+    fn test_get_all_files_max_depth() {
+        let td = TempDir::new().unwrap();
+        td.mkfile("file.txt");
+        td.mkdir("dir1");
+        td.mkfile("dir1/file1.txt");
+        td.mkdir("dir1/dir2");
+        td.mkfile("dir1/dir2/file2.txt");
+
+        let mut cli = Cli::parse_from(&["test", "--max-depth", "2"]);
+        cli.root = td.path_buf();
+
+        let result = get_all_files(&cli);
+
+        assert!(result.is_ok());
+        let files = result.unwrap();
+        assert_eq!(files.len(), 2);
+        td.assert_contains(&files, "file.txt");
+        td.assert_contains(&files, "dir1/file1.txt");
     }
 }
