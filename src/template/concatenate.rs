@@ -1,5 +1,5 @@
 use crate::cli::Cli;
-use crate::file_reader::FileContent;
+use crate::file::file_reader::FileContent;
 use crate::template::tags::all_file_paths::replace_all_file_paths_tag;
 use crate::template::tags::tree::replace_tree_tag;
 use crate::template::template::TemplateParts;

@@ -3,7 +3,7 @@ use crate::info::info::info_output;
 use std::error::Error;
 use std::path::PathBuf;
 
-use crate::file_reader::read_and_concatenate_files;
+use crate::file::file_reader::read_and_concatenate_files;
 
 use crate::template::template::{
     path_to_custom_template, read_and_validate_template, TemplateParts,

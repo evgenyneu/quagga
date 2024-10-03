@@ -1,5 +1,5 @@
 pub mod cli;
-pub mod file_reader;
+pub mod file;
 pub mod info;
 pub mod processor;
 pub mod template;

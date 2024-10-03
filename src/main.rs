@@ -1,5 +1,5 @@
 mod cli;
-mod file_reader;
+mod file;
 mod info;
 mod processor;
 mod template;
