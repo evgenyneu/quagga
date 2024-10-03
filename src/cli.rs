@@ -48,7 +48,7 @@ pub struct Cli {
     pub max_filesize: u64,
 
     /// Show error if total size of files is over the specified size
-    #[arg(short = 's', long, value_name = "BYTES", default_value_t = 50000)]
+    #[arg(short = 's', long, value_name = "BYTES", default_value_t = 100*1024)]
     pub max_total_size: u64,
 
     /// Don't use .gitignore files (used by default)
@@ -147,7 +147,7 @@ mod tests {
                 options: None,
                 verbose: false,
                 max_filesize: 50000,
-                max_total_size: 50000,
+                max_total_size: 100 * 1024,
                 root: PathBuf::from("."),
             }
         );

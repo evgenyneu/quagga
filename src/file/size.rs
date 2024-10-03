@@ -16,12 +16,16 @@ use std::path::PathBuf;
 /// * `Err(io::Error)` - If the total size exceeds the limit or an error occurs during size calculation.
 pub fn check_total_size(file_paths: Vec<PathBuf>, max_total_size: u64) -> io::Result<()> {
     let total_size = calculate_total_size(file_paths)?;
+
     if total_size > max_total_size {
         return Err(io::Error::new(
             io::ErrorKind::Other,
             format!(
-                "Total size of files ({}) exceeds the maximum allowed size ({}) bytes.",
-                total_size, max_total_size
+                r#"Total size of files ({}) exceeds the maximum allowed size ({}).
+Use --max_total_size=BYTES option to increase the limit.
+"#,
+                human_readable_size(total_size),
+                human_readable_size(max_total_size)
             ),
         ));
     }
@@ -56,6 +60,34 @@ pub fn calculate_total_size(file_paths: Vec<PathBuf>) -> io::Result<u64> {
     }
 
     Ok(total_size)
+}
+
+/// Converts bytes into a human-readable string with appropriate units.
+/// This will display file sizes in B, KB, MB, GB, or TB depending on size.
+///
+/// # Arguments
+/// * `bytes` - The size in bytes to be converted.
+///
+/// # Returns
+/// A `String` representing the size in a human-friendly format.
+pub fn human_readable_size(bytes: u64) -> String {
+    let units = ["B", "KB", "MB", "GB", "TB"];
+    let mut size = bytes as f64;
+    let mut unit = units[0];
+
+    for &next_unit in &units[1..] {
+        if size < 1024.0 {
+            break;
+        }
+        size /= 1024.0;
+        unit = next_unit;
+    }
+
+    if size.fract() == 0.0 {
+        format!("{:.0} {}", size, unit) // No decimal places if it's a whole number
+    } else {
+        format!("{:.2} {}", size, unit) // Two decimal places otherwise
+    }
 }
 
 #[cfg(test)]
@@ -148,8 +180,9 @@ mod tests {
         assert!(result.is_err());
         let err_msg = result.unwrap_err().to_string();
 
-        assert!(err_msg
-            .contains("Total size of files (15) exceeds the maximum allowed size (10) bytes."));
+        assert!(
+            err_msg.contains("Total size of files (15 B) exceeds the maximum allowed size (10 B).")
+        );
     }
 
     #[test]
@@ -165,5 +198,15 @@ mod tests {
         let result = check_total_size(files, 10);
 
         assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_human_readable_size() {
+        assert_eq!(human_readable_size(500), "500 B");
+        assert_eq!(human_readable_size(1024), "1 KB");
+        assert_eq!(human_readable_size(1048576), "1 MB");
+        assert_eq!(human_readable_size(1634546), "1.56 MB");
+        assert_eq!(human_readable_size(1073741824), "1 GB");
+        assert_eq!(human_readable_size(1373741824342), "1.25 TB");
     }
 }
