@@ -241,3 +241,14 @@ fn test_main_max_filesize() {
 
     assert_eq!(output, expected);
 }
+
+#[test]
+fn test_main_max_total_size_exceeds_maximum() {
+    let td = TempDir::new().unwrap();
+    add_template(&td);
+    td.mkfile_with_contents("four_bytes.txt", "123456"); // 6 bytes
+
+    let output = run_in_terminal(format!("--max-total-size 5 {}", td.path().display()));
+
+    assert!(output.contains("exceeds the maximum"));
+}

@@ -47,7 +47,7 @@ pub struct Cli {
     #[arg(short = 'f', long, value_name = "BYTES", default_value_t = 50000)]
     pub max_filesize: u64,
 
-    /// Show error if total is over the specified size
+    /// Show error if total size of files is over the specified size
     #[arg(short = 's', long, value_name = "BYTES", default_value_t = 50000)]
     pub max_total_size: u64,
 

@@ -146,6 +146,6 @@ Footer",
 
         assert!(result.is_err());
         let err_msg = result.unwrap_err().to_string();
-        assert!(err_msg.contains("Total size of files"));
+        assert!(err_msg.contains("exceeds the maximum"));
     }
 }
