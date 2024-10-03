@@ -1,4 +1,5 @@
 use crate::cli::Cli;
+use crate::file::size::check_total_size;
 use crate::template::concatenate::concatenate_files;
 use crate::template::template::TemplateParts;
 use std::fs;
@@ -33,6 +34,7 @@ pub fn read_and_concatenate_files(
     template: TemplateParts,
     cli: &Cli,
 ) -> io::Result<String> {
+    check_total_size(files.clone(), cli.max_total_size)?;
     let file_contents = read_files(files)?;
     let concatenated = concatenate_files(template, file_contents, cli);
     Ok(concatenated)
@@ -121,5 +123,29 @@ Footer",
         let result = read_and_concatenate_files(files, TemplateParts::default(), &cli);
 
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_read_and_concatenate_files_total_size_exceeds_limit() {
+        let td = TempDir::new().unwrap();
+
+        let file_content = "1234567890a"; // 11 bytes
+        let file1_path = td.mkfile_with_contents("file1.txt", file_content);
+        let files = vec![file1_path.clone()];
+
+        let template = TemplateParts {
+            header: "Header".to_string(),
+            item: "{{CONTENT}}".to_string(),
+            footer: "Footer".to_string(),
+        };
+
+        let mut cli = Cli::parse_from(&["test"]);
+        cli.max_total_size = 10; // Set max_total_size to 10 bytes
+
+        let result = read_and_concatenate_files(files, template, &cli);
+
+        assert!(result.is_err());
+        let err_msg = result.unwrap_err().to_string();
+        assert!(err_msg.contains("Total size of files"));
     }
 }
