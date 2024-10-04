@@ -22,7 +22,7 @@ pub fn check_total_size(file_paths: Vec<PathBuf>, max_total_size: u64) -> io::Re
             io::ErrorKind::Other,
             format!(
                 r#"Total size of files ({}) exceeds the maximum allowed size ({}).
-Use --max_total_size=BYTES option to increase the limit.
+Use --max-total-size=BYTES option to increase the limit.
 "#,
                 human_readable_size(total_size),
                 human_readable_size(max_total_size)

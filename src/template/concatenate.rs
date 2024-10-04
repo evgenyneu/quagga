@@ -1,7 +1,6 @@
 use crate::cli::Cli;
 use crate::file::file_reader::FileContent;
-use crate::template::tags::all_file_paths::replace_all_file_paths_tag;
-use crate::template::tags::tree::replace_tree_tag;
+use crate::template::tags::header_footer::process_header_footer;
 use crate::template::template::TemplateParts;
 use std::path::PathBuf;
 
@@ -21,8 +20,7 @@ pub fn concatenate_files(template: TemplateParts, files: Vec<FileContent>, cli: 
     let file_paths: Vec<PathBuf> = files.iter().map(|f| f.path.clone()).collect();
 
     if !template.header.is_empty() {
-        let header = replace_all_file_paths_tag(&template.header, file_paths.clone());
-        let header = replace_tree_tag(&header, file_paths.clone(), cli.root.clone());
+        let header = process_header_footer(&template.header, &file_paths, &cli.root);
         contents.push_str(&header);
         contents.push('\n');
     }
@@ -30,8 +28,7 @@ pub fn concatenate_files(template: TemplateParts, files: Vec<FileContent>, cli: 
     contents.push_str(&items);
 
     if !template.footer.is_empty() {
-        let footer = replace_all_file_paths_tag(&template.footer, file_paths.clone());
-        let footer = replace_tree_tag(&footer, file_paths.clone(), cli.root.clone());
+        let footer = process_header_footer(&template.footer, &file_paths, &cli.root);
         contents.push_str(&footer);
     }
 
