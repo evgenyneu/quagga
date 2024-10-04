@@ -21,7 +21,7 @@
 {{#}} These tags are used in the header and footer:
 {{#}} {{ALL_FILE_PATHS}} - Paths to all files that are included in the output prompt.
 {{#}} {{TREE}} - An ASCII tree representation the files paths.
-{{#}} {{TOTAL_FILE_SIZE}} - Shows the total size of all files in the output prompt.
+{{#}} {{TOTAL_FILE_SIZE}} - Total size of all files in the output prompt.
 {{#}}
 {{#}} Global tags
 {{#}} --------------
