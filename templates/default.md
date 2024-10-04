@@ -6,89 +6,90 @@ This is the default template used by `quagga` to create the output prompt.
 
 The template contains the following sections:
 
-* **Prompt** - Contains the template for the output prompt, specified between the `{{PROMPT}}`...`{{/PROMPT}}` tags. The prompt includes the *header*, *footer* and *file* sections.
+* **Prompt** - Contains the template for the output prompt, specified between the `<prompt>`...`</prompt>` tags. The prompt includes the *header*, *footer* and *file* sections.
 
-* **Header/Footer** - The text that will be placed at the top and bottom of the output prompt. It is specified between the `{{HEADER}}`...`{{/HEADER}}` and `{{FOOTER}}`...`{{/FOOTER}}` tags.
+* **Header/Footer** - The text that will be placed at the top and bottom of the output prompt. It is specified between the `<header>`...`</header>` and `<footer>`...`</footer>` tags.
 
-* **File** - The content of each individual text file, specified between the `{{FILE}}`...`{{/FILE}}` tags.
+* **File** - The content of each individual text file, specified between the `<file>`...`</file>` tags.
 
-* **Multi-part** - Used when the output prompt exceeds the `--max-part-size BYTES` limit, in which case the output is divided into parts, with each part having a part header and footer including the part number and total number of parts. The multipart template is defined between the `{{MULTI_PART}}`...`{{/MULTI_PART}}` tags. These tags are placed outside the `{{PROMPT}}` tags, since they are only used when the output prompt is too large to fit in a single part.
+* **Multi-part** - Used when the output prompt exceeds the `--max-part-size BYTES` limit, in which case the output is divided into parts, with each part having a part header and footer including the part number and total number of parts. The multipart template is defined between the `<parts>`...`</parts>` tags. These tags are placed outside the `<prompt>` tags, since they are only used when the output prompt is too large to fit in a single part.
 
-Note: the entire template is enclosed in the `TEMPLATE`...`/TEMPLATE` tags (with double curly braces around tag names).
+Note: the entire template must enclosed in the opening and closing `template` tags so that `quagga` can locate it in this document.
 
 ## Tags
 
 ### Header/footer tags
 
-These tags display information that will be shown at the start and the end of the output prompt. They are placed between `{{HEADER}}`...`{{/HEADER}}` and `{{FOOTER}}`...`{{/FOOTER}}` tags:
+These tags display information that will be shown at the start and the end of the output prompt. They are placed between `<header>`...`</header>` and `<footer>`...`</footer>` tags:
 
-* `{{ALL_FILE_PATHS}}` - Paths to all files that are included in the output prompt.
-* `{{TREE}}` - An ASCII tree representation the file paths.
-* `{{TOTAL_FILE_SIZE}}` - Total size of all files in the output prompt.
+* `<all-file-paths>` - Paths to all files that are included in the output prompt.
+* `<tree>` - An ASCII tree representation the file paths.
+* `<total-file-size>` - Total size of all files in the output prompt.
 
 
 ### File tags
 
-These tags are related to each individual file included in the output prompt and are placed between `{{FILE}}`...`{{/FILE}}` tags:
+These tags are related to each individual file included in the output prompt and are placed between `<file>`...`</file>` tags:
 
-* `{{CONTENT}}` - The content of the text file.
-* `{{FILE_PATH}}` - The path to the file.
+* `<file-content>` - The content of the text file.
+* `<file-path>` - The path to the file.
 
 
 ### Multi-part tags
 
-These tags are used for indicating the start and the end of each individual part in the multi-part prompt. These tags are placed between `{{MULTI_PART}}`...`{{/MULTI_PART}}` tags:
+These tags are used for indicating the start and the end of each individual part in the multi-part prompt. The template is only used when the output prompt size exceeds the `--max-part-size BYTES` limit. These tags are placed between `<parts>`...`</parts>` tags:
 
-* `{{PART_START}}`...`{{/PART_START}` - The text printed out at the start of each part.
-* `{{PART_END}}`...`{{/PART_END}}` - The text printed out at the end of each part.
-* `{{PART_NUMBER}}` - The number of the current part.
-* `{{TOTAL_PARTS}}` - The total number of parts.
-* `{{PARTS_PENDING_MSG}}` - The text that will be shown when there are more parts remaining. The idea is to tell LLM not to respond until all parts are provided.
-* `{{PARTS_REMAINING}}` - The number of parts remaining.
+* `<part-start>`...`</part-start>` - The text printed out at the start of each part.
+* `<part-end>`...`</part-end>` - The text printed out at the end of each part.
+* `<part-number>` - The number of the current part.
+* `<total-parts>` - The total number of parts.
+* `<parts-remaining>` - The number of parts remaining.
+* `<if-part-pending>`...`</if-part-pending>` - The text that will be shown when there are more parts remaining. The idea is to tell LLM not to respond until all parts are provided.
 
 
 ## Template
 
-```txt
-{{TEMPLATE}}
-{{PROMPT}}
-{{HEADER}}
-The following is my code:
-{{/HEADER}}
+```html
+<template>
+  <prompt>
+    <header>The following is my code:</header>
 
-{{FILE}}
------- FILE START {{FILE_PATH}} ------
+    <file>
+      ------ FILE START <file-path>  ------
 
-{{CONTENT}}
+      <file-content>
 
------- {{FILE_PATH}} FILE END ------
-{{/FILE}}
+      ------ <file-path> FILE END ------
+    </file>
 
-{{FOOTER}}
-All files:
-{{TREE}}
-Total size: {{TOTAL_FILE_SIZE}}
+    <footer>
+      All files:
+      <tree>
+      Total size: <total-file-size>
 
-Reminding the important rules:
-* Discuss the code changes first, don't suggest any code changes before we agreed on the approach.
-* Think of an alternative/better way to do what I ask, don't simply follow my instructions.
-* One small code change at a time.
-* All code needs to be tested.
-* Write code in such a way that so it can be used as a library, which also means it needs proper comments and documentation.
-* Focus on code clarity and simplicity, even if it means writing more code (i.e. don't try to be smart or elegant D:).
-* Write small functions that do one thing :D It makes the code simpler and easier to test.
-* In the response text that is not the code, be very concise.
+      Reminding the important rules:
+      * Discuss the code changes first, don't suggest any code changes before we agreed on the approach.
+      * Think of an alternative/better way to do what I ask, don't simply follow my instructions.
+      * One small code change at a time.
+      * All code needs to be tested.
+      * Write code in such a way that so it can be used as a library, which also means it needs proper comments and documentation.
+      * Focus on code clarity and simplicity, even if it means writing more code (i.e. don't try to be smart or elegant D:).
+      * Write small functions that do one thing :D It makes the code simpler and easier to test.
+      * In the response text that is not the code, be very concise.
 
-What do you think? Let's discuss ideas first without code :D
-{{/FOOTER}}
-{{/PROMPT}}
+      What do you think? Let's discuss ideas first without code :D
+    </footer>
+  </prompt>
 
-{{MULTI_PART}}
-{{PART_START}}======== PART {{PART_NUMBER}} OF {{TOTAL_PARTS}} ======== {{/PART_START}}
-{{PART_END}}
-======== END OF PART {{PART_NUMBER}} OF {{TOTAL_PARTS}} ========
-{{PARTS_PENDING_MSG}}This is only a part of the code. Please do not respond until I provide all parts ({{/PARTS_REMAINING}} remaining)).{{/PARTS_PENDING_MSG}}
-{{/PART_END}}
-{{/MULTI_PART}}
-{{/TEMPLATE}}
+  <parts>
+    <part-start>
+      ======== PART <part-number> OF <total-parts>  ========
+    </part-start>
+
+    <part-end>
+      ======== END OF PART <part-number>  OF <total-parts>  ========
+      <if-part-pending>This is only a part of the code. Please do not respond until I provide all parts (<parts-remaining> remaining).</if-part-pending>
+    </part-end>
+  </parts>
+</template>
 ```
