@@ -15,8 +15,11 @@ use std::path::PathBuf;
 ///
 /// A `String` with all tags replaced.
 pub fn process_header_footer(text: &str, file_paths: &[PathBuf], root: &PathBuf) -> String {
-    let mut processed_text = text.to_string();
+    if text.is_empty() {
+        return "".to_string();
+    }
 
+    let mut processed_text = text.to_string();
     processed_text = replace_all_file_paths_tag(&processed_text, file_paths.to_vec());
     processed_text = replace_tree_tag(&processed_text, file_paths.to_vec(), root.clone());
     replace_total_file_size_tag(&processed_text, file_paths.to_vec())

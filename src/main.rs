@@ -18,15 +18,15 @@ fn main() {
     let args = Cli::parse();
     let piped_paths = piped_paths();
 
-    match run(&args, piped_paths.clone()) {
-        Ok(content) => {
-            println!("{}", content);
-        }
-        Err(e) => {
-            eprintln!("Error: {}", e);
-            process::exit(1);
-        }
-    }
+    // match run(&args, piped_paths.clone()) {
+    //     Ok(content) => {
+    //         println!("{}", content);
+    //     }
+    //     Err(e) => {
+    //         eprintln!("Error: {}", e);
+    //         process::exit(1);
+    //     }
+    // }
 }
 
 /// Reads file paths from stdin if they are piped in.
