@@ -129,8 +129,12 @@ fn create_split_plan(
     // Calculate overhead coming from part header, footer, and pending text
     let part_overhead = calculate_overhead(template);
 
-    for file in files {
-        let file_length = file.len() + 1; // +1 for the newline
+    for (i, file) in files.into_iter().enumerate() {
+        let file_length =
+            calculate_file_content_length(file, header, footer, i == 0, i == files.len() - 1);
+
+        // let file_length = file.len() + 1; // +1 for the newline
+
         if current_size + file_length + part_overhead > max_part_chars {
             // Try to add the entire file
             if file_length + part_overhead > max_part_chars {
@@ -255,6 +259,27 @@ fn calculate_overhead(template: &Template) -> usize {
     }
 
     overhead
+}
+
+/// Calculates the total length of the file content with header and footer.
+fn calculate_file_content_length(
+    file: &str,
+    header: &str,
+    footer: &str,
+    is_first: bool,
+    is_last: bool,
+) -> usize {
+    let mut total = file.len() + 1;
+
+    if is_first && !header.is_empty() {
+        total += header.len() + 1;
+    }
+
+    if is_last && !footer.is_empty() {
+        total += footer.len() + 1;
+    }
+
+    total
 }
 
 /// Assembles multiple parts by inserting headers, footers, and replacing placeholders.
@@ -431,8 +456,8 @@ Footer
     }
 
     #[test]
-    fn test_split_into_parts_multiple_parts_with_placeholders() {
-        let header = "Header".to_string();
+    fn test_split_into_parts_accounting_for_long_header() {
+        let header = "Header".repeat(10);
         let footer = "Footer".to_string();
 
         let files = vec![
@@ -467,16 +492,16 @@ Footer
         assert_eq!(parts.len(), 2);
 
         let expected = r#"== Part 1 OF 2 ==
-Header
+HeaderHeaderHeaderHeaderHeaderHeaderHeaderHeaderHeaderHeader
 Line1Line1Line1Line1Line1Line1Line1Line1Line1Line1
 Line2Line2Line2Line2Line2Line2Line2Line2Line2Line2
-Line3Line3Line3Line3Line3Line3Line3Line3Line3Line3
 == Part END 1 OF 2 ==
 This is only a part of the code (1 remaining)"#;
 
         assert_eq!(parts[0], expected);
 
         let expected = r#"== Part 2 OF 2 ==
+Line3Line3Line3Line3Line3Line3Line3Line3Line3Line3
 Line4Line4Line4Line4Line4Line4Line4Line4Line4Line4
 Line5Line5Line5Line5Line5Line5Line5Line5Line5Line5
 Footer
