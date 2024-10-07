@@ -1,15 +1,5 @@
 use crate::template::template::Template;
 
-/// Represents the content of a single part.
-/// Each part can contain content of multiple files
-#[derive(Clone)]
-struct PartContent {
-    /// The file content that make up the part.
-    /// Each chunk is a string representing content form one file,
-    /// or a section of a file if the file is too large to fit in a single part.
-    file_chunks: Vec<String>,
-}
-
 /// Splits the concatenated content into multiple parts based on the maximum allowed characters.
 ///
 /// # Arguments
@@ -39,6 +29,16 @@ pub fn split_into_parts(
     // Content does not fit into one part - split into multiple parts
     let parts = create_split_plan(&header, &files, &footer, &template, max_part_chars);
     assemble_multiple_parts(parts, &template, &header, &footer, max_part_chars)
+}
+
+/// Represents the content of a single part.
+/// Each part can contain content of multiple files
+#[derive(Clone)]
+struct PartContent {
+    /// The file content that make up the part.
+    /// Each chunk is a string representing content form one file,
+    /// or a section of a file if the file is too large to fit in a single part.
+    file_chunks: Vec<String>,
 }
 
 /// Checks if the combined header, files, and footer fit within the max_part_chars.
