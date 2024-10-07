@@ -1,5 +1,15 @@
 use crate::template::template::Template;
 
+/// Represents the content of a single part.
+/// Each part can contain content of multiple files
+#[derive(Clone)]
+struct PartContent {
+    /// The file content that make up the part.
+    /// Each chunk is a string representing content form one file,
+    /// or a section of a file if the file is too large to fit in a single part.
+    file_chunks: Vec<String>,
+}
+
 /// Splits the concatenated content into multiple parts based on the maximum allowed characters.
 ///
 /// # Arguments
@@ -89,16 +99,6 @@ fn assemble_single_part(header: &str, files: &[String], footer: &str) -> Vec<Str
     vec![part]
 }
 
-/// Represents the content of a single part.
-/// Each part can have multiple file chunks.
-#[derive(Clone)]
-struct PartContent {
-    /// The file chunks that make up the part.
-    /// Each chunk is a string representing a content form one file,
-    /// or a part of a file if the file is too large to fit in a single part.
-    file_chunks: Vec<String>,
-}
-
 /// Creates a split plan determining how to divide files into parts.
 ///
 /// # Arguments
@@ -111,7 +111,7 @@ struct PartContent {
 ///
 /// # Returns
 ///
-/// A vector of `PartContent` structs detailing how content is divided.
+/// A vector of `PartContent` structs containing the file content for each part.
 fn create_split_plan(
     header: &str,
     files: &[String],
@@ -369,7 +369,7 @@ fn calculate_part_overhead(template: &Template) -> usize {
     overhead
 }
 
-/// Generates the output text for all parts by concatenating the headers, file contents, footers.
+/// Generates the output text for all parts by concatenating the headers, file contents and footers.
 ///
 /// # Arguments
 ///
