@@ -1,4 +1,4 @@
-use crate::template::parser::template::{PartSection, PromptSection, Template};
+use crate::template::template::{PartSection, PromptSection, Template};
 
 /// Parses the entire template string into a `Template` struct.
 ///

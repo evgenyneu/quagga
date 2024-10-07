@@ -1,7 +1,7 @@
 use crate::cli::Cli;
 use crate::file::size::check_total_size;
 use crate::template::concatenate::concatenate_files;
-use crate::template::parser::template::Template;
+use crate::template::template::Template;
 use std::fs;
 use std::io::{self, Read};
 use std::path::PathBuf;
@@ -69,7 +69,7 @@ pub fn read_files(paths: Vec<PathBuf>) -> io::Result<Vec<FileContent>> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::template::parser::template::{PromptSection, Template};
+    use crate::template::template::{PromptSection, Template};
     use crate::test_utils::temp_dir::TempDir;
     use clap::Parser;
 

@@ -1,7 +1,7 @@
 use crate::cli::Cli;
 use crate::file::file_reader::FileContent;
-use crate::template::parser::template::Template;
 use crate::template::tags::header_footer::process_header_footer;
+use crate::template::template::Template;
 use std::path::PathBuf;
 
 /// Concatenates the contents of multiple files using the provided template parts.
@@ -63,7 +63,7 @@ pub fn concatenate_items(item_template: &str, files: &Vec<FileContent>) -> Strin
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::template::parser::template::{PromptSection, Template};
+    use crate::template::template::{PromptSection, Template};
     use clap::Parser;
     use std::path::PathBuf;
 

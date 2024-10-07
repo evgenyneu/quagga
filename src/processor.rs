@@ -1,8 +1,8 @@
 use crate::cli::Cli;
 use crate::file::file_reader::read_and_concatenate_files;
 use crate::info::info::info_output;
-use crate::template::parser::template::Template;
-use crate::template::template::{path_to_custom_template, read_and_validate_template};
+use crate::template::read::{path_to_custom_template, read_and_parse_template};
+use crate::template::template::Template;
 use crate::walk::file_walker::get_all_files;
 use std::error::Error;
 use std::path::PathBuf;
@@ -28,7 +28,7 @@ pub fn run(cli: &Cli, piped_paths: Option<Vec<PathBuf>>) -> Result<String, Box<d
     }
 
     let template_path = path_to_custom_template(cli);
-    let template = read_and_validate_template(template_path)?;
+    let template = read_and_parse_template(template_path)?;
 
     if let Some(path_list) = piped_paths {
         return read_and_concatenate_files(path_list, template, cli)
@@ -66,7 +66,7 @@ pub fn process_files(cli: &Cli, template: Template) -> Result<String, Box<dyn Er
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::template::parser::template::PromptSection;
+    use crate::template::template::PromptSection;
     use crate::test_utils::temp_dir::TempDir;
     use clap::Parser;
 
