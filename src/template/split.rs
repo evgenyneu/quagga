@@ -20,12 +20,13 @@ pub fn split_into_parts(
     template: Template,
     max_part_chars: usize,
 ) -> Vec<String> {
-    // First Pass: Determine if all content fits in a single part
+    // Determine if all content fits in a single part
     if fits_in_single_part(&header, &files, &footer, max_part_chars) {
+        // No need to split into parts
         return assemble_single_part(&header, &files, &footer);
     }
 
-    // Multi-Pass: Split into multiple parts
+    // Content does not fit into one part - split into multiple parts
     let parts = create_split_plan(&header, &files, &footer, &template, max_part_chars);
     assemble_multiple_parts(parts, &template, &header, &footer, max_part_chars)
 }
@@ -110,7 +111,7 @@ struct PartContent {
 ///
 /// # Returns
 ///
-/// A SplitPlan struct detailing how content is divided.
+/// A vector of `PartContent` structs detailing how content is divided.
 fn create_split_plan(
     header: &str,
     files: &[String],
@@ -118,93 +119,173 @@ fn create_split_plan(
     template: &Template,
     max_part_chars: usize,
 ) -> Vec<PartContent> {
-    let mut parts: Vec<PartContent> = Vec::new();
+    let part_overhead = calculate_part_overhead(template);
+    let mut parts = Vec::new();
+    let mut current_part_size = 0;
 
     let mut current_part = PartContent {
         file_chunks: Vec::new(),
     };
 
-    let mut current_size = 0;
+    for (i, file) in files.iter().enumerate() {
+        let file_length = calculate_file_length(header, footer, files, i, file);
 
-    // Calculate overhead coming from part header, footer, and pending text
-    let part_overhead = calculate_overhead(template);
-
-    for (i, file) in files.into_iter().enumerate() {
-        let mut header_len: usize = 0;
-        let mut footer_len: usize = 0;
-
-        if i == 0 {
-            if !header.is_empty() {
-                header_len = header.len() + 1;
-            }
-        }
-
-        if i == files.len() - 1 {
-            if !footer.is_empty() {
-                footer_len = footer.len() + 1;
-            }
-        }
-
-        let file_length = header_len + file.len() + 1 + footer_len;
-
-        if current_size + file_length + part_overhead > max_part_chars {
-            // The file does not fit in the current part
-            if file_length + part_overhead > max_part_chars {
-                // File is larger than a single part, split the file between parts
-                let line_chunks = split_file_by_lines(
-                    file,
-                    max_part_chars.saturating_sub(part_overhead + footer_len + header_len),
-                );
-
-                for chunk in line_chunks {
-                    // Always start a big file in new part since
-                    // the it is split into chunks assuming no
-                    // other files are in the part
-                    if !current_part.file_chunks.is_empty() {
-                        parts.push(current_part.clone());
-
-                        current_part = PartContent {
-                            file_chunks: Vec::new(),
-                        };
-
-                        current_size = 0;
-                    }
-
-                    current_part.file_chunks.push(format!("{}\n", chunk));
-                    current_size += chunk.len();
-                }
-            } else {
-                // File is not larger than the size of a single part
-                // Start a new part
-                if !current_part.file_chunks.is_empty() {
-                    // Start a new part
-                    parts.push(current_part.clone());
-
-                    current_part = PartContent {
-                        file_chunks: Vec::new(),
-                    };
-
-                    current_size = 0;
-                }
-
-                // And add the entire file to the the part
-                current_part.file_chunks.push(format!("{}\n", file));
-                current_size += file_length;
-            }
+        if current_part_size + file_length + part_overhead > max_part_chars {
+            // File does not fit in the current part
+            handle_exceeding_size(
+                &mut parts,
+                &mut current_part,
+                &mut current_part_size,
+                file,
+                part_overhead,
+                footer.len(),
+                header.len(),
+                max_part_chars,
+            );
         } else {
             // File fits in the current part
-            // Add it to the current part
-            current_part.file_chunks.push(format!("{}\n", file));
-            current_size += file_length;
+            add_file_to_part(&mut current_part, file, &mut current_part_size, file_length);
         }
     }
 
-    // Add the last part if it has any content
+    // Add the remaining part
     if !current_part.file_chunks.is_empty() {
         parts.push(current_part);
     }
 
     parts
+}
+
+/// Calculates the length of a file content including header and footer.
+///
+/// # Arguments
+///
+/// * `header` - The global header string.
+/// * `footer` - The global footer string.
+/// * `files` - The list of files.
+/// * `index` - Current file index.
+/// * `file` - Current file content.
+///
+/// # Returns
+///
+/// The total length of the file with header and footer.
+fn calculate_file_length(
+    header: &str,
+    footer: &str,
+    files: &[String],
+    index: usize,
+    file: &str,
+) -> usize {
+    let is_first = index == 0 && !header.is_empty();
+    let is_last = index == files.len() - 1 && !footer.is_empty();
+    let header_len = if is_first { header.len() + 1 } else { 0 };
+    let footer_len = if is_last { footer.len() + 1 } else { 0 };
+    header_len + file.len() + 1 + footer_len // +1 for newline
+}
+
+/// Handles the scenario where adding a file exceeds the maximum part size.
+/// It either splits the file or starts a new part.
+///
+/// # Arguments
+///
+/// * `parts` - The vector of parts.
+/// * `current_part` - The current part being assembled.
+/// * `current_size` - The current size of the part.
+/// * `file` - The file content.
+/// * `part_overhead` - Overhead coming from part header, footer, and pending text.
+/// * `footer_len` - Length of the footer.
+/// * `header_len` - Length of the header.
+/// * `max_size` - Maximum allowed size.
+fn handle_exceeding_size(
+    parts: &mut Vec<PartContent>,
+    current_part: &mut PartContent,
+    current_part_size: &mut usize,
+    file: &str,
+    part_overhead: usize,
+    footer_len: usize,
+    header_len: usize,
+    max_size: usize,
+) {
+    if file.len() + part_overhead > max_size {
+        handle_large_file(
+            parts,
+            current_part,
+            current_part_size,
+            file,
+            part_overhead,
+            footer_len,
+            header_len,
+            max_size,
+        );
+    } else {
+        start_new_part_if_needed(parts, current_part, current_part_size);
+        add_file_to_part(current_part, file, current_part_size, file.len() + 1);
+    }
+}
+
+// Splits file that is too large to fit in a single part into chunks at line boundaries.
+// and creates parts for each chunk.
+fn handle_large_file(
+    parts: &mut Vec<PartContent>,
+    current_part: &mut PartContent,
+    current_part_size: &mut usize,
+    file: &str,
+    part_overhead: usize,
+    footer_len: usize,
+    header_len: usize,
+    max_size: usize,
+) {
+    let max_chunk_size = max_size.saturating_sub(part_overhead + footer_len + header_len);
+    let chunks = split_file_by_lines(file, max_chunk_size);
+
+    for chunk in chunks {
+        start_new_part_if_needed(parts, current_part, current_part_size);
+        add_chunk_to_part(current_part, &chunk, current_part_size);
+    }
+}
+
+fn start_new_part_if_needed(
+    parts: &mut Vec<PartContent>,
+    current_part: &mut PartContent,
+    current_size: &mut usize,
+) {
+    if !current_part.file_chunks.is_empty() {
+        parts.push(current_part.clone());
+        *current_part = PartContent {
+            file_chunks: Vec::new(),
+        };
+        *current_size = 0;
+    }
+}
+
+/// Adds a file to the current part.
+///
+/// # Arguments
+///
+/// * `current_part` - The current part being assembled.
+/// * `file` - The file content.
+/// * `current_size` - The current size of the part.
+/// * `file_length` - Length of the file to add.
+fn add_file_to_part(
+    current_part: &mut PartContent,
+    file: &str,
+    current_size: &mut usize,
+    file_length: usize,
+) {
+    current_part.file_chunks.push(format!("{}\n", file));
+    *current_size += file_length;
+}
+
+/// Adds a chunk to the current part.
+///
+/// # Arguments
+///
+/// * `current_part` - The current part being assembled.
+/// * `chunk` - The file chunk.
+/// * `current_size` - The current size of the part.
+fn add_chunk_to_part(current_part: &mut PartContent, chunk: &str, current_size: &mut usize) {
+    current_part.file_chunks.push(format!("{}\n", chunk));
+    *current_size += chunk.len();
 }
 
 /// Splits a content of a large file that does not fit into a single part
@@ -253,7 +334,7 @@ fn split_file_by_lines(file_content: &str, max_chunk_size: usize) -> Vec<String>
 /// # Returns
 ///
 /// The total overhead in characters.
-fn calculate_overhead(template: &Template) -> usize {
+fn calculate_part_overhead(template: &Template) -> usize {
     let mut overhead = 0;
 
     // Replace placeholders with large numbers to estimate the overhead
@@ -288,7 +369,7 @@ fn calculate_overhead(template: &Template) -> usize {
     overhead
 }
 
-/// Assembles multiple parts by inserting headers, footers, and replacing placeholders.
+/// Generates the output text for all parts by concatenating the headers, file contents, footers.
 ///
 /// # Arguments
 ///
