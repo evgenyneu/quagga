@@ -133,42 +133,49 @@ fn create_split_plan(
         let file_length =
             calculate_file_content_length(file, header, footer, i == 0, i == files.len() - 1);
 
-        // let file_length = file.len() + 1; // +1 for the newline
-
         if current_size + file_length + part_overhead > max_part_chars {
-            // Try to add the entire file
+            // The file does not fit in the current part
             if file_length + part_overhead > max_part_chars {
-                // File is too large, split by lines
+                // File is larger than a single part, split the file between parts
                 let line_chunks =
                     split_file_by_lines(file, max_part_chars.saturating_sub(part_overhead));
 
                 for chunk in line_chunks {
-                    if current_size + chunk.len() + part_overhead > max_part_chars {
-                        if !current_part.file_chunks.is_empty() {
-                            parts.push(current_part.clone());
-                            current_part = PartContent {
-                                file_chunks: Vec::new(),
-                            };
-                            current_size = 0;
-                        }
+                    // Always start a big file in new part
+                    if !current_part.file_chunks.is_empty() {
+                        parts.push(current_part.clone());
+
+                        current_part = PartContent {
+                            file_chunks: Vec::new(),
+                        };
+
+                        current_size = 0;
                     }
+
                     current_part.file_chunks.push(format!("{}\n", chunk));
                     current_size += chunk.len();
                 }
             } else {
+                // File is not larger than the size of a single part
                 // Start a new part
                 if !current_part.file_chunks.is_empty() {
+                    // Start a new part
                     parts.push(current_part.clone());
+
                     current_part = PartContent {
                         file_chunks: Vec::new(),
                     };
+
                     current_size = 0;
                 }
+
+                // And add the entire file to the the part
                 current_part.file_chunks.push(format!("{}\n", file));
                 current_size += file_length;
             }
         } else {
-            // Add the entire file to the current part
+            // File fits in the current part
+            // Add it to the current part
             current_part.file_chunks.push(format!("{}\n", file));
             current_size += file_length;
         }
@@ -508,6 +515,160 @@ Footer
 == Part END 2 OF 2 =="#;
 
         assert_eq!(parts[1], expected);
+    }
+
+    #[test]
+    fn test_split_into_parts_split_long_between_parts() {
+        let header = "Header".to_string();
+        let footer = "Footer".to_string();
+
+        let files = vec!["\
+Line1Line1Line1Line1Line1Line1Line1Line1Line1Line1
+Line2Line2Line2Line2Line2Line2Line2Line2Line2Line2
+Line3Line3Line3Line3Line3Line3Line3Line3Line3Line3
+Line4Line4Line4Line4Line4Line4Line4Line4Line4Line4
+Line5Line5Line5Line5Line5Line5Line5Line5Line5Line5
+Line6Line6Line6Line6Line6Line6Line6Line6Line6Line6
+Line7Line7Line7Line7Line7Line7Line7Line7Line7Line7
+Line8Line8Line8Line8Line8Line8Line8Line8Line8Line8
+Line9Line9Line9Line9Line9Line9Line9Line9Line9Line9
+Line0Line0Line0Line0Line0Line0Line0Line0Line0Line0"
+            .to_string()];
+
+        let part = PartSection {
+            header: "== Part <part-number> OF <total-parts> ==".to_string(),
+            footer: "== Part END <part-number> OF <total-parts> ==".to_string(),
+            pending: "This is only a part of the code (<parts-remaining> remaining)".to_string(),
+        };
+
+        let template = Template {
+            prompt: PromptSection::default(),
+            part,
+        };
+
+        let max_part_chars = 300;
+
+        let parts = split_into_parts(
+            header.clone(),
+            files.clone(),
+            footer.clone(),
+            template,
+            max_part_chars,
+        );
+
+        assert_eq!(parts.len(), 3);
+
+        let expected = r#"== Part 1 OF 3 ==
+Header
+Line1Line1Line1Line1Line1Line1Line1Line1Line1Line1
+Line2Line2Line2Line2Line2Line2Line2Line2Line2Line2
+Line3Line3Line3Line3Line3Line3Line3Line3Line3Line3
+Line4Line4Line4Line4Line4Line4Line4Line4Line4Line4
+== Part END 1 OF 3 ==
+This is only a part of the code (2 remaining)"#;
+
+        assert_eq!(parts[0], expected);
+
+        let expected = r#"== Part 2 OF 3 ==
+Line5Line5Line5Line5Line5Line5Line5Line5Line5Line5
+Line6Line6Line6Line6Line6Line6Line6Line6Line6Line6
+Line7Line7Line7Line7Line7Line7Line7Line7Line7Line7
+Line8Line8Line8Line8Line8Line8Line8Line8Line8Line8
+== Part END 2 OF 3 ==
+This is only a part of the code (1 remaining)"#;
+
+        assert_eq!(parts[1], expected);
+
+        let expected = r#"== Part 3 OF 3 ==
+Line9Line9Line9Line9Line9Line9Line9Line9Line9Line9
+Line0Line0Line0Line0Line0Line0Line0Line0Line0Line0
+Footer
+== Part END 3 OF 3 =="#;
+
+        assert_eq!(parts[2], expected);
+    }
+
+    #[test]
+    fn test_split_into_parts_long_file_coming_after_small_files() {
+        let header = "Header".to_string();
+        let footer = "Footer".to_string();
+
+        let files = vec![
+            "Small1".to_string(),
+            "\
+Line1Line1Line1Line1Line1Line1Line1Line1Line1Line1
+Line2Line2Line2Line2Line2Line2Line2Line2Line2Line2
+Line3Line3Line3Line3Line3Line3Line3Line3Line3Line3
+Line4Line4Line4Line4Line4Line4Line4Line4Line4Line4
+Line5Line5Line5Line5Line5Line5Line5Line5Line5Line5
+Line6Line6Line6Line6Line6Line6Line6Line6Line6Line6
+Line7Line7Line7Line7Line7Line7Line7Line7Line7Line7
+Line8Line8Line8Line8Line8Line8Line8Line8Line8Line8
+Line9Line9Line9Line9Line9Line9Line9Line9Line9Line9
+Line0Line0Line0Line0Line0Line0Line0Line0Line0Line0"
+                .to_string(),
+        ];
+
+        let part = PartSection {
+            header: "== Part <part-number> OF <total-parts> ==".to_string(),
+            footer: "== Part END <part-number> OF <total-parts> ==".to_string(),
+            pending: "This is only a part of the code (<parts-remaining> remaining)".to_string(),
+        };
+
+        let template = Template {
+            prompt: PromptSection::default(),
+            part,
+        };
+
+        let max_part_chars = 300;
+
+        let parts = split_into_parts(
+            header.clone(),
+            files.clone(),
+            footer.clone(),
+            template,
+            max_part_chars,
+        );
+
+        assert_eq!(parts.len(), 4);
+
+        let expected = r#"== Part 1 OF 4 ==
+Header
+Small1
+== Part END 1 OF 4 ==
+This is only a part of the code (3 remaining)"#;
+
+        // The part contains only the small file,
+        // and does NOT contain chunks from the next large file
+        assert_eq!(parts[0], expected);
+
+        let expected = r#"== Part 2 OF 4 ==
+Line1Line1Line1Line1Line1Line1Line1Line1Line1Line1
+Line2Line2Line2Line2Line2Line2Line2Line2Line2Line2
+Line3Line3Line3Line3Line3Line3Line3Line3Line3Line3
+Line4Line4Line4Line4Line4Line4Line4Line4Line4Line4
+== Part END 2 OF 4 ==
+This is only a part of the code (2 remaining)"#;
+
+        assert_eq!(parts[1], expected);
+
+        let expected = r#"== Part 3 OF 4 ==
+Line5Line5Line5Line5Line5Line5Line5Line5Line5Line5
+Line6Line6Line6Line6Line6Line6Line6Line6Line6Line6
+Line7Line7Line7Line7Line7Line7Line7Line7Line7Line7
+Line8Line8Line8Line8Line8Line8Line8Line8Line8Line8
+== Part END 3 OF 4 ==
+This is only a part of the code (1 remaining)"#;
+
+        assert_eq!(parts[2], expected);
+
+        let expected = r#"== Part 4 OF 4 ==
+Line9Line9Line9Line9Line9Line9Line9Line9Line9Line9
+Line0Line0Line0Line0Line0Line0Line0Line0Line0Line0
+Footer
+== Part END 4 OF 4 =="#;
+
+        assert_eq!(parts[3], expected);
     }
 
     #[test]
