@@ -55,11 +55,11 @@ These tags are used for indicating the start and the end of each individual part
     <header>The following is my code:</header>
 
     <file>
-      ------ FILE START <file-path>  ------
+      ------ FILE START <file-path> ------
 
       <file-content>
 
-      ------ <file-path> FILE END ------
+      ------ FILE END <file-path> ------
     </file>
 
     <footer>
