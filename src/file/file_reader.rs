@@ -18,7 +18,7 @@ pub struct FileContent {
     pub content: String,
 }
 
-/// Reads and concatenates files using the provided template parts.
+/// Reads and concatenates files using the provided template.
 ///
 /// # Arguments
 ///

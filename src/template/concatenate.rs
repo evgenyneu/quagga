@@ -14,7 +14,7 @@ use std::path::PathBuf;
 ///
 /// # Returns
 ///
-/// A `String` vector containing the concatenated contents of files splitted into parts
+/// A `String` vector containing the output prompt content splitted into parts
 pub fn concatenate_files(template: Template, files: Vec<FileContent>, cli: &Cli) -> Vec<String> {
     let file_paths: Vec<PathBuf> = files.iter().map(|f| f.path.clone()).collect();
     let header = process_header_footer(&template.prompt.header, &file_paths, &cli.root);
@@ -24,7 +24,7 @@ pub fn concatenate_files(template: Template, files: Vec<FileContent>, cli: &Cli)
     split_into_parts(header, files, footer, template.part, 50000)
 }
 
-/// Applied the file template to each file by replaceing the content and file path tags.
+/// Applied the file template to each file by replacing the content and file path tags.
 ///
 /// # Arguments
 ///
@@ -38,11 +38,9 @@ pub fn apply_file_template(item_template: &str, files: &Vec<FileContent>) -> Vec
     files
         .iter()
         .map(|file| {
-            let item = item_template
+            item_template
                 .replace("<file-path>", &file.path.display().to_string())
-                .replace("<file-content>", &file.content);
-
-            format!("{}\n", item)
+                .replace("<file-content>", &file.content)
         })
         .collect()
 }
@@ -54,111 +52,121 @@ mod tests {
     use clap::Parser;
     use std::path::PathBuf;
 
-    //     #[test]
-    //     fn test_concatenate_files() {
-    //         let template = Template {
-    //             prompt: PromptSection {
-    //                 header: "Header".to_string(),
-    //                 file: "File: <file-path>\nContent:\n<file-content>\n---".to_string(),
-    //                 footer: "Footer".to_string(),
-    //             },
-    //             part: Default::default(),
-    //         };
+    #[test]
+    fn test_concatenate_files() {
+        let template = Template {
+            prompt: PromptTemplate {
+                header: "Header".to_string(),
+                file: "File: <file-path>\nContent:\n<file-content>\n---".to_string(),
+                footer: "Footer".to_string(),
+            },
+            part: Default::default(),
+        };
 
-    //         let file1 = FileContent {
-    //             path: PathBuf::from("file1.txt"),
-    //             content: "Hello".to_string(),
-    //         };
+        let file1 = FileContent {
+            path: PathBuf::from("file1.txt"),
+            content: "Hello".to_string(),
+        };
 
-    //         let file2 = FileContent {
-    //             path: PathBuf::from("file2.txt"),
-    //             content: "World!".to_string(),
-    //         };
+        let file2 = FileContent {
+            path: PathBuf::from("file2.txt"),
+            content: "World!".to_string(),
+        };
 
-    //         let files = vec![file1, file2];
-    //         let cli = Cli::parse_from(&["test"]);
+        let files = vec![file1, file2];
+        let cli = Cli::parse_from(&["test"]);
 
-    //         let result = concatenate_files(template, files, &cli);
+        let result = concatenate_files(template, files, &cli);
 
-    //         let expected_output = "\
-    // Header
-    // File: file1.txt
-    // Content:
-    // Hello
-    // ---
-    // File: file2.txt
-    // Content:
-    // World!
-    // ---
-    // Footer";
+        assert_eq!(result.len(), 1);
 
-    //         assert_eq!(result, expected_output);
-    //     }
+        let expected_output = "\
+Header
+File: file1.txt
+Content:
+Hello
+---
+File: file2.txt
+Content:
+World!
+---
+Footer";
 
-    //     #[test]
-    //     fn test_concatenate_files_with_all_file_paths_tag() {
-    //         let template = Template {
-    //             prompt: PromptSection {
-    //                 header: "Header with paths: <all-file-paths>".to_string(),
-    //                 file: "File: <file-content>".to_string(),
-    //                 footer: "Footer with paths: <all-file-paths>".to_string(),
-    //             },
-    //             part: Default::default(),
-    //         };
+        assert_eq!(result[0], expected_output);
+    }
 
-    //         let files = vec![
-    //             FileContent {
-    //                 path: PathBuf::from("file1.txt"),
-    //                 content: "Content1".to_string(),
-    //             },
-    //             FileContent {
-    //                 path: PathBuf::from("file2.txt"),
-    //                 content: "Content2".to_string(),
-    //             },
-    //         ];
+    #[test]
+    fn test_concatenate_files_with_all_file_paths_tag() {
+        let template = Template {
+            prompt: PromptTemplate {
+                header: "Header with paths: <all-file-paths>".to_string(),
+                file: "File: <file-content>".to_string(),
+                footer: "Footer with paths: <all-file-paths>".to_string(),
+            },
+            part: Default::default(),
+        };
 
-    //         let cli = Cli::parse_from(&["test"]);
+        let files = vec![
+            FileContent {
+                path: PathBuf::from("file1.txt"),
+                content: "Content1".to_string(),
+            },
+            FileContent {
+                path: PathBuf::from("file2.txt"),
+                content: "Content2".to_string(),
+            },
+        ];
 
-    //         let result = concatenate_files(template, files, &cli);
-    //         let expected = r#"Header with paths: file1.txt
-    // file2.txt
-    // File: Content1
-    // File: Content2
-    // Footer with paths: file1.txt
-    // file2.txt"#;
+        let cli = Cli::parse_from(&["test"]);
 
-    //         assert_eq!(result, expected);
-    //     }
+        let result = concatenate_files(template, files, &cli);
 
-    //     #[test]
-    //     fn test_concatenate_items() {
-    //         let item_template = "File: <file-path>\nContent:\n<file-content>\n---";
+        assert_eq!(result.len(), 1);
 
-    //         let file1 = FileContent {
-    //             path: PathBuf::from("file1.txt"),
-    //             content: "Hello".to_string(),
-    //         };
+        let expected = r#"Header with paths: file1.txt
+file2.txt
+File: Content1
+File: Content2
+Footer with paths: file1.txt
+file2.txt"#;
 
-    //         let file2 = FileContent {
-    //             path: PathBuf::from("file2.txt"),
-    //             content: "World!".to_string(),
-    //         };
+        assert_eq!(result[0], expected);
+    }
 
-    //         let files = vec![file1, file2];
+    #[test]
+    fn test_apply_file_template() {
+        let item_template = "File: <file-path>\nContent:\n<file-content>\n---";
 
-    //         let result = concatenate_items(item_template, &files);
+        let file1 = FileContent {
+            path: PathBuf::from("file1.txt"),
+            content: "Hello".to_string(),
+        };
 
-    //         let expected_output = "\
-    // File: file1.txt
-    // Content:
-    // Hello
-    // ---
-    // File: file2.txt
-    // Content:
-    // World!
-    // ---
-    // ";
+        let file2 = FileContent {
+            path: PathBuf::from("file2.txt"),
+            content: "World!".to_string(),
+        };
 
-    //         assert_eq!(result, expected_output);
-    //     }
+        let files = vec![file1, file2];
+
+        let result = apply_file_template(item_template, &files);
+
+        assert_eq!(result.len(), 2);
+
+        let expected = "\
+File: file1.txt
+Content:
+Hello
+---";
+
+        assert_eq!(result[0], expected);
+
+        let expected = "\
+File: file2.txt
+Content:
+World!
+---";
+
+        assert_eq!(result[1], expected);
+    }
 }
