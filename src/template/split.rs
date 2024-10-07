@@ -1,16 +1,13 @@
-// src/template/split.rs
-
 use crate::template::template::Template;
 
 /// Splits the concatenated content into multiple parts based on the maximum allowed characters.
-/// Utilizes a multi-pass approach to accurately calculate the total number of parts.
 ///
 /// # Arguments
 ///
 /// * `header` - The global header string.
 /// * `files` - A vector of file contents as strings.
 /// * `footer` - The global footer string.
-/// * `template` - The Template struct containing part header, footer, and pending text.
+/// * `template` - The Template that is used to show part header, footer, and pending text.
 /// * `max_part_chars` - The maximum number of characters allowed per part.
 ///
 /// # Returns
@@ -92,7 +89,6 @@ fn assemble_single_part(header: &str, files: &[String], footer: &str) -> Vec<Str
 }
 
 /// Represents how the content will be split into parts.
-/// Each part contains a vector of file chunks (each chunk can be an entire file or part of a large file).
 struct SplitPlan {
     parts: Vec<PartContent>,
     total_parts: usize,
@@ -102,6 +98,9 @@ struct SplitPlan {
 /// Each part can have multiple file chunks.
 #[derive(Clone)]
 struct PartContent {
+    /// The file chunks that make up the part.
+    /// Each chunk is a string representing a content form one file,
+    /// or a part of a file if the file is too large to fit in a single part.
     file_chunks: Vec<String>,
 }
 
@@ -126,9 +125,11 @@ fn create_split_plan(
     max_part_chars: usize,
 ) -> SplitPlan {
     let mut parts: Vec<PartContent> = Vec::new();
+
     let mut current_part = PartContent {
         file_chunks: Vec::new(),
     };
+
     let mut current_size = 0;
 
     // Calculate overhead for parts (excluding the first part's header)
@@ -153,7 +154,7 @@ fn create_split_plan(
                             current_size = 0;
                         }
                     }
-                    current_part.file_chunks.push(chunk.clone());
+                    current_part.file_chunks.push(format!("{}\n", chunk));
                     current_size += chunk.len();
                 }
             } else {
@@ -203,7 +204,8 @@ fn split_file_by_lines(file_content: &str, max_chunk_size: usize) -> Vec<String>
 
         if current_chunk.len() + line_with_newline.len() > max_chunk_size {
             if !current_chunk.is_empty() {
-                chunks.push(current_chunk.clone());
+                // add current chunk to chunks minus the last newline
+                chunks.push(current_chunk[..current_chunk.len() - 1].to_string());
                 current_chunk.clear();
             }
         }
@@ -212,7 +214,8 @@ fn split_file_by_lines(file_content: &str, max_chunk_size: usize) -> Vec<String>
     }
 
     if !current_chunk.is_empty() {
-        chunks.push(current_chunk);
+        // add current chunk to chunks minus the last newline
+        chunks.push(current_chunk[..current_chunk.len() - 1].to_string());
     }
 
     chunks
@@ -236,19 +239,37 @@ fn calculate_overhead(
 ) -> usize {
     let mut overhead = 0;
 
-    // Part Header
-    overhead += template.part.header.len() + 1; // +1 for newline
+    let part_header = template
+        .part
+        .header
+        .replace("<part-number>", "999")
+        .replace("<total-parts>", "999")
+        .replace("<parts-remaining>", "999");
 
-    // Part Footer
-    overhead += template.part.footer.len() + 1; // +1 for newline
+    let part_footer = template
+        .part
+        .footer
+        .replace("<part-number>", "999")
+        .replace("<total-parts>", "999")
+        .replace("<parts-remaining>", "999");
 
-    // Pending Text
+    let part_pending = template
+        .part
+        .pending
+        .replace("<part-number>", "999")
+        .replace("<total-parts>", "999")
+        .replace("<parts-remaining>", "999");
+
+    overhead += part_header.len() + 1; // +1 for newline
+    overhead += part_footer.len() + 1;
+
     if !template.part.pending.is_empty() {
-        overhead += template.part.pending.len() + 1; // +1 for newline
+        overhead += part_pending.len() + 1;
     }
 
     // Global Header
     if include_global_header && !template.prompt.header.is_empty() {
+        template.prompt.header.len() + 1; // +1 for newline
         overhead += template.prompt.header.len() + 1; // +1 for newline
     }
 
@@ -288,6 +309,7 @@ fn assemble_multiple_parts(
         // Add part header
         let part_header =
             replace_placeholders(&template.part.header, i + 1, split_plan.total_parts);
+
         part_content.push_str(&part_header);
         part_content.push('\n');
 
@@ -311,13 +333,15 @@ fn assemble_multiple_parts(
         // Add part footer
         let part_footer =
             replace_placeholders(&template.part.footer, i + 1, split_plan.total_parts);
+
         part_content.push_str(&part_footer);
         part_content.push('\n');
 
         // Add pending text if not the last part
         if i < split_plan.total_parts - 1 && !template.part.pending.is_empty() {
-            let parts_remaining = split_plan.total_parts - (i + 1);
-            let pending_text = replace_pending_text(&template.part.pending, parts_remaining);
+            let pending_text =
+                replace_placeholders(&template.part.pending, i + 1, split_plan.total_parts);
+
             part_content.push_str(&pending_text);
             part_content.push('\n');
         }
@@ -340,22 +364,11 @@ fn assemble_multiple_parts(
 ///
 /// A new string with placeholders replaced.
 fn replace_placeholders(text: &str, part_number: usize, total_parts: usize) -> String {
+    let parts_remaining = total_parts.saturating_sub(part_number);
+
     text.replace("<part-number>", &part_number.to_string())
         .replace("<total-parts>", &total_parts.to_string())
-}
-
-/// Replaces `<parts-remaining>` placeholder in the pending text.
-///
-/// # Arguments
-///
-/// * `text` - The pending text containing placeholders.
-/// * `parts_remaining` - The number of parts remaining.
-///
-/// # Returns
-///
-/// A new string with placeholders replaced.
-fn replace_pending_text(text: &str, parts_remaining: usize) -> String {
-    text.replace("<parts-remaining>", &parts_remaining.to_string())
+        .replace("<parts-remaining>", &parts_remaining.to_string())
 }
 
 #[cfg(test)]
@@ -364,7 +377,7 @@ mod tests {
     use crate::template::template::{PartSection, PromptSection, Template};
 
     #[test]
-    fn test_split_into_parts_single_part() {
+    fn test_split_into_parts_single_part_fit_exactly() {
         let header = "Header".to_string();
         let footer = "Footer".to_string();
         let files = vec!["File1".to_string(), "File2".to_string()];
@@ -379,7 +392,7 @@ mod tests {
             },
         };
 
-        let max_part_chars = 25;
+        let max_part_chars = 25; // Exact size of header, files, and footer
 
         let parts = split_into_parts(
             header.clone(),
@@ -425,37 +438,49 @@ Footer"#;
             max_part_chars,
         );
 
-        assert_eq!(parts.len(), 1);
+        assert_eq!(parts.len(), 2);
 
-        let expected = r#"Header
+        let expected = r#"== Part 1 OF 2 ==
+Header
 File1
-File2
-Footer"#;
+== Part END 1 OF 2 ==
+This is only a part of the code (1 remaining)"#;
 
         assert_eq!(parts[0], expected);
+
+        let expected = r#"== Part 2 OF 2 ==
+File2
+Footer
+== Part END 2 OF 2 =="#;
+
+        assert_eq!(parts[1], expected);
     }
 
     #[test]
     fn test_split_into_parts_multiple_parts_with_placeholders() {
         let header = "Header".to_string();
         let footer = "Footer".to_string();
+
         let files = vec![
-            "Line1".to_string(),
-            "Line2".to_string(),
-            "Line3".to_string(),
-            "Line4".to_string(),
-            "Line5".to_string(),
+            "Line1".repeat(10),
+            "Line2".repeat(10),
+            "Line3".repeat(10),
+            "Line4".repeat(10),
+            "Line5".repeat(10),
         ];
+
         let part = PartSection {
-            header: "=== PART <part-number> OF <total-parts> ===".to_string(),
-            footer: "=== END OF PART <part-number> ===".to_string(),
-            pending: "Please wait for the next part...".to_string(),
+            header: "== Part <part-number> OF <total-parts> ==".to_string(),
+            footer: "== Part END <part-number> OF <total-parts> ==".to_string(),
+            pending: "This is only a part of the code (<parts-remaining> remaining)".to_string(),
         };
+
         let template = Template {
             prompt: PromptSection::default(),
             part,
         };
-        let max_part_chars = 30;
+
+        let max_part_chars = 267;
 
         let parts = split_into_parts(
             header.clone(),
@@ -467,69 +492,23 @@ Footer"#;
 
         assert_eq!(parts.len(), 2);
 
-        // First part
-        let first_part = &parts[0];
-        assert!(first_part.contains("=== PART 1 OF 2 ==="));
-        assert!(first_part.contains("Header"));
-        assert!(first_part.contains("Line1\nLine2\nLine3\n"));
-        assert!(first_part.contains("=== END OF PART 1 ==="));
-        assert!(first_part.contains("Please wait for the next part..."));
+        let expected = r#"== Part 1 OF 2 ==
+Header
+Line1Line1Line1Line1Line1Line1Line1Line1Line1Line1
+Line2Line2Line2Line2Line2Line2Line2Line2Line2Line2
+Line3Line3Line3Line3Line3Line3Line3Line3Line3Line3
+== Part END 1 OF 2 ==
+This is only a part of the code (1 remaining)"#;
 
-        // Second part
-        let second_part = &parts[1];
-        assert!(second_part.contains("=== PART 2 OF 2 ==="));
-        assert!(second_part.contains("Line4\nLine5\n"));
-        assert!(second_part.contains("Footer"));
-        assert!(second_part.contains("=== END OF PART 2 ==="));
-        assert!(!second_part.contains("Please wait for the next part..."));
-    }
+        assert_eq!(parts[0], expected);
 
-    #[test]
-    fn test_split_into_parts_large_file_split_by_lines() {
-        let header = "Header".to_string();
-        let footer = "Footer".to_string();
-        let large_content = vec!["Line".to_string(); 50].join("\n");
-        let files = vec![large_content.clone()];
-        let part = PartSection {
-            header: "=== PART <part-number> OF <total-parts> ===".to_string(),
-            footer: "=== END OF PART <part-number> ===".to_string(),
-            pending: "Please wait for the next part...".to_string(),
-        };
-        let template = Template {
-            prompt: PromptSection::default(),
-            part,
-        };
-        let max_part_chars = 200;
+        let expected = r#"== Part 2 OF 2 ==
+Line4Line4Line4Line4Line4Line4Line4Line4Line4Line4
+Line5Line5Line5Line5Line5Line5Line5Line5Line5Line5
+Footer
+== Part END 2 OF 2 =="#;
 
-        let parts = split_into_parts(
-            header.clone(),
-            files.clone(),
-            footer.clone(),
-            template,
-            max_part_chars,
-        );
-
-        // The large file should be split into multiple parts by lines
-        assert!(parts.len() > 1);
-
-        for (i, part_content) in parts.iter().enumerate() {
-            let expected_part_header = format!("=== PART {} OF {}", i + 1, parts.len());
-            let expected_part_footer = format!("=== END OF PART {} ===", i + 1);
-
-            assert!(part_content.contains(&expected_part_header));
-            assert!(part_content.contains(&expected_part_footer));
-
-            if i < parts.len() - 1 {
-                assert!(part_content.contains("Please wait for the next part..."));
-            } else {
-                assert!(!part_content.contains("Please wait for the next part..."));
-                assert!(part_content.contains(&footer));
-            }
-
-            // Verify that the chunk size does not exceed the limit
-            let actual_size = part_content.len();
-            assert!(actual_size <= max_part_chars + 200); // Allow some buffer for headers and footers
-        }
+        assert_eq!(parts[1], expected);
     }
 
     #[test]
@@ -558,41 +537,7 @@ Footer"#;
 
         // Expecting a single part with header and footer only
         assert_eq!(parts.len(), 1);
-        let expected = format!("Header\nFooter\n");
-        assert_eq!(parts[0], expected);
-    }
-
-    #[test]
-    fn test_split_into_parts_single_large_line() {
-        let header = "Header".to_string();
-        let footer = "Footer".to_string();
-        let large_line = "A".repeat(150);
-        let files = vec![large_line.clone()];
-        let part = PartSection {
-            header: "=== PART <part-number> OF <total-parts> ===".to_string(),
-            footer: "=== END OF PART <part-number> ===".to_string(),
-            pending: "Please wait for the next part...".to_string(),
-        };
-        let template = Template {
-            prompt: PromptSection::default(),
-            part,
-        };
-        let max_part_chars = 100;
-
-        let parts = split_into_parts(
-            header.clone(),
-            files.clone(),
-            footer.clone(),
-            template,
-            max_part_chars,
-        );
-
-        // The large line should be in its own part
-        assert_eq!(parts.len(), 1);
-        let expected = format!(
-            "=== PART 1 OF 1 ===\n{}\n=== END OF PART 1 ===\n",
-            large_line
-        );
+        let expected = format!("Header\nFooter");
         assert_eq!(parts[0], expected);
     }
 
@@ -604,7 +549,6 @@ Footer"#;
         assert!(result.is_empty());
     }
 
-    /// Test when a single line fits within the `max_chunk_size`.
     #[test]
     fn test_split_file_by_lines_single_line_fits() {
         let file_content = "1234567890"; // 10 characters
@@ -616,147 +560,156 @@ Footer"#;
         assert_eq!(result, expected);
     }
 
-    // /// Test when a single line exceeds the `max_chunk_size`.
-    // #[test]
-    // fn test_split_file_by_lines_single_line_exceeds() {
-    //     let file_content = "This line is definitely longer than the maximum chunk size.";
-    //     let max_chunk_size = 20;
-    //     let expected = vec!["This line is definitely longer than the maximum chunk size.\n".to_string()];
-    //     let result = split_file_by_lines(file_content, max_chunk_size);
-    //     assert_eq!(result, expected);
-    // }
+    #[test]
+    fn test_split_file_by_lines_single_line_exceeds() {
+        let file_content = "This line is definitely longer than the maximum chunk size.";
+        let max_chunk_size = 10;
 
-    // /// Test multiple lines that all fit within a single chunk.
-    // #[test]
-    // fn test_split_file_by_lines_multiple_lines_fit_one_chunk() {
-    //     let file_content = "Line1\nLine2\nLine3";
-    //     let max_chunk_size = 20;
-    //     let expected = vec!["Line1\nLine2\nLine3\n".to_string()];
-    //     let result = split_file_by_lines(file_content, max_chunk_size);
-    //     assert_eq!(result, expected);
-    // }
+        let result = split_file_by_lines(file_content, max_chunk_size);
 
-    // /// Test each line requires its own chunk due to size constraints.
-    // #[test]
-    // fn test_split_file_by_lines_each_line_separate_chunks() {
-    //     let file_content = "Short\nAnother Short\nYet Another Short";
-    //     let max_chunk_size = 10; // Each line plus newline exceeds 10
-    //     let expected = vec![
-    //         "Short\n".to_string(),
-    //         "Another Short\n".to_string(),
-    //         "Yet Another Short\n".to_string(),
-    //     ];
-    //     let result = split_file_by_lines(file_content, max_chunk_size);
-    //     assert_eq!(result, expected);
-    // }
+        let expected =
+            vec!["This line is definitely longer than the maximum chunk size.".to_string()];
 
-    // /// Test lines that exactly fit the `max_chunk_size`.
-    // #[test]
-    // fn test_split_file_by_lines_lines_exact_fit() {
-    //     let file_content = "12345\n67890";
-    //     let max_chunk_size = 6; // "12345\n" is 6 characters
-    //     let expected = vec!["12345\n".to_string(), "67890\n".to_string()];
-    //     let result = split_file_by_lines(file_content, max_chunk_size);
-    //     assert_eq!(result, expected);
-    // }
+        assert_eq!(result, expected);
+    }
 
-    // /// Test when the last line does not end with a newline character.
-    // #[test]
-    // fn test_split_file_by_lines_no_newline_at_end() {
-    //     let file_content = "Line1\nLine2\nLine3";
-    //     let max_chunk_size = 15;
-    //     let expected = vec!["Line1\nLine2\n".to_string(), "Line3\n".to_string()];
-    //     let result = split_file_by_lines(file_content, max_chunk_size);
-    //     assert_eq!(result, expected);
-    // }
+    #[test]
+    fn test_split_file_by_lines_multiple_lines_fit_one_chunk() {
+        let file_content = "Line1
+Line2
+Line3";
 
-    // /// Test with `max_chunk_size` set to zero.
-    // #[test]
-    // fn test_split_file_by_lines_zero_max_chunk_size() {
-    //     let file_content = "Line1\nLine2";
-    //     let max_chunk_size = 0;
-    //     let expected = vec!["Line1\n".to_string(), "Line2\n".to_string()];
-    //     let result = split_file_by_lines(file_content, max_chunk_size);
-    //     assert_eq!(result, expected);
-    // }
+        let max_chunk_size = 20;
 
-    // /// Test with `max_chunk_size` smaller than any individual line.
-    // #[test]
-    // fn test_split_file_by_lines_max_chunk_smaller_than_any_line() {
-    //     let file_content = "Short\nMedium Length\nLonger Line Than Max";
-    //     let max_chunk_size = 5; // All lines plus newline exceed 5
-    //     let expected = vec![
-    //         "Short\n".to_string(),
-    //         "Medium Length\n".to_string(),
-    //         "Longer Line Than Max\n".to_string(),
-    //     ];
-    //     let result = split_file_by_lines(file_content, max_chunk_size);
-    //     assert_eq!(result, expected);
-    // }
+        let result = split_file_by_lines(file_content, max_chunk_size);
 
-    // /// Test with multiple consecutive newlines (empty lines).
-    // #[test]
-    // fn test_split_file_by_lines_multiple_consecutive_newlines() {
-    //     let file_content = "Line1\n\nLine3\n\n\nLine6";
-    //     let max_chunk_size = 15;
-    //     let expected = vec![
-    //         "Line1\n\nLine3\n".to_string(),
-    //         "\n\nLine6\n".to_string(),
-    //     ];
-    //     let result = split_file_by_lines(file_content, max_chunk_size);
-    //     assert_eq!(result, expected);
-    // }
+        let expected = vec!["Line1
+Line2
+Line3"
+            .to_string()];
 
-    // /// Test when all lines are empty (only newlines).
-    // #[test]
-    // fn test_split_file_by_lines_all_empty_lines() {
-    //     let file_content = "\n\n\n";
-    //     let max_chunk_size = 2;
-    //     let expected = vec!["\n".to_string(), "\n".to_string(), "\n".to_string()];
-    //     let result = split_file_by_lines(file_content, max_chunk_size);
-    //     assert_eq!(result, expected);
-    // }
+        assert_eq!(result, expected);
+    }
 
-    // /// Test when `file_content` has a mix of short and long lines.
-    // #[test]
-    // fn test_split_file_by_lines_mixed_line_lengths() {
-    //     let file_content = "Short\nThis line is quite long and exceeds the chunk size.\nMid\nAnother long line that should be split properly.";
-    //     let max_chunk_size = 30;
-    //     let expected = vec![
-    //         "Short\n".to_string(),
-    //         "This line is quite long and exceeds the chunk size.\n".to_string(),
-    //         "Mid\n".to_string(),
-    //         "Another long line that should be split properly.\n".to_string(),
-    //     ];
-    //     let result = split_file_by_lines(file_content, max_chunk_size);
-    //     assert_eq!(result, expected);
-    // }
+    #[test]
+    fn test_split_file_by_lines_each_line_separate_chunks() {
+        let file_content = "Short
+Another Short
+Yet Another Short";
 
-    // /// Test when `file_content` has lines with exactly `max_chunk_size` characters.
-    // #[test]
-    // fn test_split_file_by_lines_lines_exactly_max_size() {
-    //     let file_content = "1234567890\nabcdefghij\nABCDEFGHIJ";
-    //     let max_chunk_size = 11; // Each line + newline is 11 characters
-    //     let expected = vec![
-    //         "1234567890\n".to_string(),
-    //         "abcdefghij\n".to_string(),
-    //         "ABCDEFGHIJ\n".to_string(),
-    //     ];
-    //     let result = split_file_by_lines(file_content, max_chunk_size);
-    //     assert_eq!(result, expected);
-    // }
+        let max_chunk_size = 10; // Each line plus newline exceeds 10
 
-    // /// Test with a mix of lines that fit and lines that require splitting.
-    // #[test]
-    // fn test_split_file_by_lines_mixed_requirements() {
-    //     let file_content = "Fit\nTooLongLineThatExceedsMax\nFitAgain";
-    //     let max_chunk_size = 10;
-    //     let expected = vec![
-    //         "Fit\n".to_string(),
-    //         "TooLongLineThatExceedsMax\n".to_string(),
-    //         "FitAgain\n".to_string(),
-    //     ];
-    //     let result = split_file_by_lines(file_content, max_chunk_size);
-    //     assert_eq!(result, expected);
-    // }
+        let result = split_file_by_lines(file_content, max_chunk_size);
+
+        let expected = vec![
+            "Short".to_string(),
+            "Another Short".to_string(),
+            "Yet Another Short".to_string(),
+        ];
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_split_file_first_two_lines_fit_one_chunk_exactly() {
+        let file_content = "12345
+67890
+absde";
+
+        let max_chunk_size = 12; // first two lines plus newline fit exactly
+
+        let result = split_file_by_lines(file_content, max_chunk_size);
+
+        let expected = vec![
+            "12345
+67890"
+                .to_string(),
+            "absde".to_string(),
+        ];
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_split_file_by_lines_zero_max_chunk_size() {
+        let file_content = "Line1\nLine2";
+        let max_chunk_size = 0;
+        let result = split_file_by_lines(file_content, max_chunk_size);
+        let expected = vec!["Line1".to_string(), "Line2".to_string()];
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_split_file_by_lines_max_chunk_smaller_than_any_line() {
+        let file_content = "Short\nMedium Length\nLonger Line Than Max";
+        let max_chunk_size = 5; // All lines plus newline exceed 5
+
+        let result = split_file_by_lines(file_content, max_chunk_size);
+
+        let expected = vec![
+            "Short".to_string(),
+            "Medium Length".to_string(),
+            "Longer Line Than Max".to_string(),
+        ];
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_split_file_by_lines_multiple_consecutive_newlines() {
+        let file_content = "Line1\n\nLine3\n\n\n\n\nLine6";
+        let max_chunk_size = 15;
+        let result = split_file_by_lines(file_content, max_chunk_size);
+        let expected = vec!["Line1\n\nLine3\n\n".to_string(), "\n\nLine6".to_string()];
+        assert_eq!(result, expected);
+    }
+
+    /// Test when all lines are empty (only newlines).
+    #[test]
+    fn test_split_file_by_lines_all_empty_lines() {
+        let file_content = "\n\n\n";
+        let max_chunk_size = 2;
+        let expected = vec!["\n".to_string(), "".to_string()];
+        let result = split_file_by_lines(file_content, max_chunk_size);
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_split_file_by_lines_mixed_line_lengths() {
+        let file_content = "Short
+This line is quite long and exceeds the chunk size.
+Mid
+Another long line that should be split properly.";
+
+        let max_chunk_size = 30;
+
+        let result = split_file_by_lines(file_content, max_chunk_size);
+
+        let expected = vec![
+            "Short".to_string(),
+            "This line is quite long and exceeds the chunk size.".to_string(),
+            "Mid".to_string(),
+            "Another long line that should be split properly.".to_string(),
+        ];
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_split_file_by_lines_lines_exactly_max_size() {
+        let file_content = "1234567890
+abcdefghij
+ABCDEFGHIJ";
+
+        let max_chunk_size = 11; // Each line + newline is 11 characters
+
+        let result = split_file_by_lines(file_content, max_chunk_size);
+
+        let expected = vec![
+            "1234567890".to_string(),
+            "abcdefghij".to_string(),
+            "ABCDEFGHIJ".to_string(),
+        ];
+
+        assert_eq!(result, expected);
+    }
 }
