@@ -7,7 +7,7 @@ use crate::template::template::PartTemplate;
 /// * `header` - The global header string.
 /// * `files` - A vector of file contents as strings.
 /// * `footer` - The global footer string.
-/// * `part_template` - The part template containing header, footer, and pending text.
+/// * `part_template` - The part template containing part header, footer, and pending text.
 /// * `max_part_chars` - The maximum number of characters allowed per part.
 ///
 /// # Returns
