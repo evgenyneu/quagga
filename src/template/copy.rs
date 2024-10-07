@@ -14,7 +14,7 @@ use std::path::PathBuf;
 /// * `Ok(String)` with the success message.
 /// * `Err` if an error occurred or the file already exists.
 pub fn copy_template(root: &PathBuf) -> Result<String, Box<dyn Error>> {
-    let template_content = include_str!("../../templates/default.txt");
+    let template_content = include_str!("../../templates/default.md");
     let destination = root.join(".quagga_template");
 
     if destination.exists() {
@@ -52,7 +52,7 @@ mod tests {
         assert!(template_path.exists());
 
         let content = fs::read_to_string(template_path).unwrap();
-        assert!(content.contains("{{HEADER}}"));
+        assert!(content.contains("<header>"));
     }
 
     #[test]

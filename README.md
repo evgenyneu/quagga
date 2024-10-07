@@ -82,7 +82,7 @@ quagga --help
 
 ## Templates
 
-`quagga` uses templates to format the combined output of your files. Templates allow you to define how the output is structured, including headers, footers, placeholders for file content, as well as providing instructions for an LLM.  By default, it applies a [built-in template](templates/default.txt), but you can customize this to suit your needs.
+`quagga` uses templates to format the combined output of your files. Templates allow you to define how the output is structured, including headers, footers, placeholders for file content, as well as providing instructions for an LLM.  By default, it applies a [built-in template](templates/default.md), but you can customize this to suit your needs. The template is self-documenting and can be found [templates/default.md](templates/default.md).
 
 ### Create a custom template
 
@@ -99,7 +99,7 @@ quagga --copy-template
 1. A custom template file specified with the `--template <PATH>` option.
 1. A `.quagga_template` file in the current directory.
 1. A `.quagga_template` file in your home directory.
-1. If none of the above are found, Quagga uses its built-in [default template](templates/default.txt).
+1. If none of the above are found, Quagga uses its built-in [default template](templates/default.md).
 
 You can ask the program to ignore `.quagga_template` files by using the `--no-quagga-template` option.
 
