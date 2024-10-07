@@ -26,8 +26,8 @@ pub fn split_into_parts(
     }
 
     // Multi-Pass: Split into multiple parts
-    let split_plan = create_split_plan(&header, &files, &footer, &template, max_part_chars);
-    assemble_multiple_parts(&split_plan, &template, &header, &footer, max_part_chars)
+    let parts = create_split_plan(&header, &files, &footer, &template, max_part_chars);
+    assemble_multiple_parts(parts, &template, &header, &footer, max_part_chars)
 }
 
 /// Checks if the combined header, files, and footer fit within the max_part_chars.
@@ -88,12 +88,6 @@ fn assemble_single_part(header: &str, files: &[String], footer: &str) -> Vec<Str
     vec![part]
 }
 
-/// Represents how the content will be split into parts.
-struct SplitPlan {
-    parts: Vec<PartContent>,
-    total_parts: usize,
-}
-
 /// Represents the content of a single part.
 /// Each part can have multiple file chunks.
 #[derive(Clone)]
@@ -123,7 +117,7 @@ fn create_split_plan(
     footer: &str,
     template: &Template,
     max_part_chars: usize,
-) -> SplitPlan {
+) -> Vec<PartContent> {
     let mut parts: Vec<PartContent> = Vec::new();
 
     let mut current_part = PartContent {
@@ -132,8 +126,8 @@ fn create_split_plan(
 
     let mut current_size = 0;
 
-    // Calculate overhead for parts (excluding the first part's header)
-    let part_overhead = calculate_overhead(template, false, false);
+    // Calculate overhead coming from part header, footer, and pending text
+    let part_overhead = calculate_overhead(template);
 
     for file in files {
         let file_length = file.len() + 1; // +1 for the newline
@@ -181,8 +175,7 @@ fn create_split_plan(
         parts.push(current_part);
     }
 
-    let total_parts = parts.len();
-    SplitPlan { parts, total_parts }
+    parts
 }
 
 /// Splits a file's content into chunks at line boundaries.
@@ -226,17 +219,11 @@ fn split_file_by_lines(file_content: &str, max_chunk_size: usize) -> Vec<String>
 /// # Arguments
 ///
 /// * `template` - The Template struct.
-/// * `include_global_header` - Whether to include the global header.
-/// * `include_global_footer` - Whether to include the global footer.
 ///
 /// # Returns
 ///
 /// The total overhead in characters.
-fn calculate_overhead(
-    template: &Template,
-    include_global_header: bool,
-    include_global_footer: bool,
-) -> usize {
+fn calculate_overhead(template: &Template) -> usize {
     let mut overhead = 0;
 
     let part_header = template
@@ -267,17 +254,6 @@ fn calculate_overhead(
         overhead += part_pending.len() + 1;
     }
 
-    // Global Header
-    if include_global_header && !template.prompt.header.is_empty() {
-        template.prompt.header.len() + 1; // +1 for newline
-        overhead += template.prompt.header.len() + 1; // +1 for newline
-    }
-
-    // Global Footer
-    if include_global_footer && !template.prompt.footer.is_empty() {
-        overhead += template.prompt.footer.len() + 1; // +1 for newline
-    }
-
     overhead
 }
 
@@ -295,20 +271,20 @@ fn calculate_overhead(
 ///
 /// A vector of assembled parts as strings.
 fn assemble_multiple_parts(
-    split_plan: &SplitPlan,
+    parts: Vec<PartContent>,
     template: &Template,
     header: &str,
     footer: &str,
     max_part_chars: usize,
 ) -> Vec<String> {
     let mut assembled_parts: Vec<String> = Vec::new();
+    let total_parts = parts.len();
 
-    for (i, part) in split_plan.parts.iter().enumerate() {
+    for (i, part) in parts.iter().enumerate() {
         let mut part_content = String::new();
 
         // Add part header
-        let part_header =
-            replace_placeholders(&template.part.header, i + 1, split_plan.total_parts);
+        let part_header = replace_placeholders(&template.part.header, i + 1, total_parts);
 
         part_content.push_str(&part_header);
         part_content.push('\n');
@@ -325,22 +301,20 @@ fn assemble_multiple_parts(
         }
 
         // Add global footer only in the last part
-        if i == split_plan.total_parts - 1 && !footer.is_empty() {
+        if i == total_parts - 1 && !footer.is_empty() {
             part_content.push_str(footer);
             part_content.push('\n');
         }
 
         // Add part footer
-        let part_footer =
-            replace_placeholders(&template.part.footer, i + 1, split_plan.total_parts);
+        let part_footer = replace_placeholders(&template.part.footer, i + 1, total_parts);
 
         part_content.push_str(&part_footer);
         part_content.push('\n');
 
         // Add pending text if not the last part
-        if i < split_plan.total_parts - 1 && !template.part.pending.is_empty() {
-            let pending_text =
-                replace_placeholders(&template.part.pending, i + 1, split_plan.total_parts);
+        if i < total_parts - 1 && !template.part.pending.is_empty() {
+            let pending_text = replace_placeholders(&template.part.pending, i + 1, total_parts);
 
             part_content.push_str(&pending_text);
             part_content.push('\n');
