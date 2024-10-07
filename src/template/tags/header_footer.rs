@@ -46,9 +46,9 @@ mod tests {
         let root = td.path_buf();
 
         let text = r#"
-Files:{{ALL_FILE_PATHS}}
-Tree: {{TREE}}
-Total Size: {{TOTAL_FILE_SIZE}}"#;
+Files:<all-file-paths>
+Tree: <tree>
+Total Size: <total-file-size>"#;
 
         let result = process_header_footer(&text, &file_paths, &root);
 

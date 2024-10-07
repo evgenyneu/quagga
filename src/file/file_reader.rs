@@ -1,7 +1,7 @@
 use crate::cli::Cli;
 use crate::file::size::check_total_size;
 use crate::template::concatenate::concatenate_files;
-use crate::template::template::TemplateParts;
+use crate::template::parser::template::Template;
 use std::fs;
 use std::io::{self, Read};
 use std::path::PathBuf;
@@ -23,7 +23,7 @@ pub struct FileContent {
 /// # Arguments
 ///
 /// * `files` - A vector of `PathBuf` representing the paths to the files to read.
-/// * `template` - A `TemplateParts` struct containing the header, item, and footer.
+/// * `template` - A `Template` struct containing the template sections.
 ///
 /// # Returns
 ///
@@ -31,7 +31,7 @@ pub struct FileContent {
 /// or an `io::Error` if an error occurs while reading any of the files.
 pub fn read_and_concatenate_files(
     files: Vec<PathBuf>,
-    template: TemplateParts,
+    template: Template,
     cli: &Cli,
 ) -> io::Result<String> {
     check_total_size(files.clone(), cli.max_total_size)?;
@@ -69,7 +69,7 @@ pub fn read_files(paths: Vec<PathBuf>) -> io::Result<Vec<FileContent>> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::template::template::TemplateParts;
+    use crate::template::parser::template::{PromptSection, Template};
     use crate::test_utils::temp_dir::TempDir;
     use clap::Parser;
 
@@ -81,10 +81,13 @@ mod tests {
         let file2_path = td.mkfile_with_contents("file32.txt", "World!");
         let files = vec![file1_path.clone(), file2_path.clone()];
 
-        let template = TemplateParts {
-            header: "Header".to_string(),
-            item: "File: {{FILE_PATH}}\nContent:\n{{CONTENT}}\n---".to_string(),
-            footer: "Footer".to_string(),
+        let template = Template {
+            prompt: PromptSection {
+                header: "Header".to_string(),
+                file: "File: <file-path>\nContent:\n<file-content>\n---".to_string(),
+                footer: "Footer".to_string(),
+            },
+            part: Default::default(),
         };
 
         let cli = Cli::parse_from(&["test"]);
@@ -120,7 +123,7 @@ Footer",
         let files = vec![file1_path, file2_path];
         let cli = Cli::parse_from(&["test"]);
 
-        let result = read_and_concatenate_files(files, TemplateParts::default(), &cli);
+        let result = read_and_concatenate_files(files, Template::default(), &cli);
 
         assert!(result.is_err());
     }
@@ -133,10 +136,13 @@ Footer",
         let file1_path = td.mkfile_with_contents("file1.txt", file_content);
         let files = vec![file1_path.clone()];
 
-        let template = TemplateParts {
-            header: "Header".to_string(),
-            item: "{{CONTENT}}".to_string(),
-            footer: "Footer".to_string(),
+        let template = Template {
+            prompt: PromptSection {
+                header: "Header".to_string(),
+                file: "<file-content>".to_string(),
+                footer: "Footer".to_string(),
+            },
+            part: Default::default(),
         };
 
         let mut cli = Cli::parse_from(&["test"]);

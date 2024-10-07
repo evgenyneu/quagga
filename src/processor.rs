@@ -1,15 +1,11 @@
 use crate::cli::Cli;
+use crate::file::file_reader::read_and_concatenate_files;
 use crate::info::info::info_output;
+use crate::template::parser::template::Template;
+use crate::template::template::{path_to_custom_template, read_and_validate_template};
+use crate::walk::file_walker::get_all_files;
 use std::error::Error;
 use std::path::PathBuf;
-
-use crate::file::file_reader::read_and_concatenate_files;
-
-use crate::template::template::{
-    path_to_custom_template, read_and_validate_template, TemplateParts,
-};
-
-use crate::walk::file_walker::get_all_files;
 
 /// The function called by `main.rs` that processes files based on provided command line options.
 ///
@@ -60,7 +56,7 @@ pub fn run(cli: &Cli, piped_paths: Option<Vec<PathBuf>>) -> Result<String, Box<d
 /// This function will return an error if:
 /// - Retrieving the list of files fails.
 /// - Reading any of the files fails.
-pub fn process_files(cli: &Cli, template: TemplateParts) -> Result<String, Box<dyn Error>> {
+pub fn process_files(cli: &Cli, template: Template) -> Result<String, Box<dyn Error>> {
     let mut files = get_all_files(cli)?;
     files.sort();
 
@@ -70,6 +66,7 @@ pub fn process_files(cli: &Cli, template: TemplateParts) -> Result<String, Box<d
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::template::parser::template::PromptSection;
     use crate::test_utils::temp_dir::TempDir;
     use clap::Parser;
 
@@ -125,10 +122,13 @@ mod tests {
         let mut cli = Cli::parse_from(&["test"]);
         cli.root = td.path_buf();
 
-        let template = TemplateParts {
-            header: "Header".to_string(),
-            item: "File: {{FILE_PATH}}\nContent:\n{{CONTENT}}\n---".to_string(),
-            footer: "Footer".to_string(),
+        let template = Template {
+            prompt: PromptSection {
+                header: "Header".to_string(),
+                file: "File: <file-path>\nContent:\n<file-content>\n---".to_string(),
+                footer: "Footer".to_string(),
+            },
+            part: Default::default(),
         };
 
         let result = process_files(&cli, template);
@@ -159,7 +159,7 @@ Footer",
         let mut cli = Cli::parse_from(&["test"]);
         cli.root = PathBuf::from("/path/to/nonexistent/directory");
 
-        let result = process_files(&cli, TemplateParts::default());
+        let result = process_files(&cli, Template::default());
 
         assert!(result.is_err());
     }

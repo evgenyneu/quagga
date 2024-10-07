@@ -1,22 +1,22 @@
 use crate::file::size::{calculate_total_size, human_readable_size};
 use std::path::PathBuf;
 
-/// Replaces the `{{TOTAL_FILE_SIZE}}` tag in the given text with the total size of the files.
+/// Replaces the `<total-file-size>` tag in the given text with the total size of the files.
 ///
 /// # Arguments
 ///
-/// * `text` - The input string that may contain the `{{TOTAL_FILE_SIZE}}` tag.
+/// * `text` - The input string that may contain the `<total-file-size>` tag.
 /// * `file_paths` - A list of file paths whose sizes will be summed.
 ///
 /// # Returns
 ///
-/// A new string where the `{{TOTAL_FILE_SIZE}}` tag is replaced with the total file size in a human-readable format.
+/// A new string where the `<total-file-size>` tag is replaced with the total file size in a human-readable format.
 pub fn replace_total_file_size_tag(text: &str, file_paths: Vec<PathBuf>) -> String {
-    if text.contains("{{TOTAL_FILE_SIZE}}") {
+    if text.contains("<total-file-size>") {
         match calculate_total_size(file_paths) {
             Ok(total_size) => {
                 let readable_size = human_readable_size(total_size);
-                text.replace("{{TOTAL_FILE_SIZE}}", &readable_size)
+                text.replace("<total-file-size>", &readable_size)
             }
             Err(_) => text.to_string(), // If there's an error, return the original text
         }
@@ -45,7 +45,7 @@ mod tests {
         let mut file2 = File::create(&file2_path).unwrap();
         file2.write_all(&[0u8; 2048]).unwrap(); // 2 KB
 
-        let template = "Total size: {{TOTAL_FILE_SIZE}}";
+        let template = "Total size: <total-file-size>";
         let file_paths = vec![file1_path, file2_path];
 
         let result = replace_total_file_size_tag(template, file_paths);
@@ -62,7 +62,7 @@ mod tests {
 
     #[test]
     fn test_replace_total_file_size_tag_with_error() {
-        let template = "Total size: {{TOTAL_FILE_SIZE}}";
+        let template = "Total size: <total-file-size>";
         let invalid_path = PathBuf::from("/invalid/path.txt");
         let file_paths = vec![invalid_path];
 

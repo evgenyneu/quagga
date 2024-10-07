@@ -37,9 +37,20 @@ pub fn run_in_terminal(params: String) -> String {
 
 /// Adds a custom template to the provided temporary directory.
 pub fn add_template(td: &TempDir) {
-    let custom_template = r#"{{HEADER}}
-{{CONTENT}}
-{{FOOTER}}
+    let custom_template = r#"
+<template>
+  <prompt>
+    <header></header>
+    <file><file-content></file>
+    <footer></footer>
+  </prompt>
+
+  <part>
+    <header></header>
+    <footer></footer>
+    <pending></pending>
+  </part>
+</template>
 "#;
 
     td.mkfile_with_contents(".quagga_template", custom_template);

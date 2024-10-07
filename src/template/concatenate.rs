@@ -1,34 +1,34 @@
 use crate::cli::Cli;
 use crate::file::file_reader::FileContent;
+use crate::template::parser::template::Template;
 use crate::template::tags::header_footer::process_header_footer;
-use crate::template::template::TemplateParts;
 use std::path::PathBuf;
 
 /// Concatenates the contents of multiple files using the provided template parts.
 ///
 /// # Arguments
 ///
-/// * `template` - A `TemplateParts` struct containing the header, item, and footer.
+/// * `template` - A `Template` struct containing template structure.
 /// * `files` - A vector of `FileContent` structs.
 ///
 /// # Returns
 ///
 /// A `String` containing the concatenated contents with header and footer.
-pub fn concatenate_files(template: TemplateParts, files: Vec<FileContent>, cli: &Cli) -> String {
-    let items = concatenate_items(&template.item, &files);
+pub fn concatenate_files(template: Template, files: Vec<FileContent>, cli: &Cli) -> String {
+    let items: String = concatenate_items(&template.prompt.file, &files);
     let mut contents = String::new();
     let file_paths: Vec<PathBuf> = files.iter().map(|f| f.path.clone()).collect();
 
-    if !template.header.is_empty() {
-        let header = process_header_footer(&template.header, &file_paths, &cli.root);
+    if !template.prompt.header.is_empty() {
+        let header = process_header_footer(&template.prompt.header, &file_paths, &cli.root);
         contents.push_str(&header);
         contents.push('\n');
     }
 
     contents.push_str(&items);
 
-    if !template.footer.is_empty() {
-        let footer = process_header_footer(&template.footer, &file_paths, &cli.root);
+    if !template.prompt.footer.is_empty() {
+        let footer = process_header_footer(&template.prompt.footer, &file_paths, &cli.root);
         contents.push_str(&footer);
     }
 
@@ -50,8 +50,8 @@ pub fn concatenate_items(item_template: &str, files: &Vec<FileContent>) -> Strin
 
     for file in files {
         let item = item_template
-            .replace("{{FILE_PATH}}", &file.path.display().to_string())
-            .replace("{{CONTENT}}", &file.content);
+            .replace("<file-path>", &file.path.display().to_string())
+            .replace("<file-content>", &file.content);
 
         contents.push_str(&item);
         contents.push('\n'); // Separate items with a newline
@@ -63,16 +63,19 @@ pub fn concatenate_items(item_template: &str, files: &Vec<FileContent>) -> Strin
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::template::template::TemplateParts;
+    use crate::template::parser::template::{PromptSection, Template};
     use clap::Parser;
     use std::path::PathBuf;
 
     #[test]
     fn test_concatenate_files() {
-        let template = TemplateParts {
-            header: "Header".to_string(),
-            item: "File: {{FILE_PATH}}\nContent:\n{{CONTENT}}\n---".to_string(),
-            footer: "Footer".to_string(),
+        let template = Template {
+            prompt: PromptSection {
+                header: "Header".to_string(),
+                file: "File: <file-path>\nContent:\n<file-content>\n---".to_string(),
+                footer: "Footer".to_string(),
+            },
+            part: Default::default(),
         };
 
         let file1 = FileContent {
@@ -107,10 +110,13 @@ Footer";
 
     #[test]
     fn test_concatenate_files_with_all_file_paths_tag() {
-        let template = TemplateParts {
-            header: "Header with paths: {{ALL_FILE_PATHS}}".to_string(),
-            item: "Item: {{CONTENT}}".to_string(),
-            footer: "Footer with paths: {{ALL_FILE_PATHS}}".to_string(),
+        let template = Template {
+            prompt: PromptSection {
+                header: "Header with paths: <all-file-paths>".to_string(),
+                file: "File: <file-content>".to_string(),
+                footer: "Footer with paths: <all-file-paths>".to_string(),
+            },
+            part: Default::default(),
         };
 
         let files = vec![
@@ -127,19 +133,19 @@ Footer";
         let cli = Cli::parse_from(&["test"]);
 
         let result = concatenate_files(template, files, &cli);
+        let expected = r#"Header with paths: file1.txt
+file2.txt
+File: Content1
+File: Content2
+Footer with paths: file1.txt
+file2.txt"#;
 
-        assert_eq!(
-            result,
-            "Header with paths: file1.txt\nfile2.txt\n\
-Item: Content1\n\
-Item: Content2\n\
-Footer with paths: file1.txt\nfile2.txt"
-        );
+        assert_eq!(result, expected);
     }
 
     #[test]
     fn test_concatenate_items() {
-        let item_template = "File: {{FILE_PATH}}\nContent:\n{{CONTENT}}\n---";
+        let item_template = "File: <file-path>\nContent:\n<file-content>\n---";
 
         let file1 = FileContent {
             path: PathBuf::from("file1.txt"),

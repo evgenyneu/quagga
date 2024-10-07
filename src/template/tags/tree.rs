@@ -1,20 +1,20 @@
 use crate::info::tree::file_paths_to_tree;
 use std::path::PathBuf;
 
-/// Replaces the `{{TREE}}` tag with the ASCII tree representation of the file paths.
+/// Replaces the `<tree>` tag with the ASCII tree representation of the file paths.
 ///
 /// # Arguments
 ///
-/// * `text` - The input string which may contain the `{{TREE}}` tag.
+/// * `text` - The input string which may contain the `<tree>` tag.
 /// * `file_paths` - A list of file paths to be included in the output.
 ///
 /// # Returns
 ///
-/// A new string where the `{{TREE}}` tag is replaced with the formatted file paths.
+/// A new string where the `<tree>` tag is replaced with the formatted file paths.
 pub fn replace_tree_tag(text: &str, file_paths: Vec<PathBuf>, root: PathBuf) -> String {
-    if text.contains("{{TREE}}") {
+    if text.contains("<tree>") {
         let tree = file_paths_to_tree(file_paths, Some(root));
-        text.replace("{{TREE}}", &tree)
+        text.replace("<tree>", &tree)
     } else {
         text.to_string() // Return unchanged text if the tag is not present
     }
@@ -29,7 +29,7 @@ mod tests {
     fn test_replace_all_file_paths_tag() {
         let template = "\
         Header\n\
-        {{TREE}}\n\
+        <tree>\n\
         Footer";
 
         let file_paths = vec![

@@ -116,13 +116,20 @@ fn test_main_uses_quagga_template_by_default() {
     let td = TempDir::new().unwrap();
 
     // Create a custom .quagga_template in the temporary directory
-    let custom_template = r#"Custom Header
+    let custom_template = r#"
+<template>
+  <prompt>
+    <header>Custom Header</header>
+    <file>Custom Item: <file-content></file>
+    <footer>Custom Footer</footer>
+  </prompt>
 
-{{HEADER}}
-Custom Item: {{CONTENT}}
-{{FOOTER}}
-
-Custom Footer
+  <part>
+    <header>Part start</header>
+    <footer>Part end</footer>
+    <pending>If part pending</pending>
+  </part>
+</template>
 "#;
 
     td.mkfile_with_contents(".quagga_template", custom_template);
@@ -132,10 +139,8 @@ Custom Footer
     let output: String = run_in_terminal(td.path().display().to_string());
 
     let expected = r#"Custom Header
-
 Custom Item: Hello
 Custom Item: World!
-
 Custom Footer
 "#;
 

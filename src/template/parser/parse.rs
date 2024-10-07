@@ -95,7 +95,7 @@ mod tests {
   </prompt>
 
   <part>
-    <header> Part start</header>
+    <header>Part start</header>
     <footer>Part end</footer>
     <pending>If part pending</pending>
   </part>
@@ -128,7 +128,7 @@ mod tests {
     <footer>Footer</footer>
 
   <part>
-    <header> Part start</header>
+    <header>Part start</header>
     <footer>Part end</footer>
     <pending>If part pending</pending>
   </part>
