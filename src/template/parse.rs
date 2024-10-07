@@ -1,4 +1,4 @@
-use crate::template::template::{PartSection, PromptSection, Template};
+use crate::template::template::{PartTemplate, PromptTemplate, Template};
 
 /// Parses the entire template string into a `Template` struct.
 ///
@@ -21,24 +21,24 @@ pub fn parse_template(text: &str) -> Result<Template, String> {
     Ok(template)
 }
 
-fn parse_part_section(part_content: &str) -> Result<PartSection, String> {
+fn parse_part_section(part_content: &str) -> Result<PartTemplate, String> {
     let header = text_inside_tag(part_content, "header")?;
     let footer = text_inside_tag(part_content, "footer")?;
     let pending = text_inside_tag(part_content, "pending")?;
 
-    Ok(PartSection {
+    Ok(PartTemplate {
         header,
         footer,
         pending,
     })
 }
 
-fn parse_prompt_section(prompt_content: &str) -> Result<PromptSection, String> {
+fn parse_prompt_section(prompt_content: &str) -> Result<PromptTemplate, String> {
     let header = text_inside_tag(prompt_content, "header")?;
     let file = text_inside_tag(prompt_content, "file")?;
     let footer = text_inside_tag(prompt_content, "footer")?;
 
-    Ok(PromptSection {
+    Ok(PromptTemplate {
         header,
         file,
         footer,

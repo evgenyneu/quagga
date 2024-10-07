@@ -1,30 +1,30 @@
 /// Represents the entire template structure.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Template {
-    pub prompt: PromptSection,
-    pub part: PartSection,
+    pub prompt: PromptTemplate,
+    pub part: PartTemplate,
 }
 
 impl Default for Template {
     fn default() -> Self {
         Template {
-            prompt: PromptSection::default(),
-            part: PartSection::default(),
+            prompt: PromptTemplate::default(),
+            part: PartTemplate::default(),
         }
     }
 }
 
 /// Represents the prompt section, including header, file template, and footer.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct PromptSection {
+pub struct PromptTemplate {
     pub header: String,
     pub file: String,
     pub footer: String,
 }
 
-impl Default for PromptSection {
+impl Default for PromptTemplate {
     fn default() -> Self {
-        PromptSection {
+        PromptTemplate {
             header: "".to_string(),
             footer: "".to_string(),
             file: "".to_string(),
@@ -34,15 +34,15 @@ impl Default for PromptSection {
 
 /// Represents the part section for multi-part outputs.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct PartSection {
+pub struct PartTemplate {
     pub header: String,
     pub footer: String,
     pub pending: String,
 }
 
-impl Default for PartSection {
+impl Default for PartTemplate {
     fn default() -> Self {
-        PartSection {
+        PartTemplate {
             header: "".to_string(),
             pending: "".to_string(),
             footer: "".to_string(),

@@ -69,7 +69,7 @@ pub fn read_files(paths: Vec<PathBuf>) -> io::Result<Vec<FileContent>> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::template::template::{PromptSection, Template};
+    use crate::template::template::{PromptTemplate, Template};
     use crate::test_utils::temp_dir::TempDir;
     use clap::Parser;
 
@@ -82,7 +82,7 @@ mod tests {
     //         let files = vec![file1_path.clone(), file2_path.clone()];
 
     //         let template = Template {
-    //             prompt: PromptSection {
+    //             prompt: PromptTemplate {
     //                 header: "Header".to_string(),
     //                 file: "File: <file-path>\nContent:\n<file-content>\n---".to_string(),
     //                 footer: "Footer".to_string(),
@@ -137,7 +137,7 @@ mod tests {
     //         let files = vec![file1_path.clone()];
 
     //         let template = Template {
-    //             prompt: PromptSection {
+    //             prompt: PromptTemplate {
     //                 header: "Header".to_string(),
     //                 file: "<file-content>".to_string(),
     //                 footer: "Footer".to_string(),

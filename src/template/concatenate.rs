@@ -21,7 +21,7 @@ pub fn concatenate_files(template: Template, files: Vec<FileContent>, cli: &Cli)
     let files = apply_file_template(&template.prompt.file, &files);
     let footer = process_header_footer(&template.prompt.footer, &file_paths, &cli.root);
 
-    split_into_parts(header, files, footer, template, 50000)
+    split_into_parts(header, files, footer, template.part, 50000)
 }
 
 /// Applied the file template to each file by replaceing the content and file path tags.
@@ -50,7 +50,7 @@ pub fn apply_file_template(item_template: &str, files: &Vec<FileContent>) -> Vec
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::template::template::{PromptSection, Template};
+    use crate::template::template::{PromptTemplate, Template};
     use clap::Parser;
     use std::path::PathBuf;
 

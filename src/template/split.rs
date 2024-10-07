@@ -1,4 +1,4 @@
-use crate::template::template::Template;
+use crate::template::template::PartTemplate;
 
 /// Splits the concatenated content into multiple parts based on the maximum allowed characters.
 ///
@@ -7,7 +7,7 @@ use crate::template::template::Template;
 /// * `header` - The global header string.
 /// * `files` - A vector of file contents as strings.
 /// * `footer` - The global footer string.
-/// * `template` - The Template that is used to show part header, footer, and pending text.
+/// * `part_template` - The part template containing header, footer, and pending text.
 /// * `max_part_chars` - The maximum number of characters allowed per part.
 ///
 /// # Returns
@@ -17,7 +17,7 @@ pub fn split_into_parts(
     header: String,
     files: Vec<String>,
     footer: String,
-    template: Template,
+    part_template: PartTemplate,
     max_part_chars: usize,
 ) -> Vec<String> {
     // Determine if all content fits in a single part
@@ -27,8 +27,8 @@ pub fn split_into_parts(
     }
 
     // Content does not fit into one part - split into multiple parts
-    let parts = create_split_plan(&header, &files, &footer, &template, max_part_chars);
-    assemble_multiple_parts(parts, &template, &header, &footer, max_part_chars)
+    let parts = create_split_plan(&header, &files, &footer, &part_template, max_part_chars);
+    assemble_multiple_parts(parts, &part_template, &header, &footer, max_part_chars)
 }
 
 /// Represents the content of a single part.
@@ -106,7 +106,7 @@ fn assemble_single_part(header: &str, files: &[String], footer: &str) -> Vec<Str
 /// * `header` - The global header string.
 /// * `files` - A reference to a vector of file contents.
 /// * `footer` - The global footer string.
-/// * `template` - The Template struct.
+/// * `part_template` - The part template.
 /// * `max_part_chars` - Maximum characters per part.
 ///
 /// # Returns
@@ -116,10 +116,10 @@ fn create_split_plan(
     header: &str,
     files: &[String],
     footer: &str,
-    template: &Template,
+    part_template: &PartTemplate,
     max_part_chars: usize,
 ) -> Vec<PartContent> {
-    let part_overhead = calculate_part_overhead(template);
+    let part_overhead = calculate_part_overhead(part_template);
     let mut parts = Vec::new();
     let mut current_part_size = 0;
 
@@ -329,31 +329,28 @@ fn split_file_by_lines(file_content: &str, max_chunk_size: usize) -> Vec<String>
 ///
 /// # Arguments
 ///
-/// * `template` - The Template struct.
+/// * `part_template` - The part template.
 ///
 /// # Returns
 ///
 /// The total overhead in characters.
-fn calculate_part_overhead(template: &Template) -> usize {
+fn calculate_part_overhead(part_template: &PartTemplate) -> usize {
     let mut overhead = 0;
 
     // Replace placeholders with large numbers to estimate the overhead
-    let part_header = template
-        .part
+    let part_header = part_template
         .header
         .replace("<part-number>", "999")
         .replace("<total-parts>", "999")
         .replace("<parts-remaining>", "999");
 
-    let part_footer = template
-        .part
+    let part_footer = part_template
         .footer
         .replace("<part-number>", "999")
         .replace("<total-parts>", "999")
         .replace("<parts-remaining>", "999");
 
-    let part_pending = template
-        .part
+    let part_pending = part_template
         .pending
         .replace("<part-number>", "999")
         .replace("<total-parts>", "999")
@@ -362,7 +359,7 @@ fn calculate_part_overhead(template: &Template) -> usize {
     overhead += part_header.len() + 1; // +1 for newline
     overhead += part_footer.len() + 1;
 
-    if !template.part.pending.is_empty() {
+    if !part_template.pending.is_empty() {
         overhead += part_pending.len() + 1;
     }
 
@@ -374,7 +371,7 @@ fn calculate_part_overhead(template: &Template) -> usize {
 /// # Arguments
 ///
 /// * `split_plan` - The SplitPlan struct.
-/// * `template` - The Template struct.
+/// * `part_template` - The part_template
 /// * `header` - The global header string.
 /// * `footer` - The global footer string.
 /// * `max_part_chars` - Maximum characters per part.
@@ -384,7 +381,7 @@ fn calculate_part_overhead(template: &Template) -> usize {
 /// A vector of assembled parts as strings.
 fn assemble_multiple_parts(
     parts: Vec<PartContent>,
-    template: &Template,
+    part_template: &PartTemplate,
     header: &str,
     footer: &str,
     max_part_chars: usize,
@@ -396,7 +393,7 @@ fn assemble_multiple_parts(
         let mut part_content = String::new();
 
         // Add part header
-        let part_header = replace_placeholders(&template.part.header, i + 1, total_parts);
+        let part_header = replace_placeholders(&part_template.header, i + 1, total_parts);
 
         part_content.push_str(&part_header);
         part_content.push('\n');
@@ -419,14 +416,14 @@ fn assemble_multiple_parts(
         }
 
         // Add part footer
-        let part_footer = replace_placeholders(&template.part.footer, i + 1, total_parts);
+        let part_footer = replace_placeholders(&part_template.footer, i + 1, total_parts);
 
         part_content.push_str(&part_footer);
         part_content.push('\n');
 
         // Add pending text if not the last part
-        if i < total_parts - 1 && !template.part.pending.is_empty() {
-            let pending_text = replace_placeholders(&template.part.pending, i + 1, total_parts);
+        if i < total_parts - 1 && !part_template.pending.is_empty() {
+            let pending_text = replace_placeholders(&part_template.pending, i + 1, total_parts);
 
             part_content.push_str(&pending_text);
             part_content.push('\n');
@@ -460,7 +457,7 @@ fn replace_placeholders(text: &str, part_number: usize, total_parts: usize) -> S
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::template::template::{PartSection, PromptSection, Template};
+    use crate::template::template::PartTemplate;
 
     #[test]
     fn test_split_into_parts_single_part_fit_exactly() {
@@ -468,14 +465,10 @@ mod tests {
         let footer = "Footer".to_string();
         let files = vec!["File1".to_string(), "File2".to_string()];
 
-        let template = Template {
-            prompt: PromptSection::default(),
-            part: PartSection {
-                header: "== Part <part-number> OF <total-parts> ==".to_string(),
-                footer: "== Part END <part-number> OF <total-parts> ==".to_string(),
-                pending: "This is only a part of the code (<parts-remaining> remaining)"
-                    .to_string(),
-            },
+        let part_template = PartTemplate {
+            header: "== Part <part-number> OF <total-parts> ==".to_string(),
+            footer: "== Part END <part-number> OF <total-parts> ==".to_string(),
+            pending: "This is only a part of the code (<parts-remaining> remaining)".to_string(),
         };
 
         let max_part_chars = 25; // Exact size of header, files, and footer
@@ -484,7 +477,7 @@ mod tests {
             header.clone(),
             files.clone(),
             footer.clone(),
-            template,
+            part_template,
             max_part_chars,
         );
 
@@ -504,14 +497,10 @@ Footer"#;
         let footer = "Footer".to_string();
         let files = vec!["File1".to_string(), "File2".to_string()];
 
-        let template = Template {
-            prompt: PromptSection::default(),
-            part: PartSection {
-                header: "== Part <part-number> OF <total-parts> ==".to_string(),
-                footer: "== Part END <part-number> OF <total-parts> ==".to_string(),
-                pending: "This is only a part of the code (<parts-remaining> remaining)"
-                    .to_string(),
-            },
+        let part_template = PartTemplate {
+            header: "== Part <part-number> OF <total-parts> ==".to_string(),
+            footer: "== Part END <part-number> OF <total-parts> ==".to_string(),
+            pending: "This is only a part of the code (<parts-remaining> remaining)".to_string(),
         };
 
         let max_part_chars = 24;
@@ -520,7 +509,7 @@ Footer"#;
             header.clone(),
             files.clone(),
             footer.clone(),
-            template,
+            part_template,
             max_part_chars,
         );
 
@@ -555,15 +544,10 @@ Footer
             "Line5".repeat(10),
         ];
 
-        let part = PartSection {
+        let part_template = PartTemplate {
             header: "== Part <part-number> OF <total-parts> ==".to_string(),
             footer: "== Part END <part-number> OF <total-parts> ==".to_string(),
             pending: "This is only a part of the code (<parts-remaining> remaining)".to_string(),
-        };
-
-        let template = Template {
-            prompt: PromptSection::default(),
-            part,
         };
 
         let max_part_chars = 267;
@@ -572,7 +556,7 @@ Footer
             header.clone(),
             files.clone(),
             footer.clone(),
-            template,
+            part_template,
             max_part_chars,
         );
 
@@ -615,15 +599,10 @@ Line9Line9Line9Line9Line9Line9Line9Line9Line9Line9
 Line0Line0Line0Line0Line0Line0Line0Line0Line0Line0"
             .to_string()];
 
-        let part = PartSection {
+        let part_template = PartTemplate {
             header: "== Part <part-number> OF <total-parts> ==".to_string(),
             footer: "== Part END <part-number> OF <total-parts> ==".to_string(),
             pending: "This is only a part of the code (<parts-remaining> remaining)".to_string(),
-        };
-
-        let template = Template {
-            prompt: PromptSection::default(),
-            part,
         };
 
         let max_part_chars = 314;
@@ -632,7 +611,7 @@ Line0Line0Line0Line0Line0Line0Line0Line0Line0Line0"
             header.clone(),
             files.clone(),
             footer.clone(),
-            template,
+            part_template,
             max_part_chars,
         );
 
@@ -689,15 +668,10 @@ Line0Line0Line0Line0Line0Line0Line0Line0Line0Line0"
                 .to_string(),
         ];
 
-        let part = PartSection {
+        let part_template = PartTemplate {
             header: "== Part <part-number> OF <total-parts> ==".to_string(),
             footer: "== Part END <part-number> OF <total-parts> ==".to_string(),
             pending: "This is only a part of the code (<parts-remaining> remaining)".to_string(),
-        };
-
-        let template = Template {
-            prompt: PromptSection::default(),
-            part,
         };
 
         let max_part_chars = 500;
@@ -706,7 +680,7 @@ Line0Line0Line0Line0Line0Line0Line0Line0Line0Line0"
             header.clone(),
             files.clone(),
             footer.clone(),
-            template,
+            part_template,
             max_part_chars,
         );
 
@@ -763,15 +737,10 @@ Line9Line9Line9Line9Line9Line9Line9Line9Line9Line9
 Line0Line0Line0Line0Line0Line0Line0Line0Line0Line0"
             .to_string()];
 
-        let part = PartSection {
+        let part_template = PartTemplate {
             header: "== Part <part-number> OF <total-parts> ==".to_string(),
             footer: "== Part END <part-number> OF <total-parts> ==".to_string(),
             pending: "This is only a part of the code (<parts-remaining> remaining)".to_string(),
-        };
-
-        let template = Template {
-            prompt: PromptSection::default(),
-            part,
         };
 
         let max_part_chars = 575;
@@ -780,7 +749,7 @@ Line0Line0Line0Line0Line0Line0Line0Line0Line0Line0"
             header.clone(),
             files.clone(),
             footer.clone(),
-            template,
+            part_template,
             max_part_chars,
         );
 
@@ -815,22 +784,20 @@ FooterFooterFooterFooterFooterFooterFooterFooterFooterFooter
         let header = "Header".to_string();
         let footer = "Footer".to_string();
         let files: Vec<String> = vec![];
-        let part = PartSection {
+
+        let part_template = PartTemplate {
             header: "=== PART <part-number> OF <total-parts> ===".to_string(),
             footer: "=== END OF PART <part-number> ===".to_string(),
             pending: "Please wait for the next part...".to_string(),
         };
-        let template = Template {
-            prompt: PromptSection::default(),
-            part,
-        };
+
         let max_part_chars = 50;
 
         let parts = split_into_parts(
             header.clone(),
             files.clone(),
             footer.clone(),
-            template,
+            part_template,
             max_part_chars,
         );
 
