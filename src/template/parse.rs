@@ -186,11 +186,11 @@ mod tests {
 
     #[test]
     fn test_text_inside_tag_multiple_tags() {
-        let text = "<template>First content.</template>Some other text.<template> Second content.</template>";
+        let text = "<template>First content.<template>Some other text.</template> Second content.</template>";
         let result = text_inside_tag(text, "template").unwrap();
         assert_eq!(
             result,
-            "First content.</template>Some other text.<template> Second content."
+            "First content.<template>Some other text.</template> Second content."
         );
     }
 
