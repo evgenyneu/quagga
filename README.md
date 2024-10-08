@@ -162,6 +162,11 @@ In this example, we only include `*.rs` test files by using the un-ignore `!` sy
 `quagga` splits the prompt into multiple parts if it's larger than `--max-part-size CHARS`. This is needed because LLMs have limits on the size of the prompt you can submit. Each part has a header, footer, and a pending message, which instructs the LLM to wait until you submit all parts. Rather than locating the parts manually in the output, a quicker way is to use the `--output PATH` option, which automatically creates separate files for all parts (`prompt.txt.001`, `prompt.txt.002`, etc.).
 
 
+## LLM context window
+
+LLMs have limited context windows. For example, GPT-4o's context window is 128K tokens, with one token being about 4 characters on average. Even though you can submit all your project code in multiple parts, an LLM like GPT-4o will only remember the last 128K tokens in the session. Performance will also degrade well before reaching the context window size, so it's recommended to keep the prompt as concise as possible by submitting only the relevant parts of the code or asking the LLM to summarize blocks of code.
+
+
 ## Development
 
 See [docs/development.md](docs/development.md) for instructions on how to set up the development environment.
