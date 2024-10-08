@@ -167,6 +167,6 @@ Here are some great programs from other developers that offer similar functional
 If you need help or notice a bug, feel free to create an issue ticket. We will be happy to help. :D
 
 
-## License
+## The unlicense
 
-Quagga is released under the [MIT License](LICENSE).
+This work is in [public domain](UNLICENSE).
