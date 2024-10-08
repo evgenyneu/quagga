@@ -88,7 +88,7 @@ These tags are used for indicating the start and the end of each individual part
     </header>
 
     <footer>
-      ======== END OF PART <part-number>  OF <total-parts>  ========
+      ======== END OF PART <part-number> OF <total-parts>  ========
     </footer>
 
     <pending>This is only a part of the code. Please do not respond until I provide all parts (<parts-remaining> remaining).</pending>
