@@ -26,6 +26,7 @@ pub fn get_all_files(cli: &Cli) -> Result<Vec<PathBuf>, Box<dyn Error>> {
     walker_builder.max_depth(cli.max_depth);
     walker_builder.max_filesize(Some(cli.max_filesize));
     walker_builder.require_git(false); // Apply git-related gitignore rules even if .git directory is missing
+    walker_builder.hidden(!cli.hidden);
 
     if !cli.no_quagga_ignore {
         add_quagga_ignore_files(&mut walker_builder, cli.root.clone(), None)?;
@@ -349,5 +350,23 @@ mod tests {
         let result_binary = should_include_path(&binary_file_path, &cli).unwrap();
 
         assert!(result_binary);
+    }
+
+    #[test]
+    fn test_get_all_files_accept_hidden_with_cli_override() {
+        let td = TempDir::new().unwrap();
+        td.mkfile("file.txt");
+        td.mkfile(".hidden");
+
+        let mut cli = Cli::parse_from(&["test", "--hidden"]);
+        cli.root = td.path_buf();
+
+        let result = get_all_files(&cli);
+
+        assert!(result.is_ok());
+        let files = result.unwrap();
+        assert_eq!(files.len(), 2);
+        td.assert_contains(&files, "file.txt");
+        td.assert_contains(&files, ".hidden");
     }
 }
