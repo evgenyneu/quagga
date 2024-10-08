@@ -21,7 +21,13 @@ pub fn concatenate_files(template: Template, files: Vec<FileContent>, cli: &Cli)
     let files = apply_file_template(&template.prompt.file, &files);
     let footer = process_header_footer(&template.prompt.footer, &file_paths, &cli.root);
 
-    split_into_parts(header, files, footer, template.part, 50000)
+    split_into_parts(
+        header,
+        files,
+        footer,
+        template.part,
+        cli.max_part_size as usize,
+    )
 }
 
 /// Applied the file template to each file by replacing the content and file path tags.

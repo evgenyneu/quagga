@@ -250,3 +250,54 @@ fn test_main_max_total_size_exceeds_maximum() {
 
     assert!(output.contains("exceeds the maximum"));
 }
+
+#[test]
+fn test_main_split_into_parts() {
+    let td = TempDir::new().unwrap();
+
+    // Create a custom .quagga_template in the temporary directory
+    let custom_template = r#"
+<template>
+  <prompt>
+    <header>Custom Header</header>
+    <file>Custom Item: <file-content></file>
+    <footer>Custom Footer</footer>
+  </prompt>
+
+  <part>
+    <header>
+      == Part start
+    </header>
+    <footer>
+      == Part end
+    </footer>
+    <pending>Wait for more parts please</pending>
+  </part>
+</template>
+"#;
+
+    td.mkfile_with_contents(".quagga_template", custom_template);
+    td.mkfile_with_contents("file1.txt", &"Hello".repeat(10));
+    td.mkfile_with_contents("file2.txt", &"World!".repeat(10));
+
+    let output: String = run_in_terminal(format!("--max-part-size 164 {}", td.path().display()));
+
+    let expected = r#"== Part start
+
+Custom Header
+Custom Item: HelloHelloHelloHelloHelloHelloHelloHelloHelloHello
+
+== Part end
+
+Wait for more parts please
+
+== Part start
+
+Custom Item: World!World!World!World!World!World!World!World!World!World!
+Custom Footer
+
+== Part end
+"#;
+
+    assert_eq!(output, expected);
+}
