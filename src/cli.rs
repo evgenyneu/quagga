@@ -44,15 +44,15 @@ pub struct Cli {
     pub max_depth: Option<usize>,
 
     /// Output is split into parts of this size if it exceeds this limit
-    #[arg(short = 'p', long, value_name = "CHARS", default_value_t = 100000)]
+    #[arg(short = 'p', long, value_name = "CHARS", default_value_t = 100_000)]
     pub max_part_size: u64,
 
     /// Ignore files above the specified size
-    #[arg(short = 'f', long, value_name = "BYTES", default_value_t = 100000)]
+    #[arg(short = 'f', long, value_name = "BYTES", default_value_t = 300 * 1024)]
     pub max_filesize: u64,
 
     /// Show error if total size of files is over the specified size
-    #[arg(short = 's', long, value_name = "BYTES", default_value_t = 300*1024)]
+    #[arg(short = 's', long, value_name = "BYTES", default_value_t = 500*1024)]
     pub max_total_size: u64,
 
     /// Don't use .gitignore files (used by default)
@@ -151,8 +151,8 @@ mod tests {
                 options: None,
                 verbose: false,
                 max_part_size: 100000,
-                max_filesize: 100000,
-                max_total_size: 300 * 1024,
+                max_filesize: 300 * 1024,
+                max_total_size: 500 * 1024,
                 root: PathBuf::from("."),
             }
         );
