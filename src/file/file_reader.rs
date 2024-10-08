@@ -27,7 +27,7 @@ pub struct FileContent {
 ///
 /// # Returns
 ///
-/// A `Result` containing the concatenated contents as a `String` if successful,
+/// A `Result` containing the output prompt text, splitted into parts, if successful,
 /// or an `io::Error` if an error occurs while reading any of the files.
 pub fn read_and_concatenate_files(
     files: Vec<PathBuf>,
@@ -73,85 +73,87 @@ mod tests {
     use crate::test_utils::temp_dir::TempDir;
     use clap::Parser;
 
-    //     #[test]
-    //     fn test_read_and_concatenate_files() {
-    //         let td = TempDir::new().unwrap();
+    #[test]
+    fn test_read_and_concatenate_files() {
+        let td = TempDir::new().unwrap();
 
-    //         let file1_path = td.mkfile_with_contents("file1.txt", "Hello");
-    //         let file2_path = td.mkfile_with_contents("file32.txt", "World!");
-    //         let files = vec![file1_path.clone(), file2_path.clone()];
+        let file1_path = td.mkfile_with_contents("file1.txt", "Hello");
+        let file2_path = td.mkfile_with_contents("file32.txt", "World!");
+        let files = vec![file1_path.clone(), file2_path.clone()];
 
-    //         let template = Template {
-    //             prompt: PromptTemplate {
-    //                 header: "Header".to_string(),
-    //                 file: "File: <file-path>\nContent:\n<file-content>\n---".to_string(),
-    //                 footer: "Footer".to_string(),
-    //             },
-    //             part: Default::default(),
-    //         };
+        let template = Template {
+            prompt: PromptTemplate {
+                header: "Header".to_string(),
+                file: "File: <file-path>\nContent:\n<file-content>\n---".to_string(),
+                footer: "Footer".to_string(),
+            },
+            part: Default::default(),
+        };
 
-    //         let cli = Cli::parse_from(&["test"]);
+        let cli = Cli::parse_from(&["test"]);
 
-    //         let result = read_and_concatenate_files(files, template, &cli);
+        let result = read_and_concatenate_files(files, template, &cli);
 
-    //         assert!(result.is_ok());
+        assert!(result.is_ok());
+        let content = result.unwrap();
+        assert_eq!(content.len(), 1);
 
-    //         let expected_output = format!(
-    //             "\
-    // Header
-    // File: {}
-    // Content:
-    // Hello
-    // ---
-    // File: {}
-    // Content:
-    // World!
-    // ---
-    // Footer",
-    //             file1_path.display(),
-    //             file2_path.display()
-    //         );
+        let expected = format!(
+            "\
+Header
+File: {}
+Content:
+Hello
+---
+File: {}
+Content:
+World!
+---
+Footer",
+            file1_path.display(),
+            file2_path.display()
+        );
 
-    //         assert_eq!(result.unwrap(), expected_output);
-    //     }
+        assert_eq!(content[0], expected);
+    }
 
-    //     #[test]
-    //     fn test_read_and_concatenate_files_with_nonexistent_file() {
-    //         let td = TempDir::new().unwrap();
-    //         let file1_path = td.mkfile_with_contents("file1.txt", "Hello");
-    //         let file2_path = td.path().join("nonexistent.txt");
-    //         let files = vec![file1_path, file2_path];
-    //         let cli = Cli::parse_from(&["test"]);
+    #[test]
+    fn test_read_and_concatenate_files_with_nonexistent_file() {
+        let td = TempDir::new().unwrap();
+        let file1_path = td.mkfile_with_contents("file1.txt", "Hello");
+        let file2_path = td.path().join("nonexistent.txt");
+        let files = vec![file1_path, file2_path];
+        let cli = Cli::parse_from(&["test"]);
 
-    //         let result = read_and_concatenate_files(files, Template::default(), &cli);
+        let result = read_and_concatenate_files(files, Template::default(), &cli);
 
-    //         assert!(result.is_err());
-    //     }
+        assert!(result.is_err());
+    }
 
-    //     #[test]
-    //     fn test_read_and_concatenate_files_total_size_exceeds_limit() {
-    //         let td = TempDir::new().unwrap();
+    #[test]
+    fn test_read_and_concatenate_files_total_size_exceeds_limit() {
+        let td = TempDir::new().unwrap();
 
-    //         let file_content = "1234567890a"; // 11 bytes
-    //         let file1_path = td.mkfile_with_contents("file1.txt", file_content);
-    //         let files = vec![file1_path.clone()];
+        let file_content = "1234567890a"; // 11 bytes
+        let file1_path = td.mkfile_with_contents("file1.txt", file_content);
+        let files = vec![file1_path.clone()];
 
-    //         let template = Template {
-    //             prompt: PromptTemplate {
-    //                 header: "Header".to_string(),
-    //                 file: "<file-content>".to_string(),
-    //                 footer: "Footer".to_string(),
-    //             },
-    //             part: Default::default(),
-    //         };
+        let template = Template {
+            prompt: PromptTemplate {
+                header: "Header".to_string(),
+                file: "<file-content>".to_string(),
+                footer: "Footer".to_string(),
+            },
+            part: Default::default(),
+        };
 
-    //         let mut cli = Cli::parse_from(&["test"]);
-    //         cli.max_total_size = 10; // Set max_total_size to 10 bytes
+        let mut cli = Cli::parse_from(&["test"]);
+        cli.max_total_size = 10; // Set max_total_size to 10 bytes
 
-    //         let result = read_and_concatenate_files(files, template, &cli);
+        let result = read_and_concatenate_files(files, template, &cli);
 
-    //         assert!(result.is_err());
-    //         let err_msg = result.unwrap_err().to_string();
-    //         assert!(err_msg.contains("exceeds the maximum"));
-    //     }
+        assert!(result.is_err());
+        let err_msg = result.unwrap_err().to_string();
+        assert!(err_msg.contains("exceeds the maximum"));
+    }
 }

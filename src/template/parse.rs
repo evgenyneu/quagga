@@ -77,7 +77,37 @@ pub fn text_inside_tag(text: &str, tag: &str) -> Result<String, String> {
     }
 
     let content = &text[start + opening_tag.len()..end];
-    Ok(content.trim().to_string())
+    let trimmed_content = trim_indentation(content);
+    Ok(trimmed_content)
+}
+
+/// Removes the common leading whitespace from each line in the given content.
+fn trim_indentation(content: &str) -> String {
+    let lines: Vec<&str> = content.split("\n").collect();
+
+    // Determine the minimum indentation (number of leading spaces) among non-empty lines
+    let min_indent = lines
+        .iter()
+        .filter(|line| !line.trim().is_empty())
+        .map(|line| line.len() - line.trim_start().len())
+        .min()
+        .unwrap_or(0);
+
+    lines
+        .iter()
+        .map(|line| {
+            if line.len() >= min_indent {
+                &line[min_indent..]
+            } else {
+                if line.trim().is_empty() {
+                    ""
+                } else {
+                    line
+                }
+            }
+        })
+        .collect::<Vec<&str>>()
+        .join("\n")
 }
 
 #[cfg(test)]
@@ -146,9 +176,57 @@ mod tests {
 
     #[test]
     fn test_text_inside_tag_success() {
-        let text = "before <template>\nContent inside template.\n</template> after";
+        let text = "before
+<template>
+Content inside template.
+</template> after";
+
         let result = text_inside_tag(text, "template").unwrap();
-        assert_eq!(result, "Content inside template.");
+
+        let expected = "
+Content inside template.
+";
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_text_inside_tag_remove_indentation_spaces() {
+        let text = "
+        <template>
+          Content inside template.
+        </template>";
+
+        let result = text_inside_tag(text, "template").unwrap();
+
+        let expected = "
+Content inside template.
+";
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_text_inside_tag_mixed_indentation() {
+        let text = r#"
+<template>
+    <prompt>
+        Line one
+          Line two with extra spaces
+        Line three
+    </prompt>
+</template>
+"#;
+
+        let result = text_inside_tag(text, "prompt").unwrap();
+
+        let expected = "
+Line one
+  Line two with extra spaces
+Line three
+";
+
+        assert_eq!(result, expected);
     }
 
     #[test]
@@ -199,5 +277,40 @@ mod tests {
         let text = "<template></template>";
         let result = text_inside_tag(text, "template").unwrap();
         assert_eq!(result, "");
+    }
+
+    #[test]
+    fn test_trim_indentation_uniform() {
+        let content = "
+          Line one
+          Line two
+          Line three
+        ";
+
+        let result = trim_indentation(content);
+
+        let expected = "
+Line one
+Line two
+Line three
+";
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_trim_indentation_varying() {
+        let content = "
+            Line one
+              Line two with extra spaces
+            Line three";
+
+        let expected = "
+Line one
+  Line two with extra spaces
+Line three";
+
+        let result = trim_indentation(content);
+        assert_eq!(result, expected);
     }
 }

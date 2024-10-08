@@ -27,6 +27,7 @@ const DEFAULT_TEMPLATE: &str = include_str!("../../templates/default.md");
 /// * `Err<Box<dyn Error>>` if an error occurs during reading, validation, or parsing.
 pub fn read_and_parse_template(template_path: Option<PathBuf>) -> Result<Template, Box<dyn Error>> {
     let template_content = read_template(template_path)?;
+    let template_content = template_content.replace("\r\n", "\n"); // Normalize line endings
     let template = parse_template(&template_content)?;
     Ok(template)
 }

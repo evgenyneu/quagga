@@ -20,7 +20,7 @@ fn main() {
 
     match run(&args, piped_paths.clone()) {
         Ok(content) => {
-            println!("{}", content.join("\n"));
+            println!("{}", content.join("\n").trim());
         }
         Err(e) => {
             eprintln!("Error: {}", e);

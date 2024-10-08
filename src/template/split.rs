@@ -28,7 +28,7 @@ pub fn split_into_parts(
 
     // Content does not fit into one part - split into multiple parts
     let parts = create_split_plan(&header, &files, &footer, &part_template, max_part_chars);
-    assemble_multiple_parts(parts, &part_template, &header, &footer, max_part_chars)
+    assemble_multiple_parts(parts, &part_template, &header, &footer)
 }
 
 /// Represents the content of a single part.
@@ -374,7 +374,6 @@ fn calculate_part_overhead(part_template: &PartTemplate) -> usize {
 /// * `part_template` - The part_template
 /// * `header` - The global header string.
 /// * `footer` - The global footer string.
-/// * `max_part_chars` - Maximum characters per part.
 ///
 /// # Returns
 ///
@@ -384,7 +383,6 @@ fn assemble_multiple_parts(
     part_template: &PartTemplate,
     header: &str,
     footer: &str,
-    max_part_chars: usize,
 ) -> Vec<String> {
     let mut assembled_parts: Vec<String> = Vec::new();
     let total_parts = parts.len();
