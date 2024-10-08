@@ -27,8 +27,28 @@ quagga [OPTIONS] [DIRECTORY]
 
 *DIRECTORY*: The root directory to search for files. Default is current directory `.`.
 
-### Examples
+### Output
 
+By default, `quagga` prints the combined prompt to stdout. Alternatively, you can save
+the prompt to a file or copy it to the clipboard.
+
+#### Save prompt to file
+
+```bash
+quagga --output prompt.txt
+```
+
+Saves prompt to `prompt.txt`. If the output is larger than the `--max-part-size CHARS` limit, it will be divided into parts (see [Parts section](#parts)). Each part stored in a separate file, with a name having a `.XXX` suffix to the output file name: `prompt.txt.001`, `prompt.txt.002`, etc.
+
+In addition, you can add a timestamp to the output file name with the `{TIME}` or `{TIME_UTC}` tags:
+
+```bash
+quagga --output {TIME}_prompt.txt
+```
+
+Creates a file with a timestamp in the format `YYYY-mm-DD_HH-MM-SS_prompt.txt`.
+
+### Examples
 
 #### Combine markdown files and copy to clipboard
 
@@ -51,7 +71,7 @@ Includes JavaScript, TypeScript, and test files while excluding `node_modules` a
 #### Use a custom template
 
 ```bash
-quagga --template prompt.json --include '*.txt'
+quagga --template prompt.md --include '*.txt'
 ```
 
 Uses a template to customize the prompt text (see [Templates section](#templates) for details).
@@ -82,15 +102,17 @@ quagga --help
 
 ## Templates
 
-`quagga` uses templates to format the combined output of your files. Templates allow you to define how the output is structured, including headers, footers, placeholders for file content, as well as providing instructions for an LLM.  By default, it applies a [built-in template](templates/default.md), but you can customize this to suit your needs. The template is self-documenting and can be found [templates/default.md](templates/default.md).
+`quagga` uses templates to format the combined output of your files. Templates allow you to define how the output is structured, including headers, footers, placeholders for file content, as well as providing instructions for an LLM.  By default, it applies a built-in template, but you can customize this to suit your needs. The template is self-documenting and can be found [templates/default.md](templates/default.md).
 
 ### Create a custom template
 
-Use the `--copy-template` option to generate a default template file in the current directory:
+Use the `--copy-template` option to generate a default template file `.quagga_template` in the current directory:
 
 ```bash
 quagga --copy-template
 ```
+
+You can then customize the template and it will be automatically used by `quagga` when present in the current directory (no need to specify it with `--template` option).
 
 ### Template locations
 

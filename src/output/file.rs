@@ -10,7 +10,7 @@ use std::path::PathBuf;
 /// # Arguments
 ///
 /// * `content` - An output prompt text, splitted into parts.
-/// * `path` - The base output path. Can contain `{TIME}` and `{TIME_UTC}` tags that will be replaced with current timestamp in the format `YYYY_mm_DD_HH_MM_SS`.
+/// * `path` - The base output path. Can contain `{TIME}` and `{TIME_UTC}` tags that will be replaced with current timestamp in the format `YYYY-mm-DD_HH-MM-SS`.
 /// * `combine_parts` - When true, forces all parts to be combined in a single file.
 /// * `fixed_time` - An optional timestamp to use instead of current time.
 ///                  Used to replace the {TIME} and {TIME_UTC} tags in path with current time.
@@ -93,7 +93,7 @@ fn create_parent_dir(path: &PathBuf) -> Result<(), io::Error> {
 
 /// Replaces `{TIME}` and `{TIME_UTC}` in the provided path with the current timestamp.
 ///
-/// `{TIME}` is replaced with the local time in the format `YYYY_mm_DD_HH_MM_SS`.
+/// `{TIME}` is replaced with the local time in the format `YYYY-mm-DD_HH-MM-SS`.
 /// `{TIME_UTC}` is replaced with the UTC time in the same format.
 ///
 /// # Arguments
@@ -110,7 +110,7 @@ pub fn replace_time_tags(
     fixed_time: Option<DateTime<Local>>,
 ) -> Result<PathBuf, Box<dyn Error + Send + Sync>> {
     let path_str = path.to_string_lossy();
-    let time_format = "%Y_%m_%d_%H_%M_%S";
+    let time_format = "%Y-%m-%d_%H-%M-%S";
 
     let replaced = path_str
         .replace(
@@ -224,7 +224,7 @@ mod tests {
         assert!(result.is_ok());
 
         let path_with_time = PathBuf::from(format!(
-            "{}/dir/2023_11_14_22_13_20_output.txt",
+            "{}/dir/2023-11-14_22-13-20_output.txt",
             td.path().display()
         ));
 
@@ -329,7 +329,7 @@ mod tests {
         let path_str = result.to_string_lossy();
 
         // since we don't know local time, just check the format
-        let re = Regex::new(r"^dir/\d{4}_\d{2}_\d{2}_\d{2}_\d{2}_\d{2}_output\.txt$").unwrap();
+        let re = Regex::new(r"^dir/\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}_output\.txt$").unwrap();
         assert!(re.is_match(&path_str));
     }
 
@@ -340,7 +340,7 @@ mod tests {
 
         let result = replace_time_tags(&path, Some(fixed_time)).unwrap();
 
-        let expected = PathBuf::from("dir/2023_11_14_22_13_20_output.txt");
+        let expected = PathBuf::from("dir/2023-11-14_22-13-20_output.txt");
 
         assert_eq!(result, expected);
     }

@@ -3,6 +3,7 @@ use assert_cmd::Command;
 use common::{add_template, run_in_terminal};
 use expectrl::{spawn, Eof};
 use quagga::test_utils::temp_dir::TempDir;
+use std::fs;
 use std::io::Read;
 
 #[test]
@@ -301,4 +302,99 @@ Custom Footer
 "#;
 
     assert_eq!(output, expected);
+}
+
+#[test]
+fn test_main_output_to_file() {
+    let td: TempDir = TempDir::new().unwrap();
+    add_template(&td);
+    td.mkfile_with_contents("file1.txt", "Hello");
+    td.mkfile_with_contents("file2.txt", "World!");
+    let output_path = td.path().join("output.txt");
+
+    let output: String = run_in_terminal(format!(
+        "--output {} {}",
+        output_path.display(),
+        td.path().display()
+    ));
+
+    assert_eq!(output, "");
+
+    let written_content = fs::read_to_string(&output_path).unwrap();
+
+    let expected = "Hello
+World!";
+
+    assert_eq!(written_content, expected);
+}
+
+#[test]
+fn test_main_output_to_file_multiple_parts() {
+    let td = TempDir::new().unwrap();
+    let output_path = td.path().join("output.txt");
+
+    // Create a custom .quagga_template in the temporary directory
+    let custom_template = r#"
+<template>
+  <prompt>
+    <header>Custom Header</header>
+    <file>Custom Item: <file-content></file>
+    <footer>Custom Footer</footer>
+  </prompt>
+
+  <part>
+    <header>
+      == Part start
+    </header>
+    <footer>
+      == Part end
+    </footer>
+    <pending>Wait for more parts please</pending>
+  </part>
+</template>
+"#;
+
+    td.mkfile_with_contents(".quagga_template", custom_template);
+    td.mkfile_with_contents("file1.txt", &"Hello".repeat(10));
+    td.mkfile_with_contents("file2.txt", &"World!".repeat(10));
+
+    let output: String = run_in_terminal(format!(
+        "--output {} --max-part-size 164 {}",
+        output_path.display(),
+        td.path().display()
+    ));
+
+    assert_eq!(output, "");
+
+    // Check part one
+    // --------
+
+    let path1 = td.path().join("output.txt.001");
+    let written_content = fs::read_to_string(&path1).unwrap();
+
+    let expected = "== Part start
+
+Custom Header
+Custom Item: HelloHelloHelloHelloHelloHelloHelloHelloHelloHello
+
+== Part end
+
+Wait for more parts please";
+
+    assert_eq!(written_content, expected);
+
+    // Check part two
+    // --------
+
+    let path2 = td.path().join("output.txt.002");
+    let written_content = fs::read_to_string(&path2).unwrap();
+
+    let expected = "== Part start
+
+Custom Item: World!World!World!World!World!World!World!World!World!World!
+Custom Footer
+
+== Part end";
+
+    assert_eq!(written_content, expected);
 }
