@@ -12,7 +12,7 @@ The template contains the following sections:
 
 * **File** - The content of each individual text file, specified between the `<file>`...`</file>` tags.
 
-* **Multi-part** - Used when the output prompt exceeds the `--max-part-size BYTES` limit, in which case the output is divided into parts, with each part having a part header and footer including the part number and total number of parts. The multipart template is defined between the `<part>`...`</part>` tags. These tags are placed outside the `<prompt>` tags, since they are only used when the output prompt is too large to fit in a single part.
+* **Multi-part** - Used when the output prompt exceeds the `--max-part-size CHARS` limit, in which case the output is divided into parts, with each part having a part header and footer including the part number and total number of parts. The multipart template is defined between the `<part>`...`</part>` tags. These tags are placed outside the `<prompt>` tags, since they are only used when the output prompt is too large to fit in a single part.
 
 Note: the entire template must enclosed in the opening and closing `template` tags so that `quagga` can locate it in this document.
 
@@ -37,7 +37,7 @@ These tags are related to each individual file included in the output prompt and
 
 ### Multi-part tags
 
-These tags are used for indicating the start and the end of each individual part in the multi-part prompt. The template is only used when the output prompt size exceeds the `--max-part-size BYTES` limit. These tags are placed between `<part>`...`</part>` tags:
+These tags are used for indicating the start and the end of each individual part in the multi-part prompt. The template is only used when the output prompt size exceeds the `--max-part-size CHARS` limit. These tags are placed between `<part>`...`</part>` tags:
 
 * `<header>`...`</header>` - The text printed out at the start of each part.
 * `<footer>`...`</footer>` - The text printed out at the end of each part.

@@ -16,7 +16,6 @@ fn test_main_success_run() {
 
     let expected_output = r#"Hello
 World!
-
 "#;
 
     assert_eq!(output, expected_output);
@@ -57,7 +56,6 @@ fn test_main_with_piped_input() {
 
     let expected_output = r#"Hello
 World!
-
 "#;
 
     cmd.assert().success().stdout(expected_output);
@@ -159,7 +157,6 @@ fn test_main_with_contain_option() {
     let output = run_in_terminal(format!("--contain keyword -- {}", td.path().display()));
 
     let expected = r#"This file contains the keyword.
-
 "#;
 
     assert_eq!(output, expected);
@@ -182,7 +179,6 @@ fn test_main_respect_gitignore() {
 
     let expected = r#"file1
 file2
-
 "#;
 
     assert_eq!(output, expected);
@@ -203,7 +199,6 @@ fn test_main_no_gitignore() {
     let expected = r#"file1
 file2
 ignored
-
 "#;
 
     assert_eq!(output, expected);
@@ -225,7 +220,6 @@ fn test_main_max_depth() {
 
     let expected = r#"file1
 file0
-
 "#;
 
     assert_eq!(output, expected);
@@ -241,7 +235,6 @@ fn test_main_max_filesize() {
     let output = run_in_terminal(format!("--max-filesize 4 {}", td.path().display()));
 
     let expected = r#"1234
-
 "#;
 
     assert_eq!(output, expected);

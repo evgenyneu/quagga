@@ -43,12 +43,16 @@ pub struct Cli {
     #[arg(short = 'd', long, value_name = "DEPTH")]
     pub max_depth: Option<usize>,
 
+    /// Output is split into parts of this size if it exceeds this limit
+    #[arg(short = 'p', long, value_name = "CHARS", default_value_t = 50000)]
+    pub max_part_size: u64,
+
     /// Ignore files above the specified size
-    #[arg(short = 'f', long, value_name = "BYTES", default_value_t = 50000)]
+    #[arg(short = 'f', long, value_name = "BYTES", default_value_t = 100000)]
     pub max_filesize: u64,
 
     /// Show error if total size of files is over the specified size
-    #[arg(short = 's', long, value_name = "BYTES", default_value_t = 100*1024)]
+    #[arg(short = 's', long, value_name = "BYTES", default_value_t = 300*1024)]
     pub max_total_size: u64,
 
     /// Don't use .gitignore files (used by default)
@@ -104,7 +108,7 @@ pub struct Cli {
     pub tree: bool,
 
     /// Load options from a JSON file
-    #[arg(short = 'p', long, value_name = "PATH")]
+    #[arg(short = 'P', long, value_name = "PATH")]
     pub options: Option<PathBuf>,
 
     /// Show detailed information during execution
@@ -146,8 +150,9 @@ mod tests {
                 tree: false,
                 options: None,
                 verbose: false,
-                max_filesize: 50000,
-                max_total_size: 100 * 1024,
+                max_part_size: 50000,
+                max_filesize: 100000,
+                max_total_size: 300 * 1024,
                 root: PathBuf::from("."),
             }
         );
@@ -201,6 +206,7 @@ mod tests {
           --tree \
           --options options.json \
           --verbose \
+          --max-part-size 300 \
           --max-filesize 10000 \
           --max-total-size 20000 \
           src";
@@ -229,6 +235,7 @@ mod tests {
                 tree: true,
                 options: Some(PathBuf::from("options.json")),
                 verbose: true,
+                max_part_size: 300,
                 max_filesize: 10000,
                 max_total_size: 20000,
                 root: PathBuf::from("src"),
