@@ -27,7 +27,14 @@ regex = "1"
 [lib]
 name = "quagga"
 path = "src/lib.rs"
+
 [[bin]]
 name = "quagga"
 path = "src/main.rs"
 
+[profile.release]
+# Settings to make release binary smaller: https://github.com/johnthagen/min-sized-rust
+strip = true # Automatically strip symbols from the binary.
+opt-level = "z" # Optimize for size.
+lto = true # Enable Link Time Optimization
+codegen-units = 1 # Reduce Parallel Code Generation
