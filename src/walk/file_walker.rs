@@ -63,7 +63,7 @@ fn should_include_path(path: &PathBuf, cli: &Cli) -> Result<bool, Box<dyn Error>
         return Ok(false);
     }
 
-    if !is_valid_text_file(path.clone())? {
+    if !cli.binary && !is_valid_text_file(path.clone())? {
         return Ok(false);
     }
 
@@ -310,5 +310,44 @@ mod tests {
         let files = result.unwrap();
         assert_eq!(files.len(), 1);
         td.assert_contains(&files, "file_four_bytes.txt");
+    }
+
+    #[test]
+    fn test_should_include_path_ignore_binary_files() {
+        let td = TempDir::new().unwrap();
+        let text_file = td.mkfile_with_contents("file.txt", "Hello");
+
+        // Create a binary file
+        let binary_file_path = td.path().join("binary.bin");
+        let mut binary_file = File::create(&binary_file_path).unwrap();
+        let binary_content = [0x00, 0xFF, 0x00, 0xFF];
+        binary_file.write_all(&binary_content).unwrap();
+
+        let mut cli = Cli::parse_from(&["test"]);
+        cli.root = td.path_buf();
+
+        let result_text = should_include_path(&text_file, &cli).unwrap();
+        let result_binary = should_include_path(&binary_file_path, &cli).unwrap();
+
+        assert!(result_text);
+        assert!(!result_binary);
+    }
+
+    #[test]
+    fn test_should_include_path_accept_binary_with_cli_override() {
+        let td = TempDir::new().unwrap();
+
+        // Create a binary file
+        let binary_file_path = td.path().join("binary.bin");
+        let mut binary_file = File::create(&binary_file_path).unwrap();
+        let binary_content = [0x00, 0xFF, 0x00, 0xFF];
+        binary_file.write_all(&binary_content).unwrap();
+
+        let mut cli = Cli::parse_from(&["test", "--binary"]);
+        cli.root = td.path_buf();
+
+        let result_binary = should_include_path(&binary_file_path, &cli).unwrap();
+
+        assert!(result_binary);
     }
 }
