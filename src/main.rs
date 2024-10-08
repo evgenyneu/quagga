@@ -1,6 +1,7 @@
 mod cli;
 mod file;
 mod info;
+mod output;
 mod processor;
 mod template;
 mod test_utils;

@@ -44,7 +44,7 @@ pub struct Cli {
     pub max_depth: Option<usize>,
 
     /// Output is split into parts of this size if it exceeds this limit
-    #[arg(short = 'p', long, value_name = "CHARS", default_value_t = 50000)]
+    #[arg(short = 'p', long, value_name = "CHARS", default_value_t = 100000)]
     pub max_part_size: u64,
 
     /// Ignore files above the specified size
@@ -150,7 +150,7 @@ mod tests {
                 tree: false,
                 options: None,
                 verbose: false,
-                max_part_size: 50000,
+                max_part_size: 100000,
                 max_filesize: 100000,
                 max_total_size: 300 * 1024,
                 root: PathBuf::from("."),
