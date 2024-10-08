@@ -55,7 +55,13 @@ pub fn read_files(paths: Vec<PathBuf>) -> io::Result<Vec<FileContent>> {
     for path in paths {
         let mut file = fs::File::open(&path)?;
         let mut content = String::new();
-        file.read_to_string(&mut content)?;
+
+        file.read_to_string(&mut content).map_err(|e| {
+            io::Error::new(
+                e.kind(),
+                format!("Error opening file {}: {}", path.display(), e),
+            )
+        })?;
 
         file_contents.push(FileContent {
             path: path.clone(),
@@ -155,5 +161,26 @@ Footer",
         assert!(result.is_err());
         let err_msg = result.unwrap_err().to_string();
         assert!(err_msg.contains("exceeds the maximum"));
+    }
+
+    #[test]
+    fn test_read_files_with_invalid_utf8() {
+        let td = TempDir::new().unwrap();
+        let bytes = [0xC0, 0xC1]; // Invalid UTF-8 sequences
+        let path = td.mkfile_with_bytes("invalid_utf_8.txt", &bytes);
+        let files = vec![path.clone()];
+
+        let result = read_files(files);
+
+        assert!(result.is_err());
+        let err_msg = result.unwrap_err().to_string();
+
+        assert_eq!(
+            err_msg,
+            format!(
+                "Error opening file {}: stream did not contain valid UTF-8",
+                path.display()
+            )
+        );
     }
 }

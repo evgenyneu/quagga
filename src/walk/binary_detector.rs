@@ -116,7 +116,6 @@ pub fn is_valid_text(buffer: &[u8]) -> bool {
 mod tests {
     use super::*;
     use crate::test_utils::temp_dir::TempDir;
-    use std::io::Write;
 
     #[test]
     fn test_number_of_null_bytes_with_no_nulls() {
@@ -226,10 +225,7 @@ mod tests {
     #[test]
     fn test_is_valid_text_file_with_binary_file() {
         let td = TempDir::new().unwrap();
-        let file_path = td.path().join("test.bin");
-        let mut file = File::create(&file_path).unwrap();
-        let binary_content = [0x00, 0xFF, 0x00, 0xFF]; // Contains null bytes
-        file.write_all(&binary_content).unwrap();
+        let file_path = td.mkfile_with_bytes("test.bin", &[0x00, 0xFF, 0x00, 0xFF]); // Contains null bytes
 
         // Check if the file is valid text
         let result = is_valid_text_file(file_path).unwrap();

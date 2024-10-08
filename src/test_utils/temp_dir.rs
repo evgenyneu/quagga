@@ -74,8 +74,6 @@ impl TempDir {
         return self.mkfile_with_contents(path, "contents"); // Call the new method with default content
     }
 
-    // Existing methods...
-
     /// Creates a file with the specified contents in the temporary directory.
     ///
     /// # Arguments
@@ -90,6 +88,23 @@ impl TempDir {
         let full_path = self.path().join(path);
         let mut file = fs::File::create(&full_path).unwrap();
         file.write_all(contents.as_bytes()).unwrap();
+        full_path
+    }
+
+    /// Creates a file with the specified bytes in the temporary directory.
+    ///
+    /// # Arguments
+    ///
+    /// * `path` - The relative path within the temporary directory for the new file.
+    /// * `bytes` - The bytes to write to the file.
+    ///
+    /// # Returns
+    ///
+    /// A `PathBuf` representing the full path to the created file.
+    pub fn mkfile_with_bytes<P: AsRef<Path>>(&self, path: P, bytes: &[u8]) -> PathBuf {
+        let full_path = self.path().join(path);
+        let mut file = fs::File::create(&full_path).unwrap();
+        file.write_all(bytes).unwrap();
         full_path
     }
 

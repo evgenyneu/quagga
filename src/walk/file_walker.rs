@@ -81,8 +81,6 @@ mod tests {
     use super::*;
     use crate::test_utils::temp_dir::TempDir;
     use clap::Parser;
-    use std::fs::File;
-    use std::io::Write;
 
     #[test]
     fn test_get_all_files() {
@@ -112,12 +110,7 @@ mod tests {
         let td = TempDir::new().unwrap();
         td.mkfile_with_contents("file1.txt", "fn main() {}");
         td.mkfile_with_contents("file2.rs", "println!(\"Hello, world!\");");
-
-        // Create a binary file
-        let binary_file_path = td.path().join("binary.bin");
-        let mut binary_file = File::create(&binary_file_path).unwrap();
-        let binary_content = [0x00, 0xFF, 0x00, 0xFF];
-        binary_file.write_all(&binary_content).unwrap();
+        td.mkfile_with_bytes("binary.bin", &[0x00, 0xFF, 0x00, 0xFF]);
 
         let mut cli = Cli::parse_from(&["test"]);
         cli.root = td.path_buf();
@@ -317,12 +310,8 @@ mod tests {
     fn test_should_include_path_ignore_binary_files() {
         let td = TempDir::new().unwrap();
         let text_file = td.mkfile_with_contents("file.txt", "Hello");
-
-        // Create a binary file
-        let binary_file_path = td.path().join("binary.bin");
-        let mut binary_file = File::create(&binary_file_path).unwrap();
-        let binary_content = [0x00, 0xFF, 0x00, 0xFF];
-        binary_file.write_all(&binary_content).unwrap();
+        let binary_file_path: PathBuf =
+            td.mkfile_with_bytes("binary.bin", &[0x00, 0xFF, 0x00, 0xFF]);
 
         let mut cli = Cli::parse_from(&["test"]);
         cli.root = td.path_buf();
@@ -336,13 +325,10 @@ mod tests {
 
     #[test]
     fn test_should_include_path_accept_binary_with_cli_override() {
-        let td = TempDir::new().unwrap();
+        let td: TempDir = TempDir::new().unwrap();
 
-        // Create a binary file
-        let binary_file_path = td.path().join("binary.bin");
-        let mut binary_file = File::create(&binary_file_path).unwrap();
-        let binary_content = [0x00, 0xFF, 0x00, 0xFF];
-        binary_file.write_all(&binary_content).unwrap();
+        let binary_file_path: PathBuf =
+            td.mkfile_with_bytes("binary.bin", &[0x00, 0xFF, 0x00, 0xFF]);
 
         let mut cli = Cli::parse_from(&["test", "--binary"]);
         cli.root = td.path_buf();
