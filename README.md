@@ -153,7 +153,7 @@ In this example, we only include `*.rs` test files by using the un-ignore `!` sy
 * Uses `.quagga_ignore` files from the project and home directories written in the same format as gitignore (disable with `--no-quagga-ignore`).
 * Ignores binary files (enable with `--binary`).
 * Ignores hidden files (enable with `--hidden`).
-* Ignores files larger than 50 KB (change with `--max-filesize BYTES`).
+* Ignores files larger than 100 KB (change with `--max-filesize BYTES`).
 * Symbolic links are not followed (enable with `--follow-links`).
 
 
