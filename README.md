@@ -164,7 +164,7 @@ In this example, we only include `*.rs` test files by using the un-ignore `!` sy
 
 ## LLM context window
 
-LLMs have limited context windows. For example, GPT-4o's context window is 128K tokens, with one token being about 4 characters on average. Even though you can submit all your project code in multiple parts, an LLM like GPT-4o will only remember the last 128K tokens in the session. Performance will also degrade well before reaching the context window size, so it's recommended to keep the prompt as concise as possible by submitting only the relevant parts of the code or asking the LLM to summarize blocks of code.
+LLMs have limited context windows. For example, GPT-4o's context window is 128K tokens, with one token being about 4 characters on average. Even though you can submit all your project code in multiple parts, an LLM like GPT-4o will only "remember" the last 128K tokens in the session. Performance will also degrade well before reaching the context window size, so it's recommended to keep the prompt as concise as possible by submitting only the relevant parts of the code or asking the LLM to summarize blocks of code.
 
 
 ## Development
