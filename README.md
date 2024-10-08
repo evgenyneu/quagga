@@ -29,8 +29,7 @@ quagga [OPTIONS] [DIRECTORY]
 
 ### Output
 
-By default, `quagga` prints the combined prompt to stdout. Alternatively, you can save
-the prompt to a file or copy it to the clipboard.
+By default, `quagga` prints the combined prompt to stdout. Alternatively, you can save the prompt to a file or copy it to the clipboard.
 
 #### Save prompt to file
 
@@ -38,15 +37,15 @@ the prompt to a file or copy it to the clipboard.
 quagga --output prompt.txt
 ```
 
-Saves prompt to `prompt.txt`. If the output is larger than the `--max-part-size CHARS` limit, it will be divided into parts (see [Parts section](#parts)). Each part stored in a separate file, with a name having a `.XXX` suffix to the output file name: `prompt.txt.001`, `prompt.txt.002`, etc.
+This command saves the prompt to prompt.txt. If the output exceeds the `--max-part-size CHARS` limit, it will be divided into parts (see the [Parts section](#parts)). Each part is stored in a separate file with a `.XXX` suffix appended to the output file name, such as `prompt.txt.001`, `prompt.txt.002`, etc.
 
-In addition, you can add a timestamp to the output file name with the `{TIME}` or `{TIME_UTC}` tags:
+Additionally, you can add a timestamp to the output file name using the `{TIME}` or `{TIME_UTC}` tags:
 
 ```bash
 quagga --output {TIME}_prompt.txt
 ```
 
-Creates a file with a timestamp in the format `YYYY-mm-DD_HH-MM-SS_prompt.txt`.
+This command creates a file with a timestamp in the format `YYYY-mm-DD_HH-MM-SS_prompt.txt`.
 
 ### Examples
 
@@ -156,6 +155,11 @@ In this example, we only include `*.rs` test files by using the un-ignore `!` sy
 * Ignores hidden files (enable with `--hidden`).
 * Ignores files larger than 50 KB (change with `--max-filesize BYTES`).
 * Symbolic links are not followed (enable with `--follow-links`).
+
+
+## Parts
+
+`quagga` splits the prompt into multiple parts if it's larger than `--max-part-size CHARS`. This is needed because LLMs have limits on the size of the prompt you can submit. Each part has a header, footer, and a pending message, which instructs the LLM to wait until you submit all parts. Rather than locating the parts manually in the output, a quicker way is to use the `--output PATH` option, which automatically creates separate files for all parts (`prompt.txt.001`, `prompt.txt.002`, etc.).
 
 
 ## Development
