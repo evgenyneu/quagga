@@ -1,13 +1,36 @@
 use crate::cli::Cli;
 use crate::file::file_reader::read_and_concatenate_files;
 use crate::info::info::info_output;
+use crate::output::output::process_output;
 use crate::template::read::{path_to_custom_template, read_and_parse_template};
 use crate::template::template::Template;
 use crate::walk::file_walker::get_all_files;
 use std::error::Error;
 use std::path::PathBuf;
 
-/// The function called by `main.rs` that processes files based on provided command line options.
+/// Processes command line arguments, generates prompt and sends it to the output.
+/// This is the main function called by `main.rs`.
+///
+/// # Arguments
+///
+/// * `cli` - Command line arguments.
+/// * `piped_paths` - An optional `Vec<PathBuf>` representing a list of file paths the user
+///                  has piped in via stdin. When present, the program will process the
+///                  files in the list instead of walking the root directory.
+///
+/// # Returns
+///
+/// Returns `Ok(())` if the operation is successful, or an error if any operation fails.
+pub fn generate_prompt_and_output(
+    cli: &Cli,
+    piped_paths: Option<Vec<PathBuf>>,
+) -> Result<(), Box<dyn Error>> {
+    let output = generate_prompt(cli, piped_paths)?;
+    process_output(output, &cli)?;
+    Ok(())
+}
+
+/// Generates the output prompt content based on the given command line arguments.
 ///
 /// # Arguments
 ///
@@ -20,7 +43,10 @@ use std::path::PathBuf;
 ///
 /// A `Result` containing the output prompt content, splitted into parts, if successful,
 /// or an error if any operation fails.
-pub fn run(cli: &Cli, piped_paths: Option<Vec<PathBuf>>) -> Result<Vec<String>, Box<dyn Error>> {
+pub fn generate_prompt(
+    cli: &Cli,
+    piped_paths: Option<Vec<PathBuf>>,
+) -> Result<Vec<String>, Box<dyn Error>> {
     let output = info_output(cli, piped_paths.clone())?;
 
     if let Some(output) = output {
@@ -71,7 +97,7 @@ mod tests {
     use clap::Parser;
 
     #[test]
-    fn test_show_paths() {
+    fn test_generate_prompt_show_paths() {
         let td = TempDir::new().unwrap();
         let path1 = td.mkfile("file1.txt");
         let path2 = td.mkfile("file2.txt");
@@ -79,7 +105,7 @@ mod tests {
         let mut cli = Cli::parse_from(&["test", "--show-paths"]);
         cli.root = td.path_buf();
 
-        let result = run(&cli, None);
+        let result = generate_prompt(&cli, None);
 
         assert!(result.is_ok());
         let content = result.unwrap();
@@ -89,7 +115,7 @@ mod tests {
     }
 
     #[test]
-    fn test_show_tree() {
+    fn test_generate_prompt_show_tree() {
         let td = TempDir::new().unwrap();
         td.mkfile("file1.txt");
         td.mkfile("file2.txt");
@@ -99,7 +125,7 @@ mod tests {
         let mut cli = Cli::parse_from(&["test", "--tree"]);
         cli.root = td.path_buf();
 
-        let result = run(&cli, None);
+        let result = generate_prompt(&cli, None);
 
         assert!(result.is_ok());
         let content = result.unwrap();

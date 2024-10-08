@@ -54,7 +54,7 @@ fn combine_and_write(content: Vec<String>, path: &PathBuf) -> Result<(), io::Err
     let combined_content = content.join("\n");
     create_parent_dir(path)?;
     let mut file = File::create(path)?;
-    file.write_all(combined_content.as_bytes())?;
+    file.write_all(combined_content.trim().as_bytes())?;
     Ok(())
 }
 
@@ -76,7 +76,7 @@ fn write_parts_separately(content: Vec<String>, base_path: &PathBuf) -> Result<(
         let suffix = format!("{:03}", index + 1);
         let suffixed_path = format!("{}.{}", base_path.display(), suffix);
         let mut file = File::create(&suffixed_path)?;
-        file.write_all(part.as_bytes())?;
+        file.write_all(part.trim().as_bytes())?;
     }
 
     Ok(())

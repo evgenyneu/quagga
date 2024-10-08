@@ -427,7 +427,7 @@ fn assemble_multiple_parts(
             part_content.push('\n');
         }
 
-        assembled_parts.push(part_content.trim_end().to_string());
+        assembled_parts.push(part_content.to_string());
     }
 
     assembled_parts
@@ -517,14 +517,16 @@ Footer"#;
 Header
 File1
 == Part END 1 OF 2 ==
-This is only a part of the code (1 remaining)"#;
+This is only a part of the code (1 remaining)
+"#;
 
         assert_eq!(parts[0], expected);
 
         let expected = r#"== Part 2 OF 2 ==
 File2
 Footer
-== Part END 2 OF 2 =="#;
+== Part END 2 OF 2 ==
+"#;
 
         assert_eq!(parts[1], expected);
     }
@@ -565,7 +567,8 @@ HeaderHeaderHeaderHeaderHeaderHeaderHeaderHeaderHeaderHeader
 Line1Line1Line1Line1Line1Line1Line1Line1Line1Line1
 Line2Line2Line2Line2Line2Line2Line2Line2Line2Line2
 == Part END 1 OF 2 ==
-This is only a part of the code (1 remaining)"#;
+This is only a part of the code (1 remaining)
+"#;
 
         assert_eq!(parts[0], expected);
 
@@ -574,7 +577,8 @@ Line3Line3Line3Line3Line3Line3Line3Line3Line3Line3
 Line4Line4Line4Line4Line4Line4Line4Line4Line4Line4
 Line5Line5Line5Line5Line5Line5Line5Line5Line5Line5
 Footer
-== Part END 2 OF 2 =="#;
+== Part END 2 OF 2 ==
+"#;
 
         assert_eq!(parts[1], expected);
     }
@@ -622,7 +626,8 @@ Line2Line2Line2Line2Line2Line2Line2Line2Line2Line2
 Line3Line3Line3Line3Line3Line3Line3Line3Line3Line3
 Line4Line4Line4Line4Line4Line4Line4Line4Line4Line4
 == Part END 1 OF 3 ==
-This is only a part of the code (2 remaining)"#;
+This is only a part of the code (2 remaining)
+"#;
 
         assert_eq!(parts[0], expected);
 
@@ -632,7 +637,8 @@ Line6Line6Line6Line6Line6Line6Line6Line6Line6Line6
 Line7Line7Line7Line7Line7Line7Line7Line7Line7Line7
 Line8Line8Line8Line8Line8Line8Line8Line8Line8Line8
 == Part END 2 OF 3 ==
-This is only a part of the code (1 remaining)"#;
+This is only a part of the code (1 remaining)
+"#;
 
         assert_eq!(parts[1], expected);
 
@@ -640,7 +646,8 @@ This is only a part of the code (1 remaining)"#;
 Line9Line9Line9Line9Line9Line9Line9Line9Line9Line9
 Line0Line0Line0Line0Line0Line0Line0Line0Line0Line0
 Footer
-== Part END 3 OF 3 =="#;
+== Part END 3 OF 3 ==
+"#;
 
         assert_eq!(parts[2], expected);
     }
@@ -688,7 +695,8 @@ Line0Line0Line0Line0Line0Line0Line0Line0Line0Line0"
 Header
 Small1
 == Part END 1 OF 3 ==
-This is only a part of the code (2 remaining)"#;
+This is only a part of the code (2 remaining)
+"#;
 
         // The part contains only the small file,
         // and does NOT contain chunks from the next large file
@@ -703,7 +711,8 @@ Line5Line5Line5Line5Line5Line5Line5Line5Line5Line5
 Line6Line6Line6Line6Line6Line6Line6Line6Line6Line6
 Line7Line7Line7Line7Line7Line7Line7Line7Line7Line7
 == Part END 2 OF 3 ==
-This is only a part of the code (1 remaining)"#;
+This is only a part of the code (1 remaining)
+"#;
 
         assert_eq!(parts[1], expected);
 
@@ -712,7 +721,8 @@ Line8Line8Line8Line8Line8Line8Line8Line8Line8Line8
 Line9Line9Line9Line9Line9Line9Line9Line9Line9Line9
 Line0Line0Line0Line0Line0Line0Line0Line0Line0Line0
 Footer
-== Part END 3 OF 3 =="#;
+== Part END 3 OF 3 ==
+"#;
 
         assert_eq!(parts[2], expected);
     }
@@ -763,7 +773,8 @@ Line5Line5Line5Line5Line5Line5Line5Line5Line5Line5
 Line6Line6Line6Line6Line6Line6Line6Line6Line6Line6
 Line7Line7Line7Line7Line7Line7Line7Line7Line7Line7
 == Part END 1 OF 2 ==
-This is only a part of the code (1 remaining)"#;
+This is only a part of the code (1 remaining)
+"#;
 
         assert_eq!(parts[0], expected);
 
@@ -772,7 +783,8 @@ Line8Line8Line8Line8Line8Line8Line8Line8Line8Line8
 Line9Line9Line9Line9Line9Line9Line9Line9Line9Line9
 Line0Line0Line0Line0Line0Line0Line0Line0Line0Line0
 FooterFooterFooterFooterFooterFooterFooterFooterFooterFooter
-== Part END 2 OF 2 =="#;
+== Part END 2 OF 2 ==
+"#;
 
         assert_eq!(parts[1], expected);
     }

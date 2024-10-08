@@ -6,10 +6,9 @@ mod processor;
 mod template;
 mod test_utils;
 mod walk;
-
 use clap::Parser;
 use cli::Cli;
-use processor::run;
+use processor::generate_prompt_and_output;
 use std::io::{self, BufRead, IsTerminal};
 use std::path::PathBuf;
 use std::process;
@@ -19,10 +18,8 @@ fn main() {
     let args = Cli::parse();
     let piped_paths = piped_paths();
 
-    match run(&args, piped_paths.clone()) {
-        Ok(content) => {
-            println!("{}", content.join("\n").trim());
-        }
+    match generate_prompt_and_output(&args, piped_paths.clone()) {
+        Ok(_) => {}
         Err(e) => {
             eprintln!("Error: {}", e);
             process::exit(1);
