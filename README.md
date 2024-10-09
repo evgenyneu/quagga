@@ -151,7 +151,7 @@ In this example, we only include `*.rs` test files by using the un-ignore `!` sy
   * Global ignore file from `core.excludesFile` option in `$HOME/.gitconfig` file. If not set, then `$XDG_CONFIG_HOME/git/ignore` is used. If `$XDG_CONFIG_HOME` is not set, then `$HOME/.config/git/ignore` is used.
   * Custom gitignore files can be set with the `--gitignore-file PATH` option.
 * Uses `.quagga_ignore` files from the project and home directories written in the same format as gitignore (disable with `--no-quagga-ignore`).
-* Ignores binary files (enable with `--binary`). Files are considered binary if they contain a null bytes or invalid UTF-8 characters.
+* Ignores binary files (enable with `--binary`). Files are considered binary if they contain null bytes or invalid UTF-8 characters.
 * Ignores hidden files (enable with `--hidden`).
 * Ignores files larger than 300 KB (change with `--max-filesize BYTES`).
 * Symbolic links are not followed (enable with `--follow-links`).
