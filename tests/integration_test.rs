@@ -402,3 +402,14 @@ Custom Footer";
 
     assert_eq!(written_content, expected);
 }
+
+#[test]
+fn test_main_output_to_clipboard_single_part() {
+    let td: TempDir = TempDir::new().unwrap();
+    add_template(&td);
+    td.mkfile_with_contents("file.txt", "Hello");
+
+    let output: String = run_in_terminal(format!("--clipboard {}", td.path().display()));
+
+    assert_eq!(output.trim(), "Output copied to clipboard.");
+}
