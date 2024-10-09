@@ -59,7 +59,7 @@ pub fn read_files(paths: Vec<PathBuf>) -> io::Result<Vec<FileContent>> {
         file.read_to_string(&mut content).map_err(|e| {
             io::Error::new(
                 e.kind(),
-                format!("Error opening file {}: {}", path.display(), e),
+                format!("Failed to read file {}: {}", path.display(), e),
             )
         })?;
 
@@ -178,7 +178,7 @@ Footer",
         assert_eq!(
             err_msg,
             format!(
-                "Error opening file {}: stream did not contain valid UTF-8",
+                "Failed to read file {}: stream did not contain valid UTF-8",
                 path.display()
             )
         );
