@@ -111,10 +111,6 @@ pub struct Cli {
     #[arg(short = 'P', long, value_name = "PATH")]
     pub options: Option<PathBuf>,
 
-    /// Show detailed information during execution
-    #[arg(short = 'v', long)]
-    pub verbose: bool,
-
     /// The root directory to search for files
     #[arg(value_name = "DIRECTORY", default_value = ".")]
     pub root: PathBuf,
@@ -149,7 +145,6 @@ mod tests {
                 show_paths: false,
                 tree: false,
                 options: None,
-                verbose: false,
                 max_part_size: 100000,
                 max_filesize: 300 * 1024,
                 max_total_size: 500 * 1024,
@@ -205,7 +200,6 @@ mod tests {
           --show-paths \
           --tree \
           --options options.json \
-          --verbose \
           --max-part-size 300 \
           --max-filesize 10000 \
           --max-total-size 20000 \
@@ -234,7 +228,6 @@ mod tests {
                 show_paths: true,
                 tree: true,
                 options: Some(PathBuf::from("options.json")),
-                verbose: true,
                 max_part_size: 300,
                 max_filesize: 10000,
                 max_total_size: 20000,
