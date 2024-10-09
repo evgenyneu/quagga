@@ -69,7 +69,7 @@ fn should_include_path(path: &PathBuf, cli: &Cli) -> Result<bool, Box<dyn Error>
     }
 
     // If `--contain` option is used, check if file contains the specified texts
-    if !cli.contain.is_empty() && !file_contains_text(path, &cli.contain)? {
+    if !cli.contain.is_empty() && !file_contains_text(path, &cli.contain, cli.binary)? {
         return Ok(false);
     }
 

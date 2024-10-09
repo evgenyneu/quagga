@@ -67,11 +67,11 @@ pub struct Cli {
     #[arg(short = 'u', long, value_name = "PATH", num_args(1..))]
     pub gitignore_file: Vec<PathBuf>,
 
-    /// Don't ignore binary files (ignored by default)
+    /// Include binary files (ignored by default)
     #[arg(short = 'B', long)]
     pub binary: bool,
 
-    /// Don't ignore hidden files (ignored by default)
+    /// Include hidden files (ignored by default)
     #[arg(short = 'H', long)]
     pub hidden: bool,
 

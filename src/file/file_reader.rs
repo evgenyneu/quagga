@@ -35,7 +35,7 @@ pub fn read_and_concatenate_files(
     cli: &Cli,
 ) -> io::Result<Vec<String>> {
     check_total_size(files.clone(), cli.max_total_size)?;
-    let file_contents = read_files(files)?;
+    let file_contents = read_files(files, cli.binary)?;
     let concatenated = concatenate_files(template, file_contents, cli);
     Ok(concatenated)
 }
@@ -45,23 +45,17 @@ pub fn read_and_concatenate_files(
 /// # Arguments
 ///
 /// * `paths` - A vector of `PathBuf` representing the file paths.
+/// * `force` - A boolean indicating whether to force reading a file when it is not valid UTF-8 text
+///             by removing removing invalid UTF-8 sequences.
 ///
 /// # Returns
 ///
 /// A `Result` containing a vector of `FileContent` if successful, or an `io::Error` if an error occurs.
-pub fn read_files(paths: Vec<PathBuf>) -> io::Result<Vec<FileContent>> {
+pub fn read_files(paths: Vec<PathBuf>, force: bool) -> io::Result<Vec<FileContent>> {
     let mut file_contents = Vec::new();
 
     for path in paths {
-        let mut file = fs::File::open(&path)?;
-        let mut content = String::new();
-
-        file.read_to_string(&mut content).map_err(|e| {
-            io::Error::new(
-                e.kind(),
-                format!("Failed to read file {}: {}", path.display(), e),
-            )
-        })?;
+        let content = read_text_file(path.clone(), force)?;
 
         file_contents.push(FileContent {
             path: path.clone(),
@@ -70,6 +64,70 @@ pub fn read_files(paths: Vec<PathBuf>) -> io::Result<Vec<FileContent>> {
     }
 
     Ok(file_contents)
+}
+
+/// Reads and returns the content of the given text file.
+/// It tries to read the file as UTF-8 text first. If it fails and `force` is true
+/// then it reads the file as binary data and removes invalid UTF-8 sequences.
+///
+/// # Arguments
+///
+/// * `path` - A path to a text file.
+/// * `force` - A boolean indicating whether to force reading the file when it is not valid UTF-8 text
+///             by removing removing invalid UTF-8 sequences.
+///
+/// # Returns
+///
+/// A `Result` containing a the content of the text file or error if the file cannot be read.
+pub fn read_text_file(path: PathBuf, force: bool) -> io::Result<String> {
+    let mut file = fs::File::open(&path)?;
+    let mut content = String::new();
+
+    // Try reading the file as UTF-8 text first
+    match file.read_to_string(&mut content) {
+        Ok(_) => {
+            return Ok(content);
+        }
+        Err(e) => {
+            if force {
+                // If the file is not valid UTF-8 text, try reading it as binary data
+                return force_read_text_file(path);
+            } else {
+                return Err(io::Error::new(
+                    e.kind(),
+                    format!("Failed to read file {}: {}", path.display(), e),
+                ));
+            }
+        }
+    }
+}
+
+/// Reads the file as binary data and then convets it to UTF-8 by removing invalid UTF-8 sequences.
+///
+/// # Arguments
+///
+/// * `path` - A path to a file.
+///
+/// # Returns
+///
+/// A `Result` containing a the content of the text file or error if the file cannot be read.
+pub fn force_read_text_file(path: PathBuf) -> io::Result<String> {
+    let mut file = fs::File::open(&path)?;
+    let mut bytes = Vec::new();
+
+    file.read_to_end(&mut bytes).map_err(|e| {
+        io::Error::new(
+            e.kind(),
+            format!("Failed to read as binary {}: {}", path.display(), e),
+        )
+    })?;
+
+    // Replaces invalid UTF-8 sequences with the Unicode replacement character \u{FFFD}.
+    let content = String::from_utf8_lossy(&bytes);
+
+    // Removes the replacement character to make the string a valid UTF-8 text
+    let cleaned_content = content.replace("\u{FFFD}", "");
+    return Ok(cleaned_content);
 }
 
 #[cfg(test)]
@@ -164,13 +222,13 @@ Footer",
     }
 
     #[test]
-    fn test_read_files_with_invalid_utf8() {
+    fn test_read_files_with_invalid_utf8_force_false() {
         let td = TempDir::new().unwrap();
         let bytes = [0xC0, 0xC1]; // Invalid UTF-8 sequences
         let path = td.mkfile_with_bytes("invalid_utf_8.txt", &bytes);
         let files = vec![path.clone()];
 
-        let result = read_files(files);
+        let result = read_files(files, false);
 
         assert!(result.is_err());
         let err_msg = result.unwrap_err().to_string();
@@ -182,5 +240,121 @@ Footer",
                 path.display()
             )
         );
+    }
+
+    #[test]
+    fn test_read_files_with_invalid_utf8_force_true() {
+        let td = TempDir::new().unwrap();
+        // Mix of valid UTF-8 and invalid bytes
+        let bytes = b"Valid text \xFF\xFE Invalid bytes \xC0\xC1 End.";
+        let path = td.mkfile_with_bytes("invalid_utf8.txt", bytes);
+        let files = vec![path.clone()];
+
+        let result = read_files(files, true);
+
+        assert!(result.is_ok());
+        let result = result.unwrap();
+        assert_eq!(result.len(), 1);
+        assert_eq!(result[0].content, "Valid text  Invalid bytes  End.");
+        assert_eq!(result[0].path, path);
+    }
+
+    #[test]
+    fn test_force_read_text_file_valid_utf8() {
+        let td = TempDir::new().unwrap();
+        let path = td.mkfile_with_contents("valid_utf8.txt", "This is a valid UTF-8 string.");
+
+        let result = force_read_text_file(path.clone());
+
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), "This is a valid UTF-8 string.");
+    }
+
+    #[test]
+    fn test_force_read_text_file_invalid_utf8() {
+        let td = TempDir::new().unwrap();
+        // Mix of valid UTF-8 and invalid bytes
+        let bytes = b"Valid text \xFF\xFE Invalid bytes \xC0\xC1 End.";
+        let path = td.mkfile_with_bytes("invalid_utf8.txt", bytes);
+
+        let result = force_read_text_file(path.clone());
+
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), "Valid text  Invalid bytes  End.");
+    }
+
+    #[test]
+    fn test_force_read_text_file_empty_file() {
+        let td = TempDir::new().unwrap();
+        let path = td.mkfile_with_contents("empty.txt", "");
+
+        let result = force_read_text_file(path.clone());
+
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), "");
+    }
+
+    #[test]
+    fn test_read_text_file_valid_utf8_force_false() {
+        let td = TempDir::new().unwrap();
+        let path = td.mkfile_with_contents("valid_utf8.txt", "This is a valid UTF-8 string.");
+
+        let result = read_text_file(path.clone(), false);
+
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), "This is a valid UTF-8 string.");
+    }
+
+    #[test]
+    fn test_read_text_file_valid_utf8_force_true() {
+        let td = TempDir::new().unwrap();
+        let path = td.mkfile_with_contents("another_valid_utf8.txt", "Another valid UTF-8 string.");
+
+        let result = read_text_file(path.clone(), true);
+
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), "Another valid UTF-8 string.");
+    }
+
+    #[test]
+    fn test_read_text_file_invalid_utf8_force_false() {
+        let td = TempDir::new().unwrap();
+        let bytes = [0xC0, 0xC1, 0xFF];
+        let path = td.mkfile_with_bytes("invalid_utf8_force_false.txt", &bytes);
+
+        let result = read_text_file(path.clone(), false);
+
+        assert!(result.is_err());
+        let err_msg = result.unwrap_err().to_string();
+
+        let expected = format!(
+            "Failed to read file {}: stream did not contain valid UTF-8",
+            path.display()
+        );
+
+        assert_eq!(err_msg, expected);
+    }
+
+    #[test]
+    fn test_read_text_file_invalid_utf8_force_true() {
+        let td = TempDir::new().unwrap();
+        let bytes = b"Valid text \xFF\xFE Invalid bytes \xC0\xC1 End.";
+        let path = td.mkfile_with_bytes("invalid_utf8_force_true.txt", bytes);
+
+        let result = read_text_file(path.clone(), true);
+
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), "Valid text  Invalid bytes  End.");
+    }
+
+    #[test]
+    fn test_read_text_file_empty_file() {
+        let td = TempDir::new().unwrap();
+        let path = td.mkfile_with_contents("empty.txt", "");
+
+        let result = read_text_file(path.clone(), false);
+
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), "");
     }
 }
