@@ -6,7 +6,7 @@ use std::error::Error;
 
 pub fn process_output(content: Vec<String>, cli: &Cli) -> Result<(), Box<dyn Error>> {
     if cli.clipboard {
-        output_to_clipboard(content).map_err(|e| e as Box<dyn std::error::Error>)?;
+        output_to_clipboard(content)?;
     } else if let Some(output_path) = &cli.output {
         output_to_file(content, output_path.clone(), false, None)?;
     } else {
