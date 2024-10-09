@@ -72,13 +72,12 @@ These tags are used for indicating the start and the end of each individual part
       * Think of an alternative/better way to do what I ask, don't simply follow my instructions.
       * One small code change at a time.
       * All code needs to be tested.
-      * Write code in such a way that so it can be used as a library, which also means it needs proper comments and documentation.
+      * Code needs proper documentation.
+      * Add comments only when it's not obvious what code is doing, otherwise code should be self-explanatory.
       * Focus on code clarity and simplicity, even if it means writing more code (i.e. don't try to be smart or elegant D:).
       * Write small functions that do one thing :D It makes the code simpler and easier to test.
       * No need to show existing code, just the changes.
       * In the response text that is not the code, be very concise.
-
-      What do you think? Let's discuss ideas first without code :D
     </footer>
   </prompt>
 

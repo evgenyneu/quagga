@@ -27,6 +27,7 @@ pub fn get_all_files(cli: &Cli) -> Result<Vec<PathBuf>, Box<dyn Error>> {
     walker_builder.max_filesize(Some(cli.max_filesize));
     walker_builder.require_git(false); // Apply git-related gitignore rules even if .git directory is missing
     walker_builder.hidden(!cli.hidden);
+    walker_builder.follow_links(cli.follow_links);
 
     if !cli.no_quagga_ignore {
         add_quagga_ignore_files(&mut walker_builder, cli.root.clone(), None)?;
@@ -81,6 +82,7 @@ mod tests {
     use super::*;
     use crate::test_utils::temp_dir::TempDir;
     use clap::Parser;
+    use std::os::unix::fs as unix_fs;
 
     #[test]
     fn test_get_all_files() {
@@ -354,5 +356,53 @@ mod tests {
         assert_eq!(files.len(), 2);
         td.assert_contains(&files, "file.txt");
         td.assert_contains(&files, ".hidden");
+    }
+
+    #[test]
+    #[cfg(unix)]
+    fn test_get_all_files_with_follow_links() {
+        let td = TempDir::new().unwrap();
+
+        // Create a real directory with a file
+        let td2 = TempDir::new().unwrap();
+        td2.mkdir("real_dir");
+        let original_dir = td2.path().join("real_dir");
+        td2.mkfile_with_contents("real_dir/file3.txt", "Real File");
+
+        // Create a symlink to the real_dir
+        let symlink_path = td.path().join("symlink_dir");
+        unix_fs::symlink(&original_dir, &symlink_path).unwrap();
+
+        let mut cli = Cli::parse_from(&["quagga"]);
+        cli.root = td.path_buf();
+        cli.follow_links = true;
+
+        let result = get_all_files(&cli).unwrap();
+
+        assert_eq!(result.len(), 1);
+        td.assert_contains(&result, "symlink_dir/file3.txt"); // symlinked file should be included
+    }
+
+    #[test]
+    #[cfg(unix)]
+    fn test_get_all_files_should_not_follow_symlink_by_default() {
+        let td = TempDir::new().unwrap();
+
+        // Create a real directory with a file
+        let td2 = TempDir::new().unwrap();
+        td2.mkdir("real_dir");
+        let original_dir = td2.path().join("real_dir");
+        td2.mkfile_with_contents("real_dir/file3.txt", "Real File");
+
+        // Create a symlink to the real_dir
+        let symlink_path = td.path().join("symlink_dir");
+        unix_fs::symlink(&original_dir, &symlink_path).unwrap();
+
+        let mut cli = Cli::parse_from(&["quagga"]);
+        cli.root = td.path_buf();
+
+        let result = get_all_files(&cli).unwrap();
+
+        assert_eq!(result.len(), 0);
     }
 }
