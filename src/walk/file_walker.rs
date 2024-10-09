@@ -19,6 +19,24 @@ use std::path::PathBuf;
 /// * `Ok(Vec<PathBuf>)` containing the paths to text files for the output prompt.
 /// * `Err<Box<dyn Error>>` if an error occurs during directory traversal or file reading.
 pub fn get_all_files(cli: &Cli) -> Result<Vec<PathBuf>, Box<dyn Error>> {
+    let walker_builder = configure_walk_builder(cli)?;
+    let walker = walker_builder.build();
+    let mut files = Vec::new();
+
+    for entry in walker {
+        let entry = entry?;
+        let path = entry.path().to_path_buf();
+
+        if should_include_path(&path, cli)? {
+            files.push(path);
+        }
+    }
+
+    Ok(files)
+}
+
+/// Setup the `WalkBuilder` with the necessary configurations.
+fn configure_walk_builder(cli: &Cli) -> Result<WalkBuilder, Box<dyn Error>> {
     let overrides = build_overrides(cli)?;
     let mut walker_builder = WalkBuilder::new(&cli.root);
     walker_builder.overrides(overrides);
@@ -33,19 +51,7 @@ pub fn get_all_files(cli: &Cli) -> Result<Vec<PathBuf>, Box<dyn Error>> {
         add_quagga_ignore_files(&mut walker_builder, cli.root.clone(), None)?;
     }
 
-    let walker = walker_builder.build();
-    let mut files = Vec::new();
-
-    for entry in walker {
-        let entry = entry?;
-        let path = entry.path().to_path_buf();
-
-        if should_include_path(&path, cli)? {
-            files.push(path);
-        }
-    }
-
-    Ok(files)
+    Ok(walker_builder)
 }
 
 /// Determines whether a path should be included in the output prompt.
