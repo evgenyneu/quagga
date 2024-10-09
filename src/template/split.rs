@@ -390,32 +390,24 @@ fn assemble_multiple_parts(
     for (i, part) in parts.iter().enumerate() {
         let mut part_content = String::new();
 
-        // Add part header
-        let part_header = replace_placeholders(&part_template.header, i + 1, total_parts);
-
-        part_content.push_str(&part_header);
-        part_content.push('\n');
-
         // Add global header only in the first part
         if i == 0 && !header.is_empty() {
             part_content.push_str(header);
             part_content.push('\n');
         }
 
+        // Add part header
+        let part_header = replace_placeholders(&part_template.header, i + 1, total_parts);
+        part_content.push_str(&part_header);
+        part_content.push('\n');
+
         // Add file chunks
         for chunk in &part.file_chunks {
             part_content.push_str(chunk);
         }
 
-        // Add global footer only in the last part
-        if i == total_parts - 1 && !footer.is_empty() {
-            part_content.push_str(footer);
-            part_content.push('\n');
-        }
-
         // Add part footer
         let part_footer = replace_placeholders(&part_template.footer, i + 1, total_parts);
-
         part_content.push_str(&part_footer);
         part_content.push('\n');
 
@@ -424,6 +416,12 @@ fn assemble_multiple_parts(
             let pending_text = replace_placeholders(&part_template.pending, i + 1, total_parts);
 
             part_content.push_str(&pending_text);
+            part_content.push('\n');
+        }
+
+        // Add global footer only in the last part
+        if i == total_parts - 1 && !footer.is_empty() {
+            part_content.push_str(footer);
             part_content.push('\n');
         }
 
@@ -513,8 +511,8 @@ Footer"#;
 
         assert_eq!(parts.len(), 2);
 
-        let expected = r#"== Part 1 OF 2 ==
-Header
+        let expected = r#"Header
+== Part 1 OF 2 ==
 File1
 == Part END 1 OF 2 ==
 This is only a part of the code (1 remaining)
@@ -524,8 +522,8 @@ This is only a part of the code (1 remaining)
 
         let expected = r#"== Part 2 OF 2 ==
 File2
-Footer
 == Part END 2 OF 2 ==
+Footer
 "#;
 
         assert_eq!(parts[1], expected);
@@ -562,8 +560,8 @@ Footer
 
         assert_eq!(parts.len(), 2);
 
-        let expected = r#"== Part 1 OF 2 ==
-HeaderHeaderHeaderHeaderHeaderHeaderHeaderHeaderHeaderHeader
+        let expected = r#"HeaderHeaderHeaderHeaderHeaderHeaderHeaderHeaderHeaderHeader
+== Part 1 OF 2 ==
 Line1Line1Line1Line1Line1Line1Line1Line1Line1Line1
 Line2Line2Line2Line2Line2Line2Line2Line2Line2Line2
 == Part END 1 OF 2 ==
@@ -576,8 +574,8 @@ This is only a part of the code (1 remaining)
 Line3Line3Line3Line3Line3Line3Line3Line3Line3Line3
 Line4Line4Line4Line4Line4Line4Line4Line4Line4Line4
 Line5Line5Line5Line5Line5Line5Line5Line5Line5Line5
-Footer
 == Part END 2 OF 2 ==
+Footer
 "#;
 
         assert_eq!(parts[1], expected);
@@ -619,8 +617,8 @@ Line0Line0Line0Line0Line0Line0Line0Line0Line0Line0"
 
         assert_eq!(parts.len(), 3);
 
-        let expected = r#"== Part 1 OF 3 ==
-Header
+        let expected = r#"Header
+== Part 1 OF 3 ==
 Line1Line1Line1Line1Line1Line1Line1Line1Line1Line1
 Line2Line2Line2Line2Line2Line2Line2Line2Line2Line2
 Line3Line3Line3Line3Line3Line3Line3Line3Line3Line3
@@ -645,8 +643,8 @@ This is only a part of the code (1 remaining)
         let expected = r#"== Part 3 OF 3 ==
 Line9Line9Line9Line9Line9Line9Line9Line9Line9Line9
 Line0Line0Line0Line0Line0Line0Line0Line0Line0Line0
-Footer
 == Part END 3 OF 3 ==
+Footer
 "#;
 
         assert_eq!(parts[2], expected);
@@ -691,8 +689,8 @@ Line0Line0Line0Line0Line0Line0Line0Line0Line0Line0"
 
         assert_eq!(parts.len(), 3);
 
-        let expected = r#"== Part 1 OF 3 ==
-Header
+        let expected = r#"Header
+== Part 1 OF 3 ==
 Small1
 == Part END 1 OF 3 ==
 This is only a part of the code (2 remaining)
@@ -720,8 +718,8 @@ This is only a part of the code (1 remaining)
 Line8Line8Line8Line8Line8Line8Line8Line8Line8Line8
 Line9Line9Line9Line9Line9Line9Line9Line9Line9Line9
 Line0Line0Line0Line0Line0Line0Line0Line0Line0Line0
-Footer
 == Part END 3 OF 3 ==
+Footer
 "#;
 
         assert_eq!(parts[2], expected);
@@ -763,8 +761,8 @@ Line0Line0Line0Line0Line0Line0Line0Line0Line0Line0"
 
         assert_eq!(parts.len(), 2);
 
-        let expected = r#"== Part 1 OF 2 ==
-HeaderHeaderHeaderHeaderHeaderHeaderHeaderHeaderHeaderHeader
+        let expected = r#"HeaderHeaderHeaderHeaderHeaderHeaderHeaderHeaderHeaderHeader
+== Part 1 OF 2 ==
 Line1Line1Line1Line1Line1Line1Line1Line1Line1Line1
 Line2Line2Line2Line2Line2Line2Line2Line2Line2Line2
 Line3Line3Line3Line3Line3Line3Line3Line3Line3Line3
@@ -782,8 +780,8 @@ This is only a part of the code (1 remaining)
 Line8Line8Line8Line8Line8Line8Line8Line8Line8Line8
 Line9Line9Line9Line9Line9Line9Line9Line9Line9Line9
 Line0Line0Line0Line0Line0Line0Line0Line0Line0Line0
-FooterFooterFooterFooterFooterFooterFooterFooterFooterFooter
 == Part END 2 OF 2 ==
+FooterFooterFooterFooterFooterFooterFooterFooterFooterFooter
 "#;
 
         assert_eq!(parts[1], expected);

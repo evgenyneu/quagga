@@ -283,9 +283,10 @@ fn test_main_split_into_parts() {
 
     let output: String = run_in_terminal(format!("--max-part-size 164 {}", td.path().display()));
 
-    let expected = r#"== Part start
+    let expected = r#"Custom Header
 
-Custom Header
+== Part start
+
 Custom Item: HelloHelloHelloHelloHelloHelloHelloHelloHelloHello
 
 == Part end
@@ -296,9 +297,10 @@ Wait for more parts please
 == Part start
 
 Custom Item: World!World!World!World!World!World!World!World!World!World!
-Custom Footer
 
 == Part end
+
+Custom Footer
 "#;
 
     assert_eq!(output, expected);
@@ -372,9 +374,10 @@ fn test_main_output_to_file_multiple_parts() {
     let path1 = td.path().join("output.txt.001");
     let written_content = fs::read_to_string(&path1).unwrap();
 
-    let expected = "== Part start
+    let expected = "Custom Header
 
-Custom Header
+== Part start
+
 Custom Item: HelloHelloHelloHelloHelloHelloHelloHelloHelloHello
 
 == Part end
@@ -392,9 +395,10 @@ Wait for more parts please";
     let expected = "== Part start
 
 Custom Item: World!World!World!World!World!World!World!World!World!World!
-Custom Footer
 
-== Part end";
+== Part end
+
+Custom Footer";
 
     assert_eq!(written_content, expected);
 }
