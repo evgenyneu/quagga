@@ -15,7 +15,13 @@ The main focus of `quagga` is **speed**, thanks to its implementation in Rust, a
 
 ## Installation
 
-Download the `quagga` binary from the [releases page](https://github.com/evgenyneu/quagga/releases) and add it to your PATH.
+### Install using Cargo
+
+[Install Rust](https://www.rust-lang.org/tools/install) and run the following command to install `quagga`:
+
+```bash
+cargo install quagga
+```
 
 
 ## Basic command
