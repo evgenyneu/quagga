@@ -21,6 +21,10 @@ jobs:
           - os: macos-latest
             artifact_name: quagga
             asset_name: quagga-macos-amd64
+          - os: macos-latest
+            artifact_name: quagga
+            asset_name: quagga-macos-arm64
+            target: aarch64-apple-darwin
 
     steps:
     - uses: actions/checkout@v3
@@ -30,15 +34,22 @@ jobs:
         profile: minimal
         toolchain: stable
         override: true
+        target: ${{ matrix.target }}
     - name: Build
-      run: cargo build --release --locked
+      run: |
+        if [ "${{ matrix.target }}" = "aarch64-apple-darwin" ]; then
+          rustup target add aarch64-apple-darwin
+          cargo build --release --target aarch64-apple-darwin
+        else
+          cargo build --release
+        fi
     - name: Upload Release Asset
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ github.event.release.upload_url }}
-        asset_path: ./target/release/${{ matrix.artifact_name }}
+        asset_path: ./target/${{ matrix.target || 'release' }}/${{ matrix.artifact_name }}
         asset_name: ${{ matrix.asset_name }}
         asset_content_type: application/octet-stream
 
