@@ -3,6 +3,7 @@ use assert_cmd::Command;
 use common::{add_template, run_in_terminal};
 use expectrl::{spawn, Eof};
 use quagga::test_utils::temp_dir::TempDir;
+use serial_test::serial;
 use std::fs;
 use std::io::Read;
 use std::path::PathBuf;
@@ -422,6 +423,7 @@ Custom Footer";
 }
 
 #[test]
+#[serial]
 fn test_main_output_to_clipboard_single_part() {
     let td: TempDir = TempDir::new().unwrap();
     add_template(&td);
@@ -433,6 +435,7 @@ fn test_main_output_to_clipboard_single_part() {
 }
 
 #[test]
+#[serial]
 fn test_main_output_to_clipboard_multiple_parts() {
     let td: TempDir = TempDir::new().unwrap();
     add_template(&td);
@@ -452,7 +455,6 @@ fn test_main_output_to_clipboard_multiple_parts() {
 
     // Set a timeout for expectations
     let timeout = Duration::from_secs(1);
-
     p.set_expect_timeout(Some(timeout));
 
     // Wait for and check the first message

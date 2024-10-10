@@ -23,6 +23,7 @@ assert_cmd = "2.0"
 expectrl = "0.7"
 predicates = "3.1"
 regex = "1"
+serial_test = "*"
 
 [lib]
 name = "quagga"
