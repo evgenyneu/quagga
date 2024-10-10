@@ -1,5 +1,6 @@
 [![Crates.io](https://img.shields.io/crates/v/quagga.svg)](https://crates.io/crates/quagga)
 [![CI](https://github.com/evgenyneu/quagga/actions/workflows/release.yml/badge.svg)](https://github.com/evgenyneu/quagga/actions/workflows/release.yml)
+[![Tests](https://github.com/evgenyneu/quagga/actions/workflows/tests.yml/badge.svg)](https://github.com/evgenyneu/quagga/actions/workflows/tests.yml)
 [![License: Unlicense](https://img.shields.io/badge/license-Unlicense-blue.svg)](UNLICENSE)
 
 # Quagga
