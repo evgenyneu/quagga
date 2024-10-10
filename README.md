@@ -69,7 +69,7 @@ Combines all Markdown files in the current directory and copies the result to th
 ### Include specific file types and exclude directories
 
 ```bash
-quagga --include '*.{js,ts}' '*.test.*' --exclude node_modules dist
+quagga --include '*.{js,ts}' '*test*' --exclude node_modules dist
 ```
 
 Includes JavaScript, TypeScript, and test files while excluding `node_modules` and `dist` directories.

@@ -4,7 +4,6 @@ use super::template::Template;
 use crate::cli::Cli;
 use std::error::Error;
 use std::fs;
-use std::io;
 use std::path::PathBuf;
 
 /// The default template embedded into the executable.
@@ -64,10 +63,15 @@ pub fn path_to_custom_template(cli: &Cli) -> Option<PathBuf> {
 /// # Returns
 ///
 /// * `Ok<String>` containing the template content.
-/// * `Err<io::Error>` if an I/O error occurs while reading the template.
-pub fn read_template(template_path: Option<PathBuf>) -> io::Result<String> {
+/// * `Err<Box<dyn Error>>` if an I/O error occurs while reading the template, including the path in the error message.
+pub fn read_template(template_path: Option<PathBuf>) -> Result<String, Box<dyn Error>> {
     match template_path {
-        Some(path) => fs::read_to_string(&path),
+        Some(path) => fs::read_to_string(&path).map_err(|e| {
+            Box::new(std::io::Error::new(
+                e.kind(),
+                format!("Failed to read template from '{}': {}", path.display(), e),
+            )) as Box<dyn Error>
+        }),
         None => Ok(DEFAULT_TEMPLATE.to_string()),
     }
 }
@@ -102,6 +106,16 @@ mod tests {
         let result = read_template(Some(invalid_path));
 
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_read_template_file_not_found() {
+        let non_existent_path = PathBuf::from("/path/to/non/existent/file.md");
+        let result = read_template(Some(non_existent_path));
+
+        assert!(result.is_err());
+        let msg = result.unwrap_err().to_string();
+        assert!(msg.contains("Failed to read template from '/path/to/non/existent/file.md'"));
     }
 
     #[test]
