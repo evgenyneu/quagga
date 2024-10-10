@@ -62,12 +62,17 @@ jobs:
           cargo build --release
         fi
       shell: bash
+    - name: Compress binary
+      run: |
+        cd ${{ matrix.target && format('target/{0}/release', matrix.target) || 'target/release' }}
+        tar -czf ${{ matrix.asset_name }}.tar.gz ${{ matrix.artifact_name }}
+      shell: bash
     - name: Upload Release Asset
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ needs.create-release.outputs.upload_url }}
-        asset_path: ${{ matrix.target && format('./target/{0}/release/{1}', matrix.target, matrix.artifact_name) || format('./target/release/{0}', matrix.artifact_name) }}
-        asset_name: ${{ matrix.asset_name }}
-        asset_content_type: application/octet-stream
+        asset_path: ${{ matrix.target && format('./target/{0}/release/{1}.tar.gz', matrix.target, matrix.asset_name) || format('./target/release/{0}.tar.gz', matrix.asset_name) }}
+        asset_name: ${{ matrix.asset_name }}.tar.gz
+        asset_content_type: application/gzip
