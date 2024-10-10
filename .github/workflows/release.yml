@@ -6,8 +6,26 @@ on:
       - 'v*'
 
 jobs:
-  release:
+  create-release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+
+  build-and-upload:
     name: Release for ${{ matrix.os }}
+    needs: create-release
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -43,27 +61,13 @@ jobs:
         else
           cargo build --release
         fi
+      shell: bash
     - name: Upload Release Asset
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: ${{ github.event.release.upload_url }}
-        asset_path: ./target/${{ matrix.target || 'release' }}/${{ matrix.artifact_name }}
+        upload_url: ${{ needs.create-release.outputs.upload_url }}
+        asset_path: ${{ matrix.target && format('./target/{0}/release/{1}', matrix.target, matrix.artifact_name) || format('./target/release/{0}', matrix.artifact_name) }}
         asset_name: ${{ matrix.asset_name }}
         asset_content_type: application/octet-stream
-
-  create-release:
-    name: Create Release
-    runs-on: ubuntu-latest
-    steps:
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          draft: false
-          prerelease: false
