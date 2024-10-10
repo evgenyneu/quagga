@@ -17,9 +17,8 @@ The main focus of `quagga` is **speed**, thanks to its implementation in Rust, a
 
 Download the `quagga` binary from the [releases page](https://github.com/evgenyneu/quagga/releases) and add it to your PATH.
 
-## Usage
 
-### Basic command
+## Basic command
 
 ```bash
 quagga [OPTIONS] [DIRECTORY]
@@ -27,11 +26,11 @@ quagga [OPTIONS] [DIRECTORY]
 
 *DIRECTORY*: The root directory to search for files. Default is current directory `.`.
 
-### Output
+## Output
 
 By default, `quagga` prints the combined prompt to stdout. Alternatively, you can save the prompt to a file or copy it to the clipboard.
 
-#### Save prompt to file
+### Save prompt to file
 
 ```bash
 quagga --output prompt.txt
@@ -48,7 +47,7 @@ quagga --output {TIME}_prompt.txt
 This command creates a file with a timestamp in the format `YYYY-mm-DD_HH-MM-SS_prompt.txt`.
 
 
-#### Copy prompt to clipboard
+### Copy prompt to clipboard
 
 ```bash
 quagga --clipboard
@@ -56,9 +55,9 @@ quagga --clipboard
 
 This command copies the combined prompt to the clipboard instead of printing it to stdout. If the output exceeds the `--max-part-size CHARS` limit, it will be divided into parts. Each part will be copied to the clipboard separately, and you'll be prompted to press Enter to copy the next part.
 
-### Examples
+## Examples
 
-#### Combine markdown files and copy to clipboard
+### Combine markdown files and copy to clipboard
 
 ```bash
 quagga --include '*.md' --clipboard
@@ -67,7 +66,7 @@ quagga --include '*.md' --clipboard
 Combines all Markdown files in the current directory and copies the result to the clipboard.
 
 
-#### Include specific file types and exclude directories
+### Include specific file types and exclude directories
 
 ```bash
 quagga --include '*.{js,ts}' '*.test.*' --exclude node_modules dist
@@ -76,7 +75,7 @@ quagga --include '*.{js,ts}' '*.test.*' --exclude node_modules dist
 Includes JavaScript, TypeScript, and test files while excluding `node_modules` and `dist` directories.
 
 
-#### Use a custom template
+### Use a custom template
 
 ```bash
 quagga --template prompt.md --include '*.txt'
@@ -84,7 +83,7 @@ quagga --template prompt.md --include '*.txt'
 
 Uses a template to customize the prompt text (see [Templates section](#templates) for details).
 
-#### Include only files that contain specific text
+### Include only files that contain specific text
 
 ```bash
 quagga --contain todo fixthis -- ~/code/myapp
@@ -93,7 +92,7 @@ quagga --contain todo fixthis -- ~/code/myapp
 Includes only files that contain the words 'todo' or 'fixthis', look in the `~/code/myapp` directory. Notice the use of `--` to separate options from the directory path.
 
 
-#### Pipe file paths from another program
+### Pipe file paths from another program
 
 ```bash
 find . -name '*.txt' | quagga
@@ -102,7 +101,7 @@ cat file_list.txt | quagga
 
 Pipes file paths from another program or a text file into `quagga` instead of searching the directory.
 
-#### Get the full list of options
+### Get the full list of options
 
 ```bash
 quagga --help
