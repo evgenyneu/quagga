@@ -6,30 +6,40 @@ pub fn output_to_clipboard(content: Vec<String>) -> Result<(), Box<dyn Error>> {
     let mut clipboard = Clipboard::new()?;
 
     if content.len() == 1 {
-        clipboard.set_text(content[0].trim().to_string())?;
-        println!("Output copied to clipboard.");
+        copy_single_part(&mut clipboard, &content[0])?;
     } else {
-        for (index, part) in content.iter().enumerate() {
-            clipboard.set_text(part.trim().to_string())?;
+        copy_multiple_parts(&mut clipboard, &content)?;
+    }
 
-            if index < content.len() - 1 {
-                println!(
-                    "Part {} of {} copied to clipboard.",
-                    index + 1,
-                    content.len()
-                );
-                println!("Press Enter to copy the next part");
-                wait_for_enter()?;
-            } else {
-                println!(
-                    "Part {} of {} copied to clipboard.",
-                    index + 1,
-                    content.len()
-                );
-            }
+    Ok(())
+}
+
+fn copy_single_part(clipboard: &mut Clipboard, content: &str) -> Result<(), Box<dyn Error>> {
+    clipboard.set_text(content.trim().to_string())?;
+    println!("Output copied to clipboard.");
+    Ok(())
+}
+
+fn copy_multiple_parts(
+    clipboard: &mut Clipboard,
+    content: &[String],
+) -> Result<(), Box<dyn Error>> {
+    for (index, part) in content.iter().enumerate() {
+        clipboard.set_text(part.trim().to_string())?;
+
+        println!(
+            "Part {} of {} copied to clipboard.",
+            index + 1,
+            content.len()
+        );
+
+        if index < content.len() - 1 {
+            println!("Press Enter to copy the next part...");
+            wait_for_enter()?;
         }
     }
 
+    println!("We are done.");
     Ok(())
 }
 

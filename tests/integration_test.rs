@@ -5,6 +5,7 @@ use expectrl::{spawn, Eof};
 use quagga::test_utils::temp_dir::TempDir;
 use std::fs;
 use std::io::Read;
+use std::time::Duration;
 
 #[test]
 fn test_main_success_run() {
@@ -412,4 +413,35 @@ fn test_main_output_to_clipboard_single_part() {
     let output: String = run_in_terminal(format!("--clipboard {}", td.path().display()));
 
     assert_eq!(output.trim(), "Output copied to clipboard.");
+}
+
+#[test]
+fn test_main_output_to_clipboard_multiple_parts() {
+    let td: TempDir = TempDir::new().unwrap();
+    add_template(&td);
+
+    // Create two files with content that will be split into two parts
+    td.mkfile_with_contents("file1.txt", &"A".repeat(1000));
+    td.mkfile_with_contents("file2.txt", &"B".repeat(1000));
+
+    let quagga_bin = assert_cmd::cargo::cargo_bin("quagga");
+    let cmd = format!(
+        "{} --clipboard --max-part-size 2000 {}",
+        quagga_bin.display(),
+        td.path().display()
+    );
+
+    let mut p = spawn(cmd).expect("Failed to spawn command");
+
+    // Set a timeout for expectations
+    let timeout = Duration::from_secs(1);
+
+    p.set_expect_timeout(Some(timeout));
+
+    // Wait for and check the first message
+    p.expect("Part 1 of 2 copied to clipboard.").unwrap();
+    p.expect("Press Enter to copy the next part...").unwrap();
+    p.send_line("").unwrap(); // Press Enter to copy the next part
+    p.expect("Part 2 of 2 copied to clipboard.").unwrap();
+    p.expect("We are done.").unwrap();
 }
