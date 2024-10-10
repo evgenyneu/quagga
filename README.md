@@ -30,6 +30,15 @@ Alternatively, you can install `quagga` with Cargo. First, [Install Rust](https:
 cargo install quagga
 ```
 
+### Homebrew
+
+You can also install `quagga` with [Homebrew](https://brew.sh/):
+
+```bash
+brew tap evgenyneu/quagga
+brew install quagga
+```
+
 ## Basic command
 
 ```bash
