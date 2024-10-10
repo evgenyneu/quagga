@@ -5,6 +5,7 @@ use expectrl::{spawn, Eof};
 use quagga::test_utils::temp_dir::TempDir;
 use std::fs;
 use std::io::Read;
+use std::path::PathBuf;
 use std::time::Duration;
 
 #[test]
@@ -61,6 +62,22 @@ World!
 "#;
 
     cmd.assert().success().stdout(expected_output);
+}
+
+#[test]
+fn test_main_with_piped_input_non_existent_file() {
+    let non_existent_path = PathBuf::from("/path/to/non/existent/file.txt");
+
+    let mut cmd = Command::cargo_bin("quagga").unwrap();
+
+    let input = format!("{}", non_existent_path.display());
+    cmd.write_stdin(input);
+
+    let assert = cmd.assert();
+
+    assert.failure().stderr(predicates::str::contains(
+        "Error: Failed to read metadata for file /path/to/non/existent/file.txt",
+    ));
 }
 
 #[test]

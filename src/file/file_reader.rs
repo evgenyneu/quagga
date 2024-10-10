@@ -87,7 +87,13 @@ pub fn read_files(paths: Vec<PathBuf>, force: bool) -> io::Result<Vec<FileConten
 ///
 /// A `Result` containing a the content of the text file or error if the file cannot be read.
 pub fn read_text_file(path: PathBuf, force: bool) -> io::Result<String> {
-    let mut file = fs::File::open(&path)?;
+    let mut file = fs::File::open(&path).map_err(|e| {
+        io::Error::new(
+            e.kind(),
+            format!("Failed to open file {}: {}", path.display(), e),
+        )
+    })?;
+
     let mut content = String::new();
 
     // Try reading the file as UTF-8 text first
@@ -142,7 +148,7 @@ mod tests {
     use super::*;
     use crate::template::template::{PromptTemplate, Template};
     use crate::test_utils::temp_dir::TempDir;
-    use clap::Parser;
+    use clap::Parser; // Add this import
 
     #[test]
     fn test_read_and_concatenate_files() {
@@ -375,5 +381,16 @@ Footer",
 
         assert!(result.is_ok());
         assert_eq!(result.unwrap(), "");
+    }
+
+    #[test]
+    fn test_read_text_file_non_existent() {
+        let non_existent_path = PathBuf::from("/path/to/non/existent/file.txt");
+
+        let result = read_text_file(non_existent_path.clone(), false);
+
+        assert!(result.is_err());
+        let msg = result.unwrap_err().to_string();
+        assert!(msg.contains("Failed to open file /path/to/non/existent/file.txt"));
     }
 }

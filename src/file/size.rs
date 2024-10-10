@@ -46,13 +46,18 @@ pub fn calculate_total_size(file_paths: Vec<PathBuf>) -> io::Result<u64> {
     let mut total_size = 0u64;
 
     for path in file_paths {
-        let metadata = fs::metadata(&path)?;
+        let metadata = fs::metadata(&path).map_err(|e| {
+            io::Error::new(
+                e.kind(),
+                format!("Failed to read metadata for file {}: {}", path.display(), e),
+            )
+        })?;
 
         // Check if the path points to a regular file
         if !metadata.is_file() {
             return Err(io::Error::new(
                 io::ErrorKind::InvalidInput,
-                "Path is not a regular file",
+                format!("Path is not a regular file: {}", path.display()),
             ));
         }
 
@@ -208,5 +213,22 @@ mod tests {
         assert_eq!(human_readable_size(1634546), "1.56 MB");
         assert_eq!(human_readable_size(1073741824), "1 GB");
         assert_eq!(human_readable_size(1373741824342), "1.25 TB");
+    }
+
+    #[test]
+    fn test_calculate_total_size_with_nonexistent_file_error() {
+        let td = TempDir::new().unwrap();
+
+        let file1_path = td.mkfile_with_contents("file1.txt", "12345"); // 5 bytes
+        let nonexistent_file_path = td.path().join("nonexistent.txt");
+
+        let files = vec![file1_path, nonexistent_file_path.clone()];
+
+        let result = calculate_total_size(files);
+
+        assert!(result.is_err());
+        let error = result.unwrap_err();
+        assert_eq!(error.kind(), io::ErrorKind::NotFound);
+        assert!(error.to_string().contains(&format!("Failed to read metadata for file {}", nonexistent_file_path.display())));
     }
 }
