@@ -157,7 +157,7 @@ Displays file paths in an ASCII tree format:
 
 ## Templates
 
-`quagga` uses templates to format the combined output of your files. Templates allow you to define how the output is structured, including headers, footers, placeholders for file content, as well as providing instructions for an LLM.  By default, it applies a built-in template, but you can customize this to suit your needs. The template is self-documenting and can be found [templates/default.md](templates/default.md).
+`quagga` uses templates to format the combined output of your files. Templates allow you to define how the output is structured, including headers, footers, placeholders for file content, as well as providing instructions for an LLM.  By default, it applies a built-in template, but you can customize this to suit your needs. The template is self-documenting and can be found in [templates/default.md](templates/default.md).
 
 ### Create a custom template
 
