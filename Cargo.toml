@@ -1,6 +1,6 @@
 [package]
 name = "quagga"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 description = "Quagga: A CLI tool that combines multiple text files into a single prompt suitable for Large Language Models."
 license = "Unlicense"
