@@ -1,6 +1,6 @@
 use crate::cli::Cli;
-use crate::file::size::{calculate_total_size, human_readable_size};
 use crate::info::show_paths::format_file_paths;
+use crate::info::size::get_total_size;
 use crate::info::tree::file_paths_to_tree;
 use crate::template::copy::copy_template;
 use crate::walk::file_walker::get_all_files;
@@ -44,9 +44,7 @@ pub fn info_output(
     }
 
     if cli.size {
-        let total_size = calculate_total_size(files)?;
-        let human_readable = human_readable_size(total_size);
-        return Ok(Some(human_readable));
+        return Ok(Some(get_total_size(files)?));
     }
 
     // Return error if we reach this point
