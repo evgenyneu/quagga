@@ -135,7 +135,7 @@ quagga --help
 
 ## List files
 
-`quagga` can list files that would be included in the prompt without combining them.
+`quagga` provides a quick way to see the list of files that would be included in the prompt without combining them.
 
 ### Show file paths
 
