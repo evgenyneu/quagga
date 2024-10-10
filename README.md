@@ -47,6 +47,15 @@ quagga --output {TIME}_prompt.txt
 
 This command creates a file with a timestamp in the format `YYYY-mm-DD_HH-MM-SS_prompt.txt`.
 
+
+#### Copy prompt to clipboard
+
+```bash
+quagga --clipboard
+```
+
+This command copies the combined prompt to the clipboard instead of printing it to stdout. If the output exceeds the `--max-part-size CHARS` limit, it will be divided into parts. Each part will be copied to the clipboard separately, and you'll be prompted to press Enter to copy the next part.
+
 ### Examples
 
 #### Combine markdown files and copy to clipboard
@@ -159,12 +168,12 @@ In this example, we only include `*.rs` test files by using the un-ignore `!` sy
 
 ## Parts
 
-`quagga` splits the prompt into multiple parts if it's larger than `--max-part-size CHARS`. This is needed because LLMs have limits on the size of the prompt you can submit. Each part has a header, footer, and a pending message, which instructs the LLM to wait until you submit all parts. Rather than locating the parts manually in the output, a quicker way is to use the `--output PATH` option, which automatically creates separate files for all parts (`prompt.txt.001`, `prompt.txt.002`, etc.).
+`quagga` splits the prompt into multiple parts if it's larger than `--max-part-size CHARS`. This is needed because LLMs have limits on the size of the prompt you can submit. Each part has a header, footer, and a pending message, which instructs the LLM to wait until you submit all parts. Rather than locating the parts manually in the output, a quicker way is to use the `--output PATH` option, which automatically creates separate files for all parts (`prompt.txt.001`, `prompt.txt.002`, etc.). Alternatively, you can use the `--clipboard` option, which will copy each part to the clipboard separately and prompt you to press Enter to copy the next part.
 
 
 ## LLM context window
 
-LLMs have limited context windows. For example, GPT-4o's context window is 128K tokens, with one token being about 4 characters on average. Even though you can submit all your project code in multiple parts, an LLM like GPT-4o will only "remember" the last 128K tokens in the session. Performance will also degrade well before reaching the context window size, so it's recommended to keep the prompt as concise as possible by submitting only the relevant parts of the code or asking the LLM to summarize blocks of code.
+LLMs have limited context windows. For example, GPT-4o's context window is 128K tokens, with one token being about 4 characters on average. Even though you can submit all your project code in multiple parts, an LLM like GPT-4o will only "remember" the last 128K tokens in the session. Quality of responses will also degrade well before reaching the context window size, so it's recommended to keep the prompt as concise as possible by submitting only the relevant parts of the code or asking the LLM to summarize blocks of code.
 
 
 ## Development
@@ -176,7 +185,7 @@ See [docs/development.md](docs/development.md) for instructions on how to set up
 
 See contributing guidelines in [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## What does the word Quagga mean?
+## What's Quagga?
 
 <img src='./images/quagga.jpg' alt='Picture of Quagga'>
 
@@ -188,6 +197,7 @@ See contributing guidelines in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 Here are some great programs from other developers that offer similar functionality:
 
+* [Cursor](https://www.cursor.com/): AI code editor based on VS Code.
 * [simonw/files-to-prompt](https://github.com/simonw/files-to-prompt)
 * [mufeedvh/code2prompt](https://github.com/mufeedvh/code2prompt)
 * [banagale/FileKitty](https://github.com/banagale/FileKitty)
