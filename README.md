@@ -15,6 +15,13 @@ The main focus of `quagga` is **speed**, thanks to its implementation in Rust, a
 
 ## Installation
 
+### Pre-built binaries
+
+You can download pre-built binaries for your platform from the [GitHub Releases page](https://github.com/evgenyneu/quagga/releases).
+
+1. Download the appropriate version for your platform.
+2. Move the `quagga` binary to a location in your PATH.
+
 ### Install using Cargo
 
 [Install Rust](https://www.rust-lang.org/tools/install) and run the following command to install `quagga`:
@@ -22,7 +29,6 @@ The main focus of `quagga` is **speed**, thanks to its implementation in Rust, a
 ```bash
 cargo install quagga
 ```
-
 
 ## Basic command
 
