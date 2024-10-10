@@ -14,7 +14,7 @@ The template contains the following sections:
 
 * **Multi-part** - Used when the output prompt exceeds the `--max-part-size CHARS` limit, in which case the output is divided into parts, with each part having a part header and footer including the part number and total number of parts. The multipart template is defined between the `<part>`...`</part>` tags. These tags are placed outside the `<prompt>` tags, since they are only used when the output prompt is too large to fit in a single part.
 
-Note: the entire template must enclosed in the opening and closing `template` tags so that `quagga` can locate it in this document.
+Note: The entire template must be enclosed with the opening and closing `template` tags so that `quagga` can locate it in this document.
 
 ## Tags
 
