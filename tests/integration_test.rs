@@ -425,6 +425,11 @@ Custom Footer";
 #[test]
 #[serial]
 fn test_main_output_to_clipboard_single_part() {
+    if std::env::var("CI").is_ok() {
+        println!("Skipping clipboard test in CI environment");
+        return;
+    }
+
     let td: TempDir = TempDir::new().unwrap();
     add_template(&td);
     td.mkfile_with_contents("file.txt", "Hello");
@@ -437,6 +442,11 @@ fn test_main_output_to_clipboard_single_part() {
 #[test]
 #[serial]
 fn test_main_output_to_clipboard_multiple_parts() {
+    if std::env::var("CI").is_ok() {
+        println!("Skipping clipboard test in CI environment");
+        return;
+    }
+
     let td: TempDir = TempDir::new().unwrap();
     add_template(&td);
 

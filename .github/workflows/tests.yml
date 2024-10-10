@@ -20,5 +20,7 @@ jobs:
           override: true
       - name: Run tests
         uses: actions-rs/cargo@v1
+        env:
+          CI: true
         with:
           command: test
