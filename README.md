@@ -1,3 +1,7 @@
+[![Crates.io](https://img.shields.io/crates/v/quagga.svg)](https://crates.io/crates/quagga)
+[![CI](https://github.com/evgenyneu/quagga/actions/workflows/release.yml/badge.svg)](https://github.com/evgenyneu/quagga/actions/workflows/release.yml)
+[![License: Unlicense](https://img.shields.io/badge/license-Unlicense-blue.svg)](http://unlicense.org/)
+
 # Quagga
 
 `quagga` is a command-line utility that combines multiple text files into a single prompt suitable for Large Language Models (LLMs) like ChatGPT. It is made for programmers who need to submit code from their projects to an LLM without manually locating and copying individual files:
