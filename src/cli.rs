@@ -11,16 +11,14 @@ use std::path::PathBuf;
     after_help = "\x1b[1mExamples\x1b[0m:\n  \
     Combine all Markdown files and copy the result to clipboard instead of stdout:\n  \
     >\x1b[1m quagga --include '*.md' --clipboard \x1b[0m \n\n  \
+    Save output to a file instead of stdout:\n  \
+    >\x1b[1m quagga --output {TIME}_prompt.txt \x1b[0m \n\n  \
     Include only JavaScript, Typescript, and test files, excluding 'node_modules' and 'dist' directories:\n  \
     >\x1b[1m quagga --include '*.{js,ts}' '*.test.*' --exclude node_modules dist \x1b[0m \n\n  \
     Use a template to customize the prompt text:\n  \
-    >\x1b[1m quagga --template prompt.json --include '*.txt' \x1b[0m \n\n  \
-    Supply options via a file instead of command-line arguments:\n  \
-    >\x1b[1m quagga --options quagga_options.json \x1b[0m \n\n  \
+    >\x1b[1m quagga --template prompt.md --include '*.txt' \x1b[0m \n\n  \
     Include only files that contain the words 'todo' or 'fixthis', look in '~/code/myapp' directory:\n  \
     >\x1b[1m quagga --contain todo fixthis -- ~/code/myapp \x1b[0m \n\n  \
-    Use custom gitignore file:\n  \
-    >\x1b[1m quagga --gitignore-file /path/to/.custom.ignore \x1b[0m \n\n  \
     Pipe file paths from another program:\n  \
     >\x1b[1m find . -name '*.txt' | quagga \x1b[0m \n\n  \
     Use a list of files from a text file:\n  \
@@ -62,10 +60,6 @@ pub struct Cli {
     /// Don't use .quagga_ignore from project and home dirs (used by default)
     #[arg(short = 'I', long)]
     pub no_quagga_ignore: bool,
-
-    /// Path(s) to custom gitignore file(s)
-    #[arg(short = 'u', long, value_name = "PATH", num_args(1..))]
-    pub gitignore_file: Vec<PathBuf>,
 
     /// Include binary files (ignored by default)
     #[arg(short = 'B', long)]
@@ -111,10 +105,6 @@ pub struct Cli {
     #[arg(short = 'z', long)]
     pub size: bool,
 
-    /// Load options from a JSON file
-    #[arg(short = 'P', long, value_name = "PATH")]
-    pub options: Option<PathBuf>,
-
     /// The root directory to search for files
     #[arg(value_name = "DIRECTORY", default_value = ".")]
     pub root: PathBuf,
@@ -137,7 +127,6 @@ mod tests {
                 max_depth: None,
                 no_gitignore: false,
                 no_quagga_ignore: false,
-                gitignore_file: Vec::new(),
                 binary: false,
                 hidden: false,
                 follow_links: false,
@@ -148,7 +137,6 @@ mod tests {
                 clipboard: false,
                 paths: false,
                 tree: false,
-                options: None,
                 max_part_size: 100000,
                 max_filesize: 300 * 1024,
                 max_total_size: 500 * 1024,
@@ -193,7 +181,6 @@ mod tests {
           --max-depth 2 \
           --no-gitignore \
           --no-quagga-ignore \
-          --gitignore-file .custom_ignore \
           --binary \
           --hidden \
           --follow-links \
@@ -205,7 +192,6 @@ mod tests {
           --paths \
           --tree \
           --size \
-          --options options.json \
           --max-part-size 300 \
           --max-filesize 10000 \
           --max-total-size 20000 \
@@ -222,7 +208,6 @@ mod tests {
                 max_depth: Some(2),
                 no_gitignore: true,
                 no_quagga_ignore: true,
-                gitignore_file: vec!(PathBuf::from(".custom_ignore")),
                 binary: true,
                 hidden: true,
                 follow_links: true,
@@ -233,7 +218,6 @@ mod tests {
                 clipboard: true,
                 paths: true,
                 tree: true,
-                options: Some(PathBuf::from("options.json")),
                 max_part_size: 300,
                 max_filesize: 10000,
                 max_total_size: 20000,
