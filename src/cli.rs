@@ -107,6 +107,10 @@ pub struct Cli {
     #[arg(short = 'T', long)]
     pub tree: bool,
 
+    /// Show total size of files without combining them
+    #[arg(short = 'z', long)]
+    pub size: bool,
+
     /// Load options from a JSON file
     #[arg(short = 'P', long, value_name = "PATH")]
     pub options: Option<PathBuf>,
@@ -149,6 +153,7 @@ mod tests {
                 max_filesize: 300 * 1024,
                 max_total_size: 500 * 1024,
                 root: PathBuf::from("."),
+                size: false,
             }
         );
     }
@@ -199,6 +204,7 @@ mod tests {
           --clipboard \
           --show-paths \
           --tree \
+          --size \
           --options options.json \
           --max-part-size 300 \
           --max-filesize 10000 \
@@ -232,6 +238,7 @@ mod tests {
                 max_filesize: 10000,
                 max_total_size: 20000,
                 root: PathBuf::from("src"),
+                size: true,
             }
         );
     }

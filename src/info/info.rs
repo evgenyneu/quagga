@@ -1,4 +1,5 @@
 use crate::cli::Cli;
+use crate::file::size::{calculate_total_size, human_readable_size};
 use crate::info::show_paths::format_file_paths;
 use crate::info::tree::file_paths_to_tree;
 use crate::template::copy::copy_template;
@@ -23,7 +24,7 @@ pub fn info_output(
     cli: &Cli,
     paths: Option<Vec<PathBuf>>,
 ) -> Result<Option<String>, Box<dyn Error>> {
-    if !cli.show_paths && !cli.tree && !cli.copy_template {
+    if !cli.show_paths && !cli.tree && !cli.copy_template && !cli.size {
         return Ok(None);
     }
 
@@ -40,6 +41,12 @@ pub fn info_output(
 
     if cli.show_paths {
         return Ok(Some(format_file_paths(files)));
+    }
+
+    if cli.size {
+        let total_size = calculate_total_size(files)?;
+        let human_readable = human_readable_size(total_size);
+        return Ok(Some(human_readable));
     }
 
     // Return error if we reach this point

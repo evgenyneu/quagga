@@ -445,3 +445,14 @@ fn test_main_output_to_clipboard_multiple_parts() {
     p.expect("Part 2 of 2 copied to clipboard.").unwrap();
     p.expect("We are done.").unwrap();
 }
+
+#[test]
+fn test_main_size() {
+    let td = TempDir::new().unwrap();
+    td.mkfile_with_contents("file1.txt", &"A".repeat(1000));
+    td.mkfile_with_contents("file2.txt", &"B".repeat(200));
+
+    let output = run_in_terminal(format!("--size {}", td.path().display()));
+
+    assert_eq!(output.trim(), "1.17 KB");
+}
