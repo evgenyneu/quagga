@@ -40,7 +40,7 @@ Download pre-built binaries from the [GitHub Releases page](https://github.com/e
 2. Move the binary to a location in your PATH.
 
 
-## Basic command
+## Usage
 
 ```bash
 quagga [OPTIONS] [DIRECTORY]
