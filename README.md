@@ -114,7 +114,7 @@ quagga --help
 ### Show file paths
 
 ```bash
-quagga --show-paths
+quagga --paths
 ```
 
 This command shows the file paths:

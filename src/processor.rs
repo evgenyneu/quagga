@@ -102,7 +102,7 @@ mod tests {
         let path1 = td.mkfile("file1.txt");
         let path2 = td.mkfile("file2.txt");
 
-        let mut cli = Cli::parse_from(&["test", "--show-paths"]);
+        let mut cli = Cli::parse_from(&["test", "--paths"]);
         cli.root = td.path_buf();
 
         let result = generate_prompt(&cli, None);

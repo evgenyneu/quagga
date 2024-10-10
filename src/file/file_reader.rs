@@ -28,12 +28,19 @@ pub struct FileContent {
 /// # Returns
 ///
 /// A `Result` containing the output prompt text, splitted into parts, if successful,
-/// or an `io::Error` if an error occurs while reading any of the files.
+/// or an `io::Error` if an error occurs while reading any of the files or if the files vector is empty.
 pub fn read_and_concatenate_files(
     files: Vec<PathBuf>,
     template: Template,
     cli: &Cli,
 ) -> io::Result<Vec<String>> {
+    if files.is_empty() {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "No files to process",
+        ));
+    }
+
     check_total_size(files.clone(), cli.max_total_size)?;
     let file_contents = read_files(files, cli.binary)?;
     let concatenated = concatenate_files(template, file_contents, cli);
@@ -219,6 +226,18 @@ Footer",
         assert!(result.is_err());
         let err_msg = result.unwrap_err().to_string();
         assert!(err_msg.contains("exceeds the maximum"));
+    }
+
+    #[test]
+    fn test_read_and_concatenate_files_no_files_error() {
+        let template = Template::default();
+        let cli = Cli::parse_from(&["test"]);
+
+        let result = read_and_concatenate_files(vec![], template, &cli);
+
+        assert!(result.is_err());
+        let err_msg = result.unwrap_err().to_string();
+        assert_eq!(err_msg, "No files to process");
     }
 
     #[test]

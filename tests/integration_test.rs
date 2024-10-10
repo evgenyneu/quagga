@@ -69,7 +69,7 @@ fn test_main_show_paths() {
     let path1 = td.mkfile("file1.txt");
     let path2 = td.mkfile("file2.txt");
 
-    let output: String = run_in_terminal(format!("--show-paths {}", td.path().display()));
+    let output: String = run_in_terminal(format!("--paths {}", td.path().display()));
 
     let expected = format!("{}\n{}\n", path1.display(), path2.display());
     assert_eq!(output, expected);

@@ -7,7 +7,7 @@ use crate::walk::file_walker::get_all_files;
 use std::error::Error;
 use std::path::PathBuf;
 
-/// Generates info output for options like `--show-paths` or `--tree` that do
+/// Generates info output for options like `--paths` or `--tree` that do
 /// not involve concatenating the files.
 ///
 /// # Arguments
@@ -24,7 +24,7 @@ pub fn info_output(
     cli: &Cli,
     paths: Option<Vec<PathBuf>>,
 ) -> Result<Option<String>, Box<dyn Error>> {
-    if !cli.show_paths && !cli.tree && !cli.copy_template && !cli.size {
+    if !cli.paths && !cli.tree && !cli.copy_template && !cli.size {
         return Ok(None);
     }
 
@@ -39,7 +39,7 @@ pub fn info_output(
         return Ok(Some(file_paths_to_tree(files, Some(cli.root.clone()))));
     }
 
-    if cli.show_paths {
+    if cli.paths {
         return Ok(Some(format_file_paths(files)));
     }
 

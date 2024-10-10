@@ -1,5 +1,4 @@
 use crate::file::size::{calculate_total_size, human_readable_size};
-use crate::test_utils::temp_dir::TempDir;
 use std::error::Error;
 use std::path::PathBuf;
 

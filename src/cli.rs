@@ -100,8 +100,8 @@ pub struct Cli {
     pub clipboard: bool,
 
     /// Show paths to files without combining them
-    #[arg(short = 'S', long)]
-    pub show_paths: bool,
+    #[arg(short = 'a', long)]
+    pub paths: bool,
 
     /// Show paths to files in ASCII tree format without combining them
     #[arg(short = 'T', long)]
@@ -146,7 +146,7 @@ mod tests {
                 no_quagga_template: false,
                 output: None,
                 clipboard: false,
-                show_paths: false,
+                paths: false,
                 tree: false,
                 options: None,
                 max_part_size: 100000,
@@ -202,7 +202,7 @@ mod tests {
           --no-quagga-template \
           --output output.txt \
           --clipboard \
-          --show-paths \
+          --paths \
           --tree \
           --size \
           --options options.json \
@@ -231,7 +231,7 @@ mod tests {
                 no_quagga_template: true,
                 output: Some(PathBuf::from("output.txt")),
                 clipboard: true,
-                show_paths: true,
+                paths: true,
                 tree: true,
                 options: Some(PathBuf::from("options.json")),
                 max_part_size: 300,
