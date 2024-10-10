@@ -107,6 +107,42 @@ Pipes file paths from another program or a text file into `quagga` instead of se
 quagga --help
 ```
 
+## List files
+
+`quagga` can list files that would be included in the prompt without combining them.
+
+### Show file paths
+
+```bash
+quagga --show-paths
+```
+
+This command shows the file paths:
+
+```text
+./Cargo.toml
+./README.md
+./src/main.rs
+./src/processor.rs
+```
+
+### Show file tree
+
+```bash
+quagga --tree
+```
+
+Displays file paths in an ASCII tree format:
+
+```text
+.
+├── src
+│   ├── main.rs
+│   └── processor.rs
+├── Cargo.toml
+└── README.md
+```
+
 ## Templates
 
 `quagga` uses templates to format the combined output of your files. Templates allow you to define how the output is structured, including headers, footers, placeholders for file content, as well as providing instructions for an LLM.  By default, it applies a built-in template, but you can customize this to suit your needs. The template is self-documenting and can be found [templates/default.md](templates/default.md).
