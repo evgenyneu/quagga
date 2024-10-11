@@ -89,24 +89,23 @@ fn trim_indentation(content: &str) -> String {
     let min_indent = lines
         .iter()
         .filter(|line| !line.trim().is_empty())
-        .map(|line| line.len() - line.trim_start().len())
+        .map(|line| line.chars().take_while(|c| c.is_whitespace()).count())
         .min()
         .unwrap_or(0);
 
     lines
         .iter()
         .map(|line| {
-            if line.len() >= min_indent {
-                &line[min_indent..]
+            let char_count = line.chars().count();
+            if char_count >= min_indent {
+                line.chars().skip(min_indent).collect::<String>()
+            } else if line.trim().is_empty() {
+                String::new()
             } else {
-                if line.trim().is_empty() {
-                    ""
-                } else {
-                    line
-                }
+                line.to_string()
             }
         })
-        .collect::<Vec<&str>>()
+        .collect::<Vec<String>>()
         .join("\n")
 }
 
