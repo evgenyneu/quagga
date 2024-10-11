@@ -138,8 +138,8 @@ fn create_split_plan(
                 &mut current_part_size,
                 file,
                 part_overhead,
-                footer.len(),
-                header.len(),
+                footer.chars().count(),
+                header.chars().count(),
                 max_part_chars,
             );
         } else {
@@ -217,7 +217,7 @@ fn handle_exceeding_size(
     header_len: usize,
     max_size: usize,
 ) {
-    if file.len() + part_overhead > max_size {
+    if file.chars().count() + part_overhead > max_size {
         handle_large_file(
             parts,
             current_part,
@@ -230,7 +230,12 @@ fn handle_exceeding_size(
         );
     } else {
         start_new_part_if_needed(parts, current_part, current_part_size);
-        add_file_to_part(current_part, file, current_part_size, file.len() + 1);
+        add_file_to_part(
+            current_part,
+            file,
+            current_part_size,
+            file.chars().count() + 1,
+        );
     }
 }
 
