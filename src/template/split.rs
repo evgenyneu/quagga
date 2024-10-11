@@ -59,13 +59,13 @@ fn fits_in_single_part(
     footer: &str,
     max_part_chars: usize,
 ) -> bool {
-    let mut total_length = files.iter().map(|f| f.len() + 1).sum::<usize>();
+    let mut total_length = files.iter().map(|f| f.chars().count() + 1).sum::<usize>();
 
     if !header.is_empty() {
-        total_length += header.len() + 1;
+        total_length += header.chars().count() + 1;
     }
 
-    total_length += footer.len();
+    total_length += footer.chars().count();
 
     total_length <= max_part_chars
 }
@@ -178,9 +178,20 @@ fn calculate_file_length(
 ) -> usize {
     let is_first = index == 0 && !header.is_empty();
     let is_last = index == files.len() - 1 && !footer.is_empty();
-    let header_len = if is_first { header.len() + 1 } else { 0 };
-    let footer_len = if is_last { footer.len() + 1 } else { 0 };
-    header_len + file.len() + 1 + footer_len // +1 for newline
+
+    let header_len = if is_first {
+        header.chars().count() + 1
+    } else {
+        0
+    };
+
+    let footer_len = if is_last {
+        footer.chars().count() + 1
+    } else {
+        0
+    };
+
+    header_len + file.chars().count() + 1 + footer_len // +1 for newline
 }
 
 /// Handles the scenario where adding a file exceeds the maximum part size.
@@ -285,7 +296,7 @@ fn add_file_to_part(
 /// * `current_size` - The current size of the part.
 fn add_chunk_to_part(current_part: &mut PartContent, chunk: &str, current_size: &mut usize) {
     current_part.file_chunks.push(format!("{}\n", chunk));
-    *current_size += chunk.len();
+    *current_size += chunk.chars().count() + 1;
 }
 
 /// Splits a content of a large file that does not fit into a single part
@@ -302,23 +313,26 @@ fn add_chunk_to_part(current_part: &mut PartContent, chunk: &str, current_size: 
 fn split_file_by_lines(file_content: &str, max_chunk_size: usize) -> Vec<String> {
     let mut chunks = Vec::new();
     let mut current_chunk = String::new();
+    let mut current_chunk_chars = 0;
 
     for line in file_content.lines() {
-        let line_with_newline = format!("{}\n", line);
+        let line_chars = line.chars().count();
+        let line_with_newline_chars = line_chars + 1;
 
-        if current_chunk.len() + line_with_newline.len() > max_chunk_size {
+        if current_chunk_chars + line_with_newline_chars > max_chunk_size {
             if !current_chunk.is_empty() {
-                // add current chunk to chunks minus the last newline
                 chunks.push(current_chunk[..current_chunk.len() - 1].to_string());
                 current_chunk.clear();
+                current_chunk_chars = 0;
             }
         }
 
-        current_chunk.push_str(&line_with_newline);
+        current_chunk.push_str(line);
+        current_chunk.push('\n');
+        current_chunk_chars += line_with_newline_chars;
     }
 
     if !current_chunk.is_empty() {
-        // add current chunk to chunks minus the last newline
         chunks.push(current_chunk[..current_chunk.len() - 1].to_string());
     }
 
@@ -356,11 +370,11 @@ fn calculate_part_overhead(part_template: &PartTemplate) -> usize {
         .replace("<total-parts>", "999")
         .replace("<parts-remaining>", "999");
 
-    overhead += part_header.len() + 1; // +1 for newline
-    overhead += part_footer.len() + 1;
+    overhead += part_header.chars().count() + 1; // +1 for newline
+    overhead += part_footer.chars().count() + 1;
 
     if !part_template.pending.is_empty() {
-        overhead += part_pending.len() + 1;
+        overhead += part_pending.chars().count() + 1;
     }
 
     overhead
