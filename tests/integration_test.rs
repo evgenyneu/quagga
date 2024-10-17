@@ -94,6 +94,29 @@ fn test_main_show_paths() {
 }
 
 #[test]
+fn test_main_file_sizes() {
+    let td = TempDir::new().unwrap();
+    let path1 = td.mkfile_with_contents("file1.txt", &"A".repeat(1000));
+    let path2 = td.mkfile_with_contents("file2.txt", &"B".repeat(2000));
+    let path3 = td.mkfile_with_contents("file3.txt", &"C".repeat(500));
+
+    let output: String = run_in_terminal(format!("--file-sizes {}", td.path().display()));
+
+    let expected = format!(
+        "\
+[1.95 KB] {}
+[1000 B] {}
+[500 B] {}
+",
+        path2.display(),
+        path1.display(),
+        path3.display()
+    );
+
+    assert_eq!(output, expected);
+}
+
+#[test]
 fn test_main_show_tree() {
     let td = TempDir::new().unwrap();
     td.mkfile("file1.txt");

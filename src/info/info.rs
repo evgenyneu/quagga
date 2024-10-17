@@ -1,4 +1,5 @@
 use crate::cli::Cli;
+use crate::info::file_sizes::get_formatted_file_sizes;
 use crate::info::show_paths::format_file_paths;
 use crate::info::size::get_total_size;
 use crate::info::tree::file_paths_to_tree;
@@ -24,7 +25,7 @@ pub fn info_output(
     cli: &Cli,
     paths: Option<Vec<PathBuf>>,
 ) -> Result<Option<String>, Box<dyn Error>> {
-    if !cli.paths && !cli.tree && !cli.copy_template && !cli.size {
+    if !cli.paths && !cli.tree && !cli.copy_template && !cli.size && !cli.file_sizes {
         return Ok(None);
     }
 
@@ -43,6 +44,10 @@ pub fn info_output(
 
     if cli.paths {
         output.push(format_file_paths(files.clone()));
+    }
+
+    if cli.file_sizes {
+        output.push(get_formatted_file_sizes(files.clone())?);
     }
 
     if cli.size {

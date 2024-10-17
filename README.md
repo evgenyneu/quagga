@@ -153,6 +153,20 @@ This command shows the file paths:
 ./src/processor.rs
 ```
 
+### Show file sizes
+
+```bash
+quagga --file-sizes
+```
+
+Similar to `--paths` but shows the size of each file:
+
+```text
+[29.58 KB] ./src/template/split.rs
+[13.51 KB] ./src/info/tree.rs
+[12.92 KB] ./tests/integration_test.rs
+```
+
 ### Show file tree
 
 ```bash

@@ -97,6 +97,10 @@ pub struct Cli {
     #[arg(short = 'a', long)]
     pub paths: bool,
 
+    /// Show sizes of files without combining them
+    #[arg(short = 'Z', long)]
+    pub file_sizes: bool,
+
     /// Show paths to files in ASCII tree format without combining them
     #[arg(short = 'T', long)]
     pub tree: bool,
@@ -136,6 +140,7 @@ mod tests {
                 output: None,
                 clipboard: false,
                 paths: false,
+                file_sizes: false,
                 tree: false,
                 max_part_size: 100000,
                 max_filesize: 300 * 1024,
@@ -192,6 +197,7 @@ mod tests {
           --paths \
           --tree \
           --size \
+          --file-sizes \
           --max-part-size 300 \
           --max-filesize 10000 \
           --max-total-size 20000 \
@@ -223,6 +229,7 @@ mod tests {
                 max_total_size: 20000,
                 root: PathBuf::from("src"),
                 size: true,
+                file_sizes: true,
             }
         );
     }
