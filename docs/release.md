@@ -19,6 +19,13 @@ git push origin v0.1.2
 
 5. Update homebrew formula
 
-Update the version in the homebrew formula:
+In the homebrew formula:
 
 https://github.com/evgenyneu/homebrew-quagga/blob/main/quagga.rb
+
+* Update the version.
+* Update the SHA256 hashes by downloading the files from Github releases (https://github.com/evgenyneu/quagga/releases) and calculate the hash for each binary:
+
+```
+shasum -a 256 quagga-macos-v0.1.3.tar.gz
+```
