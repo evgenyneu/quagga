@@ -35,20 +35,21 @@ pub fn info_output(
 
     let files = get_paths(cli, paths)?;
 
+    let mut output = Vec::new();
+
     if cli.tree {
-        return Ok(Some(file_paths_to_tree(files, Some(cli.root.clone()))));
+        output.push(file_paths_to_tree(files.clone(), Some(cli.root.clone())));
     }
 
     if cli.paths {
-        return Ok(Some(format_file_paths(files)));
+        output.push(format_file_paths(files.clone()));
     }
 
     if cli.size {
-        return Ok(Some(get_total_size(files)?));
+        output.push(get_total_size(files.clone())?);
     }
 
-    // Return error if we reach this point
-    Err("No output generated".into())
+    Ok(Some(output.join("\n\n")))
 }
 
 fn get_paths(cli: &Cli, paths: Option<Vec<PathBuf>>) -> Result<Vec<PathBuf>, Box<dyn Error>> {
@@ -59,4 +60,94 @@ fn get_paths(cli: &Cli, paths: Option<Vec<PathBuf>>) -> Result<Vec<PathBuf>, Box
     };
 
     Ok(files)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::test_utils::temp_dir::TempDir;
+    use clap::Parser;
+
+    #[test]
+    fn test_info_output_all_options() {
+        let td = TempDir::new().unwrap();
+        let file1 = td.mkfile_with_contents("file1.txt", "Hello");
+        let file2 = td.mkfile_with_contents("file2.txt", "World");
+
+        let mut cli = Cli::parse_from(&["test", "--paths", "--tree", "--size"]);
+        cli.root = td.path_buf();
+
+        let result = info_output(&cli, None).unwrap().unwrap();
+        let parts: Vec<&str> = result.split("\n\n").collect();
+
+        assert_eq!(parts.len(), 3);
+
+        // Check tree output
+        // ----------
+
+        let expected = format!(
+            "{}
+├── file1.txt
+└── file2.txt",
+            cli.root.display()
+        );
+
+        assert_eq!(parts[0], expected);
+
+        // Check paths output
+        // ----------
+
+        assert_eq!(
+            parts[1],
+            format!(
+                "{}
+{}",
+                file1.display(),
+                file2.display()
+            )
+        );
+
+        // Check size output
+        // ----------
+
+        assert_eq!(parts[2], "10 B");
+    }
+
+    #[test]
+    fn test_info_output_partial_options() {
+        let td = TempDir::new().unwrap();
+        td.mkfile_with_contents("file1.txt", "Hello");
+        td.mkfile_with_contents("file2.txt", "World");
+
+        let mut cli = Cli::parse_from(&["test", "--size"]);
+        cli.root = td.path_buf();
+
+        let result = info_output(&cli, None).unwrap().unwrap();
+        let parts: Vec<&str> = result.split("\n\n").collect();
+
+        assert_eq!(parts.len(), 1);
+
+        // Check size output
+        assert!(parts[0].contains("10 B"));
+    }
+
+    #[test]
+    fn test_info_output_no_options() {
+        let td = TempDir::new().unwrap();
+        let mut cli = Cli::parse_from(&["test"]);
+        cli.root = td.path_buf();
+
+        let result = info_output(&cli, None).unwrap();
+        assert!(result.is_none());
+    }
+
+    #[test]
+    fn test_info_output_copy_template() {
+        let td = TempDir::new().unwrap();
+        let mut cli = Cli::parse_from(&["test", "--copy-template"]);
+        cli.root = td.path_buf();
+
+        let result = info_output(&cli, None).unwrap().unwrap();
+        assert!(result.contains("Template was copied to"));
+    }
 }
