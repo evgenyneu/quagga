@@ -16,3 +16,9 @@ cargo publish
 git tag v0.1.2
 git push origin v0.1.2
 ```
+
+5. Update homebrew formula
+
+Update the version in the homebrew formula:
+
+https://github.com/evgenyneu/homebrew-quagga/blob/main/quagga.rb
