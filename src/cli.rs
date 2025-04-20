@@ -109,7 +109,7 @@ pub struct Cli {
     #[arg(short = 'z', long)]
     pub size: bool,
 
-    /// Exclude comment lines from the output
+    /// Remove single line code comments
     #[arg(long = "no-comments")]
     pub no_comments: bool,
 
