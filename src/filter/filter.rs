@@ -16,6 +16,21 @@ pub fn filter_lines_in_files(file_contents: &Vec<FileContent>, _cli: &Cli) -> Ve
     file_contents.to_vec()
 }
 
+/// Filters lines in a single file according to CLI options.
+///
+/// # Arguments
+///
+/// * `file_content` - The FileContent struct to filter.
+/// * `cli` - Reference to the Cli options.
+///
+/// # Returns
+///
+/// The FileContent struct, possibly filtered according to CLI flags.
+pub fn filter_lines_in_single_file(file_content: FileContent, _cli: &Cli) -> FileContent {
+    // Stub: currently returns the input unchanged.
+    file_content
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -36,5 +51,17 @@ mod tests {
         let output = filter_lines_in_files(&input, &cli);
 
         assert_eq!(output.len(), 1);
+    }
+
+    #[test]
+    fn test_filter_lines_in_single_file_noop() {
+        let input = FileContent {
+            path: PathBuf::from("bar.py"),
+            content: String::from("print('hello world')"),
+        };
+
+        let cli = Cli::parse_from(&["test"]);
+
+        let _output = filter_lines_in_single_file(input.clone(), &cli);
     }
 }
