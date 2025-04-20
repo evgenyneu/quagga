@@ -1,5 +1,6 @@
 mod cli;
 mod file;
+mod filter;
 mod info;
 mod output;
 mod processor;

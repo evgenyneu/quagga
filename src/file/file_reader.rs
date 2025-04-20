@@ -1,5 +1,6 @@
 use crate::cli::Cli;
 use crate::file::size::check_total_size;
+use crate::filter::filter::filter_lines_in_files;
 use crate::template::concatenate::concatenate_files;
 use crate::template::template::Template;
 use std::fs;
@@ -12,7 +13,7 @@ use std::path::PathBuf;
 ///
 /// * `path` - The file path.
 /// * `content` - The contents of the file as a `String`.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct FileContent {
     pub path: PathBuf,
     pub content: String,
@@ -43,7 +44,8 @@ pub fn read_and_concatenate_files(
 
     check_total_size(files.clone(), cli.max_total_size)?;
     let file_contents = read_files(files, cli.binary)?;
-    let concatenated = concatenate_files(template, file_contents, cli);
+    let filtered = filter_lines_in_files(&file_contents, cli);
+    let concatenated = concatenate_files(template, filtered, cli);
     Ok(concatenated)
 }
 

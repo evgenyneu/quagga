@@ -1,5 +1,6 @@
 pub mod cli;
 pub mod file;
+pub mod filter;
 pub mod info;
 pub mod output;
 pub mod processor;
