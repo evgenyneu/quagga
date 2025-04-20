@@ -109,6 +109,10 @@ pub struct Cli {
     #[arg(short = 'z', long)]
     pub size: bool,
 
+    /// Exclude comment lines from the output
+    #[arg(long = "no-comments")]
+    pub no_comments: bool,
+
     /// The root directory to search for files
     #[arg(value_name = "DIRECTORY", default_value = ".")]
     pub root: PathBuf,
@@ -147,6 +151,7 @@ mod tests {
                 max_total_size: 500 * 1024,
                 root: PathBuf::from("."),
                 size: false,
+                no_comments: false,
             }
         );
     }
@@ -201,6 +206,7 @@ mod tests {
           --max-part-size 300 \
           --max-filesize 10000 \
           --max-total-size 20000 \
+          --no-comments \
           src";
 
         let args = Cli::parse_from(cmd.split_whitespace());
@@ -230,6 +236,7 @@ mod tests {
                 root: PathBuf::from("src"),
                 size: true,
                 file_sizes: true,
+                no_comments: true,
             }
         );
     }
