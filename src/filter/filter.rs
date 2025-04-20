@@ -11,9 +11,12 @@ use crate::file::file_reader::FileContent;
 /// # Returns
 ///
 /// A vector of FileContent structs, possibly filtered according to CLI flags.
-pub fn filter_lines_in_files(file_contents: &Vec<FileContent>, _cli: &Cli) -> Vec<FileContent> {
-    // Stub: currently returns the input unchanged.
-    file_contents.to_vec()
+pub fn filter_lines_in_files(file_contents: &Vec<FileContent>, cli: &Cli) -> Vec<FileContent> {
+    file_contents
+        .iter()
+        .cloned()
+        .map(|file| filter_lines_in_single_file(file, cli))
+        .collect()
 }
 
 /// Filters lines in a single file according to CLI options.
