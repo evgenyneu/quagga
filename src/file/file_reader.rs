@@ -150,7 +150,7 @@ mod tests {
     use super::*;
     use crate::template::template::{PromptTemplate, Template};
     use crate::test_utils::temp_dir::TempDir;
-    use clap::Parser; // Add this import
+    use clap::Parser;
 
     #[test]
     fn test_read_and_concatenate_files() {
