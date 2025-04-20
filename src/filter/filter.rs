@@ -1,5 +1,6 @@
 use crate::cli::Cli;
 use crate::file::file_reader::FileContent;
+use crate::filter::remove_comments::remove_comments_from_file;
 
 /// Filters lines in the provided files according to CLI options.
 ///
@@ -29,9 +30,17 @@ pub fn filter_lines_in_files(file_contents: &Vec<FileContent>, cli: &Cli) -> Vec
 /// # Returns
 ///
 /// The FileContent struct, possibly filtered according to CLI flags.
-pub fn filter_lines_in_single_file(file_content: FileContent, _cli: &Cli) -> FileContent {
-    // Stub: currently returns the input unchanged.
-    file_content
+pub fn filter_lines_in_single_file(file_content: FileContent, cli: &Cli) -> FileContent {
+    if cli.remove_comments {
+        let filtered_content = remove_comments_from_file(file_content.clone());
+
+        FileContent {
+            path: file_content.path,
+            content: filtered_content,
+        }
+    } else {
+        file_content
+    }
 }
 
 #[cfg(test)]

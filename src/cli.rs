@@ -110,8 +110,8 @@ pub struct Cli {
     pub size: bool,
 
     /// Remove single line code comments
-    #[arg(long = "no-comments")]
-    pub no_comments: bool,
+    #[arg(long = "remove-comments")]
+    pub remove_comments: bool,
 
     /// The root directory to search for files
     #[arg(value_name = "DIRECTORY", default_value = ".")]
@@ -151,7 +151,7 @@ mod tests {
                 max_total_size: 500 * 1024,
                 root: PathBuf::from("."),
                 size: false,
-                no_comments: false,
+                remove_comments: false,
             }
         );
     }
@@ -206,7 +206,7 @@ mod tests {
           --max-part-size 300 \
           --max-filesize 10000 \
           --max-total-size 20000 \
-          --no-comments \
+          --remove-comments \
           src";
 
         let args = Cli::parse_from(cmd.split_whitespace());
@@ -236,7 +236,7 @@ mod tests {
                 root: PathBuf::from("src"),
                 size: true,
                 file_sizes: true,
-                no_comments: true,
+                remove_comments: true,
             }
         );
     }
