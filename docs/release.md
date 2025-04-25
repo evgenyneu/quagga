@@ -2,7 +2,7 @@
 
 1. Update the version in your Cargo.toml file.
 2. Document changes in CHANGELOG.md.
-3. Public to crates.io
+3. Publish to crates.io
 
 ```
 cargo login
