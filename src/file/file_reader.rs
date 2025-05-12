@@ -1,22 +1,12 @@
 use crate::cli::Cli;
+use crate::file::comment_remover::remove_comments;
+use crate::file::file_content::FileContent;
 use crate::file::size::check_total_size;
 use crate::template::concatenate::concatenate_files;
 use crate::template::template::Template;
 use std::fs;
 use std::io::{self, Read};
 use std::path::PathBuf;
-
-/// Represents the content of a file along with its path.
-///
-/// # Fields
-///
-/// * `path` - The file path.
-/// * `content` - The contents of the file as a `String`.
-#[derive(Debug)]
-pub struct FileContent {
-    pub path: PathBuf,
-    pub content: String,
-}
 
 /// Reads and concatenates files using the provided template.
 ///
@@ -42,7 +32,12 @@ pub fn read_and_concatenate_files(
     }
 
     check_total_size(files.clone(), cli.max_total_size)?;
-    let file_contents = read_files(files, cli.binary)?;
+    let mut file_contents: Vec<FileContent> = read_files(files, cli.binary)?;
+
+    if cli.remove_comments {
+        file_contents = remove_comments(file_contents);
+    }
+
     let concatenated = concatenate_files(template, file_contents, cli);
     Ok(concatenated)
 }
@@ -392,5 +387,49 @@ Footer",
         assert!(result.is_err());
         let msg = result.unwrap_err().to_string();
         assert!(msg.contains("Failed to open file /path/to/non/existent/file.txt"));
+    }
+
+    #[test]
+    fn test_read_and_concatenate_files_with_comments_removal() {
+        let td = TempDir::new().unwrap();
+
+        let file1_path = td.mkfile_with_contents("file1.rs", "let x = 1; // comment");
+        let file2_path = td.mkfile_with_contents("file2.txt", "Unchanged content");
+        let files = vec![file1_path.clone(), file2_path.clone()];
+
+        let template = Template {
+            prompt: PromptTemplate {
+                header: "Header".to_string(),
+                file: "File: <file-path>\nContent:\n<file-content>\n---".to_string(),
+                footer: "Footer".to_string(),
+            },
+            part: Default::default(),
+        };
+
+        let cli = Cli::parse_from(&["test", "--remove-comments"]);
+
+        let result = read_and_concatenate_files(files, template, &cli);
+
+        assert!(result.is_ok());
+        let content = result.unwrap();
+        assert_eq!(content.len(), 1);
+
+        let expected = format!(
+            "\
+Header
+File: {}
+Content:
+let x = 1;
+---
+File: {}
+Content:
+Unchanged content
+---
+Footer",
+            file1_path.display(),
+            file2_path.display()
+        );
+
+        assert_eq!(content[0], expected);
     }
 }

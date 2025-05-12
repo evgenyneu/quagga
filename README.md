@@ -119,6 +119,15 @@ quagga --contain todo fixthis -- ~/code/myapp
 Includes only files that contain the words 'todo' or 'fixthis', look in the `~/code/myapp` directory. Notice the use of `--` to separate options from the directory path.
 
 
+### Remove comments from files
+
+```bash
+quagga --remove-comments
+```
+
+Removes comments from code files.
+
+
 ### Pipe file paths from another program
 
 ```bash

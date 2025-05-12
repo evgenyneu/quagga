@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.1.4] - 2025-05-12
+
+- Add `--remove-comments` option.
+
 ## [v0.1.3] - 2024-10-17
 
 - Add `--file-sizes` option

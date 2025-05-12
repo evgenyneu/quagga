@@ -1,6 +1,6 @@
 use super::split::split_into_parts;
 use crate::cli::Cli;
-use crate::file::file_reader::FileContent;
+use crate::file::file_content::FileContent;
 use crate::template::tags::header_footer::process_header_footer;
 use crate::template::template::Template;
 use std::path::PathBuf;
